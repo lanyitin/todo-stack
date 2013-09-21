@@ -1,10 +1,10 @@
 from setuptools import setup
 
-setup(name='YourAppName',
+setup(name='Stack Todos',
       version='1.0',
-      description='OpenShift App',
-      author='Your Name',
-      author_email='example@example.com',
+      description='A simple todo mamange app',
+      author='Lan, Yi-Tin',
+      author_email='lanyitin@gmail.com',
       url='http://www.python.org/sigs/distutils-sig/',
-      install_requires=['Flask>=0.7.2', 'MarkupSafe'],
+      install_requires=['Flask=0.10.1', 'MarkupSafe'],
      )
