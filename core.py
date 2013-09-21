@@ -1,0 +1,152 @@
+from __future__ import print_function
+class Stack:
+    def __init__(self):
+        self.items = [];
+
+    def push(self, item):
+        if item is not None:
+            self.items.append(item);
+
+    def pop(self):
+        if len(self.items) is 0:
+            return None;
+        else:
+            item = self.items.pop();
+            return item
+
+    def removeItem(self, index):
+        tmpList = [];
+        for i in range(index):
+            tmpList.append(self.items.pop());
+        item = self.items.pop();
+        for i in range(len(tmpList)):
+            self.items.append(tmpList.pop());
+        return item;
+
+    def moveItem(self, fromIndex, toIndex):
+        item = self.removeItem(fromIndex);
+        tmpList = [];
+        for i in range(toIndex):
+            tmpList.append(self.items.pop());
+        self.push(item);
+        for i in range(len(tmpList)):
+            self.push(tmpList.pop());
+
+    def size(self):
+        return len(self.items);
+
+    def getItems(self, reverse = False):
+        if reverse:
+            return reversed(self.items);
+        else:
+            return list(self.items);
+
+class TodoStack(Stack):
+    def __init__(self, id, name):
+        Stack.__init__(self);
+        self.id = id;
+        self.name = name;
+    
+    def push(self, item):
+        if not isinstance(item, Todo):
+            item = Todo(content = item)
+        if item.stackid is not self.id:
+            item.id = None
+        maxOrder = 0;
+        if self.size() > 0:
+            maxOrder = self.items[-1].order + 1
+        item.order = maxOrder
+        item.stackid = self.id
+        if item.content is not None and item.content is not "":
+            if not isinstance(item.content, unicode):
+                item.content = unicode(item.content)
+            Stack.push(self, item)
+
+    def getItems(self, reverse = False):
+        if reverse:
+            return reversed(self.items);
+        else:
+            return self.items;
+
+class StackMapper:
+    @classmethod
+    def store(cls, stack, db):
+        StackMapper.stripName(stack);
+        StackMapper.insertNewStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack);
+        StackMapper.storeTodos(db, stack);
+        StackMapper.deletePopoutOrRemoveItem(db, stack);
+
+    @staticmethod
+    def deletePopoutOrRemoveItem(db, stack):
+        id_group = [str(todo.id) for todo in stack.getItems() if todo.id is not None]
+        if len(id_group) > 0:
+            id_group = ",".join(id_group)
+            cursor = db.cursor().execute("delete from todo where id not in (%s) and stackid=%d" % (id_group, stack.id));
+            db.commit();
+
+    @staticmethod
+    def storeTodos(db, stack):
+        for item in stack.getItems():
+            update_items = []
+            if item.id is None:
+                cursor = db.cursor().execute("insert into todo (content, `order`, stackid) values (?, ?, ?)", (item.content, item.order, item.stackid));
+                item.id = cursor.lastrowid;
+            else:
+                cursor = db.cursor().execute("update todo set content=?, `order`=?, stackid=? where id=?", (item.content, item.order, item.stackid, item.id,));
+            db.commit();
+
+    @staticmethod
+    def insertNewStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack):
+        if stack.id is None and stack.size() > 0:
+            cursor = db.cursor().execute("insert into stack (name) values (?)", (stack.name,));
+            db.commit();
+            stack.id = cursor.lastrowid;
+            StackMapper.updateStackId(stack);
+
+    @staticmethod
+    def updateStackId(stack):
+        for item in stack.items:
+            item.stackid = stack.id;
+
+    @staticmethod
+    def stripName(stack):
+        if " " in stack.name:
+            stack.name = stack.name.strip(' \t\n\r');
+            
+
+    @classmethod
+    def findByName(cls, name, db):
+        cursor = db.cursor();
+        rows = cursor.execute("select * from stack where name=?", (name,));
+        row = rows.fetchone();
+        if row is None:
+            return None;
+        else:
+            stack =  TodoStack(row[0], row[1]);
+            cursor = db.cursor();
+            rows = cursor.execute("select * from todo where stackid=? order by `order` asc", (stack.id,));
+            for row in rows.fetchall():
+                stack.items.append(Todo(id = row[0], content = row[1], order = row[2], stackid = row[3]));
+            return stack;
+
+class Todo:
+    def __init__(self, **argus):
+        if "id" in argus:
+            self.id = argus["id"];
+        else:
+            self.id = None;
+
+        if "order" in argus:
+            self.order = argus["order"];
+        else:
+            self.order = None;
+
+        if "stackid" in argus:
+            self.stackid = argus["stackid"];
+        else:
+            self.stackid = None;
+
+        self.content = argus["content"];
+
+    def __str__(self):
+        return str({"id":self.id, "content":self.content, "order":self.order, "stackid":self.stackid})
