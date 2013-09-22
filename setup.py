@@ -6,5 +6,5 @@ setup(name='Stack Todos',
       author='Lan, Yi-Tin',
       author_email='lanyitin@gmail.com',
       url='http://www.python.org/sigs/distutils-sig/',
-      install_requires=['Flask>=0.10.1', 'MarkupSafe'],
+      install_requires=['Flask>=0.10.1', 'MarkupSafe', 'pymongo'],
      )

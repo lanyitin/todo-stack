@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath("."))
 
 from core import TodoStack
 from core import Todo
-from core import StackMapper
+from Mappers import SqliteStackMapper
 
 class StackMapperTest(unittest.TestCase):
     def setUp(self):
@@ -24,14 +24,14 @@ class StackMapperTest(unittest.TestCase):
 
     def testCreateNewStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(self):
         stack = TodoStack(None, self.stackName)
-        StackMapper.store(stack, self.db)
+        SqliteStackMapper.store(stack, self.db)
         cursor = self.db.cursor();
         rows = cursor.execute("select name from stack where name=?", (self.stackName,));
         self.assertEquals(0, len(rows.fetchall()))
 
 
         stack.push(1)
-        StackMapper.store(stack, self.db)
+        SqliteStackMapper.store(stack, self.db)
         rows = cursor.execute("select name from stack where name=?", (self.stackName,));
         self.assertEquals(1, len(rows.fetchall()))
         self.assertEquals(1, stack.id)
@@ -40,8 +40,8 @@ class StackMapperTest(unittest.TestCase):
         stack = TodoStack(None, self.stackName);
         for i in range(5):
             stack.push(i)
-        StackMapper.store(stack, self.db)
-        stack = StackMapper.findByName(self.stackName, self.db)
+        SqliteStackMapper.store(stack, self.db)
+        stack = SqliteStackMapper.findByName(self.stackName, self.db)
         self.assertEquals(5, stack.size())
         i = 0;
         for item in stack.getItems(True):
@@ -50,15 +50,15 @@ class StackMapperTest(unittest.TestCase):
             i += 1
         
     def testFindByNameShouldReturnNone(self):
-        self.assertEquals(None, StackMapper.findByName(self.stackName, self.db))
+        self.assertEquals(None, SqliteStackMapper.findByName(self.stackName, self.db))
 
     def testCannotHaveTwoStackWithSameName(self):
         stack = TodoStack(None, self.stackName)
         stack.push(1)
-        StackMapper.store(stack, self.db)
+        SqliteStackMapper.store(stack, self.db)
         stack.id = None
         with self.assertRaises(Exception) as cm:
-            StackMapper.store(stack, self.db)
+            SqliteStackMapper.store(stack, self.db)
     def testAutoStripStackNameBeforeIntertIntoTable(self):
         cursor = self.db.cursor()
         rows = cursor.execute("select name from stack where name=?", (self.stackName,));
@@ -66,7 +66,7 @@ class StackMapperTest(unittest.TestCase):
         newStackName = "    " + self.stackName;
         stack = TodoStack(None, newStackName);
         stack.push(1)
-        StackMapper.store(stack, self.db)
+        SqliteStackMapper.store(stack, self.db)
         self.assertEquals(self.stackName, stack.name);
         rows = cursor.execute("select name from stack where name=?", (self.stackName,));
         self.assertEquals(1, len(rows.fetchall()))
@@ -75,12 +75,12 @@ class StackMapperTest(unittest.TestCase):
         stack = TodoStack(None, self.stackName);
         for i in range(5):
             stack.push(i)
-        StackMapper.store(stack, self.db)
-        stack = StackMapper.findByName(self.stackName, self.db)
+        SqliteStackMapper.store(stack, self.db)
+        stack = SqliteStackMapper.findByName(self.stackName, self.db)
         stack.moveItem(0, 1)
-        StackMapper.store(stack, self.db)
+        SqliteStackMapper.store(stack, self.db)
         
-        stack = StackMapper.findByName(self.stackName, self.db)
+        stack = SqliteStackMapper.findByName(self.stackName, self.db)
         item = stack.pop()
         self.assertEquals("3", item.content)
         self.assertEquals(4, item.order)
@@ -92,25 +92,25 @@ class StackMapperTest(unittest.TestCase):
         stack = TodoStack(None, self.stackName);
         for i in range(5):
             stack.push(i)
-        StackMapper.store(stack, self.db)
-        stack = StackMapper.findByName(self.stackName, self.db)
+        SqliteStackMapper.store(stack, self.db)
+        stack = SqliteStackMapper.findByName(self.stackName, self.db)
         stack.removeItem(2)
-        StackMapper.store(stack, self.db)
-        stack = StackMapper.findByName(self.stackName, self.db)
+        SqliteStackMapper.store(stack, self.db)
+        stack = SqliteStackMapper.findByName(self.stackName, self.db)
         for item in stack.getItems():
             self.assertNotEquals("2", item.content)
     def testTransferTodoToOtherStack(self):
         stack = TodoStack(None, self.stackName);
         for i in range(5):
             stack.push(i)
-        StackMapper.store(stack, self.db)
-        stack = StackMapper.findByName(self.stackName, self.db)
+        SqliteStackMapper.store(stack, self.db)
+        stack = SqliteStackMapper.findByName(self.stackName, self.db)
         self.assertEquals(5, stack.size())
         trash_stack = TodoStack(None, self.stackName + "_trash");
         trash_stack.push(stack.pop());
-        StackMapper.store(stack, self.db)
-        StackMapper.store(trash_stack, self.db)
-        stack = StackMapper.findByName(self.stackName, self.db)
-        trash_stack = StackMapper.findByName(self.stackName + "_trash", self.db)
+        SqliteStackMapper.store(stack, self.db)
+        SqliteStackMapper.store(trash_stack, self.db)
+        stack = SqliteStackMapper.findByName(self.stackName, self.db)
+        trash_stack = SqliteStackMapper.findByName(self.stackName + "_trash", self.db)
         self.assertEquals(4, stack.size())
         self.assertEquals(1, trash_stack.size())

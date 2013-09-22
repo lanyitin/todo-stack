@@ -68,66 +68,6 @@ class TodoStack(Stack):
         else:
             return self.items;
 
-class StackMapper:
-    @classmethod
-    def store(cls, stack, db):
-        StackMapper.stripName(stack);
-        StackMapper.insertNewStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack);
-        StackMapper.storeTodos(db, stack);
-        StackMapper.deletePopoutOrRemoveItem(db, stack);
-
-    @staticmethod
-    def deletePopoutOrRemoveItem(db, stack):
-        id_group = [str(todo.id) for todo in stack.getItems() if todo.id is not None]
-        if len(id_group) > 0:
-            id_group = ",".join(id_group)
-            cursor = db.cursor().execute("delete from todo where id not in (%s) and stackid=%d" % (id_group, stack.id));
-            db.commit();
-
-    @staticmethod
-    def storeTodos(db, stack):
-        for item in stack.getItems():
-            update_items = []
-            if item.id is None:
-                cursor = db.cursor().execute("insert into todo (content, `order`, stackid) values (?, ?, ?)", (item.content, item.order, item.stackid));
-                item.id = cursor.lastrowid;
-            else:
-                cursor = db.cursor().execute("update todo set content=?, `order`=?, stackid=? where id=?", (item.content, item.order, item.stackid, item.id,));
-            db.commit();
-
-    @staticmethod
-    def insertNewStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack):
-        if stack.id is None and stack.size() > 0:
-            cursor = db.cursor().execute("insert into stack (name) values (?)", (stack.name,));
-            db.commit();
-            stack.id = cursor.lastrowid;
-            StackMapper.updateStackId(stack);
-
-    @staticmethod
-    def updateStackId(stack):
-        for item in stack.items:
-            item.stackid = stack.id;
-
-    @staticmethod
-    def stripName(stack):
-        if " " in stack.name:
-            stack.name = stack.name.strip(' \t\n\r');
-            
-
-    @classmethod
-    def findByName(cls, name, db):
-        cursor = db.cursor();
-        rows = cursor.execute("select * from stack where name=?", (name,));
-        row = rows.fetchone();
-        if row is None:
-            return None;
-        else:
-            stack =  TodoStack(row[0], row[1]);
-            cursor = db.cursor();
-            rows = cursor.execute("select * from todo where stackid=? order by `order` asc", (stack.id,));
-            for row in rows.fetchall():
-                stack.items.append(Todo(id = row[0], content = row[1], order = row[2], stackid = row[3]));
-            return stack;
 
 class Todo:
     def __init__(self, **argus):
