@@ -9,11 +9,16 @@ class SqliteStackMapper:
 
 	@staticmethod
 	def deletePopoutOrRemoveItem(db, stack):
-		id_group = [str(todo.id) for todo in stack.getItems() if todo.id is not None]
-		if len(id_group) > 0:
-			id_group = ",".join(id_group)
-			cursor = db.cursor().execute("delete from todo where id not in (%s) and stackid=%d" % (id_group, stack.id));
-			db.commit();
+		if stack.size() > 0:
+			id_group = [str(todo.id) for todo in stack.getItems() if todo.id is not None]
+			if len(id_group) > 0:
+				id_group = ",".join(id_group)
+				cursor = db.cursor().execute("delete from todo where id not in (%s) and stackid=%d" % (id_group, stack.id));
+				db.commit();
+		else:
+				cursor = db.cursor().execute("delete from todo where stackid=%d" % (stack.id,));
+				db.commit();
+
 
 	@staticmethod
 	def storeTodos(db, stack):
