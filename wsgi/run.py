@@ -3,7 +3,6 @@ import os, sys, json, sqlite3, base64, time, pymongo
 from flask import Flask, request, g, abort, redirect, url_for, render_template
 from core import TodoStack, Todo
 from Mappers import MapperFactory
-from JSONEncoder import StackEncoder
 app = Flask(__name__)
 factory = MapperFactory("mongo")
 

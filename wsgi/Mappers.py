@@ -70,9 +70,13 @@ class MongoStackMapper:
 
 	@staticmethod
 	def deletePopoutOrRemoveItem(db, stack):
-		id_group = [todo.id for todo in stack.getItems() if todo.id is not None]
-		if len(id_group) > 0:
-			db.stacktodos.todos.remove({"_id": {'$nin': id_group}, "stackid": stack.id})
+		if stack.size() > 0:
+			id_group = [todo.id for todo in stack.getItems() if todo.id is not None]
+			if len(id_group) > 0:
+				db.stacktodos.todos.remove({"_id": {'$nin': id_group}, "stackid": stack.id})
+		else:
+				db.stacktodos.todos.remove({"stackid": stack.id})
+
 
 	@staticmethod
 	def storeTodos(db, stack):
