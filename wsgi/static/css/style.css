@@ -42,3 +42,15 @@ body {
 }
 
 .stack.trash .todo .content{text-decoration: line-through;}
+
+.trash.control {
+	position:relative;
+	z-index:2;
+	top:15px;
+}
+
+#trash_expand_collapse_btn {
+	display:block;
+	width:100px;
+	margin:auto;
+}

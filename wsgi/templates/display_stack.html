@@ -12,6 +12,9 @@
 	</div>
       </h1>
       <div class="list-group stack-container">
+        <div class="trash control">
+          <div id="trash_expand_collapse_btn" class="btn btn-success"></div>
+	</div>
 	<div class="stack trash sortable">
 	  {% for todo in trash_stack.getItems() %}
 	  <div class="list-group-item todo container"><div class="col-md-11 content">{{ todo.content }}</div></div>
@@ -70,7 +73,17 @@
   $(".sort.icon").toggle();
   $(".sort.control").click(function() {
   $(".sort.icon").toggle();
-  })
+  });
+  $("#trash_expand_collapse_btn").click(function (e, thiz) {
+	  $(".stack.trash .todo:not(:nth-child(n+2))").animate({height:"toggle"}, function () {
+		  if ($(".stack.trash .todo:not(:nth-child(n+2))").css("display") === "none") {
+			$(e.target).html("Expand");
+		  } else {
+			$(e.target).html("Collapse");
+		  }
+	  });
+  });
+  $("#trash_expand_collapse_btn").click();
   })();
 </script>
 <!--
