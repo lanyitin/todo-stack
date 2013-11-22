@@ -66,6 +66,18 @@ def removeItem(stackName, index):
 	factory.getMapper().store(stack, get_db())
 	return redirect("/" + stackName);
 
+@app.route('/<stackName>/raisePriority/<int:index>', methods=["GET"])
+def raisePriority(stackName, index):
+	stack = factory.getMapper().findByName(stackName, get_db()) or TodoStack(None, stackName);
+	todos = stack.getItems(True);
+	todo = todos[index];
+	todo.priority += 1;
+	if todo.priority >= 5:
+		todo.priority %= 5;
+	factory.getMapper().store(stack, get_db())
+	return redirect("/" + stackName)
+
+
 @app.teardown_appcontext
 def close_connection(exception):
 	db = getattr(g, '_database', None)

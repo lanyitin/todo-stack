@@ -5,10 +5,14 @@ body {
 }
 
 .todo {
-    font-size:2em;
     font-weight:bold;
+    font-size:1.5em;
 }
-
+.todo .content {
+    font-size:1em;
+    word-wrap:break-word;
+    white-space:pre-wrap;
+}
 .stack {
     border-style:solid;
 }
@@ -21,6 +25,9 @@ body {
     border-bottom-right-radius:5px;
 }
 
+.stack:not(.trash) .todo:nth-child(1) .content{
+	font-size: 1.5em;
+}
 .trash.stack {
     border-color:#ac2925;
     border-bottom-style:none;
@@ -30,6 +37,10 @@ body {
 
 .todo:first-child, .todo:last-child {
     border-radius:0px;
+}
+
+.todo .priority {
+	float:right;
 }
 
 .stack:not(.trash) .todo:nth-child(even) {
@@ -42,6 +53,7 @@ body {
 }
 
 .stack.trash .todo .content{text-decoration: line-through;}
+
 
 .trash.control {
 	position:relative;

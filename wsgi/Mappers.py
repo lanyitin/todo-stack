@@ -25,10 +25,10 @@ class SqliteStackMapper:
 		for item in stack.getItems():
 			update_items = []
 			if item.id is None:
-				cursor = db.cursor().execute("insert into todo (content, `order`, stackid) values (?, ?, ?)", (item.content, item.order, item.stackid));
+				cursor = db.cursor().execute("insert into todo (content, `order`, stackid, priority) values (?, ?, ?, ?)", (item.content, item.order, item.stackid, item.priority));
 				item.id = cursor.lastrowid;
 			else:
-				cursor = db.cursor().execute("update todo set content=?, `order`=?, stackid=? where id=?", (item.content, item.order, item.stackid, item.id,));
+				cursor = db.cursor().execute("update todo set content=?, `order`=?, stackid=?, priority=? where id=?", (item.content, item.order, item.stackid, item.priority, item.id));
 			db.commit();
 
 	@staticmethod
@@ -62,7 +62,7 @@ class SqliteStackMapper:
 			cursor = db.cursor();
 			rows = cursor.execute("select * from todo where stackid=? order by `order` asc", (stack.id,));
 			for row in rows.fetchall():
-				stack.items.append(Todo(id = row[0], content = row[1], order = row[2], stackid = row[3]));
+				stack.items.append(Todo(id = row[0], content = row[1], order = row[2], stackid = row[3], priority = row[4]));
 			return stack;
 
 class MongoStackMapper:
@@ -118,7 +118,10 @@ class MongoStackMapper:
 			stack =  TodoStack(row["_id"], row["name"]);
 			rows = list(db.stacktodos.todos.find({"stackid": stack.id}))
 			for row in rows:
-				stack.items.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"]));
+                                if "priority" in row:
+                                    stack.items.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"], priority = row["priority"]));
+                                else:
+                                    stack.items.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"]));
 			return stack;
 
 

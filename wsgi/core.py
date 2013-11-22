@@ -37,7 +37,7 @@ class Stack:
 
     def getItems(self, reverse = False):
         if reverse:
-            return reversed(self.items);
+            return self.items[::-1];
         else:
             return list(self.items);
 
@@ -62,13 +62,6 @@ class TodoStack(Stack):
                 item.content = unicode(item.content)
             Stack.push(self, item)
 
-    def getItems(self, reverse = False):
-        if reverse:
-            return reversed(self.items);
-        else:
-            return self.items;
-
-
 class Todo:
     def __init__(self, **argus):
         if "id" in argus:
@@ -86,7 +79,12 @@ class Todo:
         else:
             self.stackid = None;
 
+        if "priority" in argus:
+            self.priority = (argus["priority"] % 5);
+        else:
+            self.priority = 2;
+
         self.content = argus["content"];
 
     def __str__(self):
-        return str({"id":self.id, "content":self.content, "order":self.order, "stackid":self.stackid})
+        return str({"id":self.id, "content":self.content, "order":self.order, "stackid":self.stackid, "priority":self.priority})

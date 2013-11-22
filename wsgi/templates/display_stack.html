@@ -35,7 +35,7 @@
 	</div>
 	<div class="stack sortable">
 	  {% for todo in stack.getItems(True) %}
-	  <div class="list-group-item todo container"><div class="col-md-10 content">{{ todo.content }}</div></div>
+	  <div class="list-group-item todo container"><div class="col-md-10 content">{{ todo.content }}</div><div class="priority col-md-1 btn" data-todo-id="{{ todo.id  }}" data-todo-priority="{{ todo.priority }}">{{ todo.priority }}</div></div>
 	  {% endfor %}
 	</div>
       </div>
@@ -72,7 +72,7 @@
 
   $(".sort.icon").toggle();
   $(".sort.control").click(function() {
-  $(".sort.icon").toggle();
+	  $(".sort.icon").toggle();
   });
   $("#trash_expand_collapse_btn").click(function (e, thiz) {
 	  $(".stack.trash .todo:not(:nth-child(n+2))").animate({height:"toggle"}, function () {
@@ -84,6 +84,14 @@
 	  });
   });
   $("#trash_expand_collapse_btn").click();
+  $(".priority").click(function(e) {
+	var currentPriority = $(e.target).attr("data-todo-priority");
+	var todoId = $(e.target).attr("data-todo-id");
+	var index = $(e.target).parent().index();
+	$.ajax({url: "/{{ stack.name }}/raisePriority/" + index}).done(function (){
+			$(e.target).html((parseInt($(e.target).html()) + 1) % 5);
+		});
+  });
   })();
 </script>
 <!--
