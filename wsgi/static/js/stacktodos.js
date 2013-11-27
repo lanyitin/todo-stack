@@ -119,9 +119,9 @@ function showItemsInTrashStackExceptLastNItems(num) {
     });
     $(".sort.control").click(function() {
         if ($(".sort.icon:last").css("display") === "none") {
-            hideSortIcons();
-        } else {
             showSortIcons();
+        } else {
+            hideSortIcons();
         }
     });
 
