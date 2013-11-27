@@ -7,7 +7,7 @@
                 <span>Stack</span>
                 <div class="btn-group pull-right">
                     <button class="btn btn-info sort control">Sort</button>
-                    <a class="btn btn-warning" href="/{{ stack.name }}/pop">Pop</a>
+                    <button class="btn btn-warning pop control">Pop</button>
                     <button class="btn btn-danger delete control">Delete</button>
                 </div>
             </h1>
@@ -22,20 +22,23 @@
                 </div>
                 <div class="row">
                     <div class="col-md-12">
-                        <form class="form" method="POST" action="/{{ stack.name }}/push">
+                        <div class="form">
                             <div class="input-group input-group-lg">
-                                <input type="hidden" name="action" value="push" />
-                                <input type="text" placeholder="Todo descirption" name="item" class="form-control">
+                                <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content">
                                 <span class="input-group-btn">
-                                    <input type="submit" value="Push" class="btn btn-success"/>
+                                    <button class="btn btn-success control push"/>Push</button>
                                 </span>
                             </div><!-- /input-group -->
-                        </form>
+                        </div>
                     </div>
                 </div>
                 <div class="stack sortable">
                     {% for todo in stack.getItems(True) %}
-                    <div class="list-group-item todo container" data-todo-priority="{{ todo.priority }}" data-todo-order="{{ todo.order }}" data-todo-id="{{ todo.id }}"><div class="col-md-10 content">{{ todo.content }}</div></div>
+                    <div class="list-group-item todo container" data-todo-priority="{{ todo.priority }}" data-todo-order="{{ todo.order }}" data-todo-id="{{ todo.id }}">
+                        <div class="col-md-1 glyphicon glyphicon-sort sort icon"></div>
+                        <div class="col-md-10 content">{{ todo.content }}</div>
+                        <button class="delete btn btn-danger pull-right col-md-2">Delete</button>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
@@ -44,16 +47,10 @@
 </div>
 <script src="//code.jquery.com/jquery.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
 <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/stacktodos.js') }}"></script>
-<!--
-    <div class="col-md-6">
-      <h1>Trash Stack</h1>
-      <div class="list-group trash stack">
-    {% for todo in trash_todos %}
-    <div class="list-group-item todo container"><div class="col-md-9 content">{{ todo }}</div></div>
-    {% endfor %}
-      </div>
-    </div>
-    -->
+<script>
+    window.stackName = "{{ stack.name }}";
+</script>
 {% endblock %}
