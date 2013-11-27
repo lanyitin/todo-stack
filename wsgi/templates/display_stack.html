@@ -1,106 +1,58 @@
 {% extends "layout.html" %}
 {% block body %}
 <div class="container">
-  <div class="row">
-    <div class="col-md-10 col-md-offset-1">
-      <h1>
-	<span>Stack</span>
-	<div class="btn-group pull-right">
-	  <button class="btn btn-info sort control">Sort</button>
-	  <a class="btn btn-warning" href="/{{ stack.name }}/pop">Pop</a>
-	  <button class="btn btn-danger delete control">Delete</button>
-	</div>
-      </h1>
-      <div class="list-group stack-container">
-        <div class="trash control">
-          <div id="trash_expand_collapse_btn" class="btn btn-success"></div>
-	</div>
-	<div class="stack trash sortable">
-	  {% for todo in trash_stack.getItems() %}
-	  <div class="list-group-item todo container"><div class="col-md-11 content">{{ todo.content }}</div></div>
-	  {% endfor %}
-	</div>
-	<div class="row">
-	  <div class="col-md-12">
-	    <form class="form" method="POST" action="/{{ stack.name }}/push">
-	      <div class="input-group input-group-lg">
-		<input type="hidden" name="action" value="push" />
-		<input type="text" placeholder="Todo descirption" name="item" class="form-control">
-		<span class="input-group-btn">
-		  <input type="submit" value="Push" class="btn btn-success"/>
-		</span>
-	      </div><!-- /input-group -->
-	    </form>
-	  </div>
-	</div>
-	<div class="stack sortable">
-	  {% for todo in stack.getItems(True) %}
-	  <div class="list-group-item todo container"><div class="col-md-10 content">{{ todo.content }}</div><div class="priority col-md-1 btn" data-todo-id="{{ todo.id  }}" data-todo-priority="{{ todo.priority }}">{{ todo.priority }}</div></div>
-	  {% endfor %}
-	</div>
-      </div>
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <h1>
+                <span>Stack</span>
+                <div class="btn-group pull-right">
+                    <button class="btn btn-info sort control">Sort</button>
+                    <a class="btn btn-warning" href="/{{ stack.name }}/pop">Pop</a>
+                    <button class="btn btn-danger delete control">Delete</button>
+                </div>
+            </h1>
+            <div class="list-group stack-container">
+                <div class="trash control">
+                    <div id="trash_expand_collapse_btn" class="btn btn-success"></div>
+                </div>
+                <div class="stack trash sortable">
+                    {% for todo in trash_stack.getItems() %}
+                    <div class="list-group-item todo container"><div class="col-md-11 content">{{ todo.content }}</div></div>
+                    {% endfor %}
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <form class="form" method="POST" action="/{{ stack.name }}/push">
+                            <div class="input-group input-group-lg">
+                                <input type="hidden" name="action" value="push" />
+                                <input type="text" placeholder="Todo descirption" name="item" class="form-control">
+                                <span class="input-group-btn">
+                                    <input type="submit" value="Push" class="btn btn-success"/>
+                                </span>
+                            </div><!-- /input-group -->
+                        </form>
+                    </div>
+                </div>
+                <div class="stack sortable">
+                    {% for todo in stack.getItems(True) %}
+                    <div class="list-group-item todo container" data-todo-priority="{{ todo.priority }}" data-todo-order="{{ todo.order }}" data-todo-id="{{ todo.id }}"><div class="col-md-10 content">{{ todo.content }}</div></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 <script src="//code.jquery.com/jquery.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-<script>
-  (function() {
-  $(".sortable").sortable({
-  start: function ( event, ui ) {
-  ui.item.data("start_pos", ui.item.index());
-  },
-  update: function ( event, ui) {
-  var from = ui.item.data("start_pos");
-  var to = ui.item.index();
-  console.log("from", from , "to", to);
-  $.ajax({url: "/{{ stack.name }}/moveItem/" + from + "/" + to}).done(function (response) {console.log(response)});
-  },
-  revert: true,
-  handle: ".sort.icon"
-  });
-  $(".stack:not(.trash) .todo").each(function(index, elem){
-  $(elem).append($("<a/>").addClass("delete btn btn-danger pull-right col-md-2").attr("href", "/{{ stack.name }}/removeItem/" + index).html("Delete"))
-  $(elem).prepend($("<div/>").addClass("col-md-1 glyphicon glyphicon-sort sort icon"));
-  });
-
-  $(".delete.control").click(function() {
-  $(".delete.btn:not(.control)").toggle();
-  })
-  $(".delete.btn:not(.control)").toggle();
-
-  $(".sort.icon").toggle();
-  $(".sort.control").click(function() {
-	  $(".sort.icon").toggle();
-  });
-  $("#trash_expand_collapse_btn").click(function (e, thiz) {
-	  $(".stack.trash .todo:not(:nth-child(n+2))").animate({height:"toggle"}, function () {
-		  if ($(".stack.trash .todo:not(:nth-child(n+2))").css("display") === "none") {
-			$(e.target).html("Expand");
-		  } else {
-			$(e.target).html("Collapse");
-		  }
-	  });
-  });
-  $("#trash_expand_collapse_btn").click();
-  $(".priority").click(function(e) {
-	var currentPriority = $(e.target).attr("data-todo-priority");
-	var todoId = $(e.target).attr("data-todo-id");
-	var index = $(e.target).parent().index();
-	$.ajax({url: "/{{ stack.name }}/raisePriority/" + index}).done(function (){
-			$(e.target).html((parseInt($(e.target).html()) + 1) % 5);
-		});
-  });
-  })();
-</script>
+<script src="{{ url_for('static', filename='js/stacktodos.js') }}"></script>
 <!--
     <div class="col-md-6">
       <h1>Trash Stack</h1>
       <div class="list-group trash stack">
-	{% for todo in trash_todos %}
-	<div class="list-group-item todo container"><div class="col-md-9 content">{{ todo }}</div></div>
-	{% endfor %}
+    {% for todo in trash_todos %}
+    <div class="list-group-item todo container"><div class="col-md-9 content">{{ todo }}</div></div>
+    {% endfor %}
       </div>
     </div>
     -->

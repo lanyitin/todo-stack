@@ -3,4 +3,6 @@
 *.pyo
 *~
 venv
+env_vars
 *.swp
+*.db

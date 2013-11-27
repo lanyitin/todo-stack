@@ -1,4 +1,5 @@
 from core import TodoStack, Todo
+import logging
 class SqliteStackMapper:
 	@classmethod
 	def store(cls, stack, db):
@@ -15,7 +16,8 @@ class SqliteStackMapper:
 				id_group = ",".join(id_group)
 				cursor = db.cursor().execute("delete from todo where id not in (%s) and stackid=%d" % (id_group, stack.id));
 				db.commit();
-		else:
+			else:
+				logging.debug(stack.id)
 				cursor = db.cursor().execute("delete from todo where stackid=%d" % (stack.id,));
 				db.commit();
 

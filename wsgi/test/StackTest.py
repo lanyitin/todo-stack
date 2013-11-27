@@ -71,3 +71,7 @@ class StackTest(unittest.TestCase):
         self.stack.moveItem(toIndex, fromIndex);
         for i in range(5):
             self.assertEquals(5 - i - 1, self.stack.pop())
+
+    def testPeek(self):
+        self.stack.push(10000);
+        self.assertEquals(self.stack.peek(), 10000);
