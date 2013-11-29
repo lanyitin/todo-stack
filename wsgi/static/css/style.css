@@ -61,6 +61,9 @@ body {
 	top:15px;
 }
 
+.stack.trash .todo .delete {display:none}
+.stack.trash .todo .sort {display:none}
+
 #trash_expand_collapse_btn {
 	display:block;
 	width:100px;

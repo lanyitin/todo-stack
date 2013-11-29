@@ -1,5 +1,6 @@
 var todoTemplate = "<div class=\"list-group-item todo container\" data-todo-priority=\"<%= todo.priority %>\" data-todo-order=\"<%= todo.order %>\" data-todo-id=\"<%= todo.id %>\"> <div class=\"col-md-1 glyphicon glyphicon-sort sort icon\"></div> <div class=\"col-md-10 content\"><%= todo.content %></div> <button class=\"delete btn btn-danger pull-right col-md-2\">Delete</button> </div>"
 var compiledTodoTemplate = _.template(todoTemplate);
+
 function showSortIcons() {
     $(".sort.icon").each(function (index, elem) {
         if ($(elem).css("display") === "none") {
@@ -83,8 +84,8 @@ function showItemsInTrashStackExceptLastNItems(num) {
     });
     $("#trash_expand_collapse_btn").html("Collapse");
 }
-(function() {
 
+function initControls() {
     $(".control.pop").click(function() {
         $.ajax({
             url: "/" + window.stackName + "/pop"
@@ -100,7 +101,28 @@ function showItemsInTrashStackExceptLastNItems(num) {
             handleResponse(response);
         });
     });
-
+    $(".control.delete").click(function() {
+        $(".delete.btn:not(.control)").toggle();
+        if ($(".delete.btn:not(.control):last").css("display") === "none") {
+            hideDeleteButtons();
+        } else {
+            showDeleteButtons();
+        }
+    })
+    $(".control.sort").click(function() {
+        if ($(".sort.icon:last").css("display") === "none") {
+            showSortIcons();
+        } else {
+            hideSortIcons();
+        }
+    });
+    $("#trash_expand_collapse_btn").click(function (e, thiz) {
+        if ($(".trash.stack .todo:first").css("display") === "block") {
+            hideItemsInTrashStackExceptLastNItems(2);
+        } else {
+            showItemsInTrashStackExceptLastNItems(2);
+        }
+    });
     $(".sortable").sortable({
         start: function ( event, ui ) {
             ui.item.data("start_pos", ui.item.index());
@@ -117,34 +139,10 @@ function showItemsInTrashStackExceptLastNItems(num) {
         revert: true,
         handle: ".sort.icon"
     });
-    $(".sort.control").click(function() {
-        if ($(".sort.icon:last").css("display") === "none") {
-            showSortIcons();
-        } else {
-            hideSortIcons();
-        }
-    });
+}
 
-
-
-    $(".delete.control").click(function() {
-        $(".delete.btn:not(.control)").toggle();
-        if ($(".delete.btn:not(.control):last").css("display") === "none") {
-            hideDeleteButtons();
-        } else {
-            showDeleteButtons();
-        }
-    })
-
-    $("#trash_expand_collapse_btn").click(function (e, thiz) {
-        if ($(".trash.stack .todo:first").css("display") === "block") {
-            hideItemsInTrashStackExceptLastNItems(2);
-        } else {
-            showItemsInTrashStackExceptLastNItems(2);
-        }
-    });
-
-    $(".todo .priority").click(function(e) {
+function bindUIEventHandlerToTodoView() {
+    $(".todo .priority").unbind().click(function(e) {
         var currentPriority = $(e.target).attr("data-todo-priority");
         var todoId = $(e.target).attr("data-todo-id");
         var index = $(e.target).parent().index();
@@ -153,14 +151,19 @@ function showItemsInTrashStackExceptLastNItems(num) {
         });
     });
 
-    $(".stack:not(.trash) .todo").select(".delete").unbind().click(function (e){
+    $(".stack:not(.trash) .todo .delete").unbind().click(function (e){
         $.ajax({url: "/" + window.stackName + "/removeItem/" + $(e.target).parent().index()}).done(function () {
-            console.log($(e.target).parent().remove());
+            $(e.target).parent().remove();
         });
 
     });
+}
+(function() {
 
+    initControls();
+    bindUIEventHandlerToTodoView();
     hideItemsInTrashStackExceptLastNItems(2);
     hideSortIcons();
     hideDeleteButtons();
+
 })();
