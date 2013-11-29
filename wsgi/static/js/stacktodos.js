@@ -56,7 +56,11 @@ function handleResponse(response) {
             } else if (command.command === "delete") {
                 $(".stack .todo[data-todo-id=" + command.data.id + "]").remove();
             } else if (command.command === "pop") {
-                $(".trash.stack").append($(".stack:not(.trash) .todo:first"));
+                var todo = $(".stack:not(.trash) .todo:first");
+                todo.select(".delete").remove();
+                todo.select(".sort").remove;
+                todo.select(".priority").remove;
+                $(".trash.stack").append(todo);
                 if ($(".trash.stack .todo:first").css("display") === "none") {
                     hideItemsInTrashStackExceptLastNItems(2);
                 }
