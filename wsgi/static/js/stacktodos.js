@@ -1,4 +1,10 @@
-var todoTemplate = "<div class=\"list-group-item todo container\" data-todo-priority=\"<%= todo.priority %>\" data-todo-order=\"<%= todo.order %>\" data-todo-id=\"<%= todo.id %>\"> <div class=\"col-md-1 glyphicon glyphicon-sort sort icon\"></div> <div class=\"col-md-10 content\"><%= todo.content %></div> <button class=\"delete btn btn-danger pull-right col-md-2\">Delete</button> </div>"
+var todoTemplate = "" + 
+"<div class=\"list-group-item todo container\" data-todo-priority=\"<%= todo.priority %>\" data-todo-order=\"<%= todo.order %>\" data-todo-id=\"<%= todo.id %>\">" +
+"    <div class=\"glyphicon glyphicon-sort sort icon pull-left\"></div>" +
+"    <div class=\"priority pull-left btn\"><%= todo.priority %></div>" +
+"    <div class=\"content pull-left\"><%= todo.content %></div>" +
+"    <button class=\"delete btn btn-danger pull-right\">Delete</button>" +
+"</div>";
 var compiledTodoTemplate = _.template(todoTemplate);
 
 function showSortIcons() {

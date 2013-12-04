@@ -44,7 +44,7 @@ def pushItem(stackName):
     stack.push(request.form['item'])
     factory.getMapper().store(stack, get_db())
     todo = stack.peek()
-    return json.dumps({"response": "success", "commands": [{"command": "push", "data": {"id": str(todo.id), "content":todo.content, "priotiry": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}]})
+    return json.dumps({"response": "success", "commands": [{"command": "push", "data": {"id": str(todo.id), "content":todo.content, "priority": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}]})
 
 @app.route('/<stackName>/pop', methods=["GET"])
 def popItem(stackName):
@@ -54,7 +54,7 @@ def popItem(stackName):
     trash_stack.push(todo);
     factory.getMapper().store(stack, get_db())
     factory.getMapper().store(trash_stack, get_db())
-    return json.dumps({"response": "success", "commands": [{"command": "pop", "data": {"id": str(todo.id), "content":todo.content, "priotiry": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}]})
+    return json.dumps({"response": "success", "commands": [{"command": "pop", "data": {"id": str(todo.id), "content":todo.content, "priority": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}]})
 
 @app.route('/<stackName>/moveItem/<int:fromIndex>/<int:toIndex>', methods=["GET"])
 def moveItem(stackName, fromIndex, toIndex):
@@ -72,7 +72,7 @@ def moveItem(stackName, fromIndex, toIndex):
         begin = fromIndex
     for i in range(begin, end + 1):
         todo = todos[i]
-        response["commands"].append({"command":"update", "data":{"id": str(todo.id), "content":todo.content, "priotiry": todo.priority, "stackid": str(todo.stackid), "order": todo.order}})
+        response["commands"].append({"command":"update", "data":{"id": str(todo.id), "content":todo.content, "priority": todo.priority, "stackid": str(todo.stackid), "order": todo.order}})
         return json.dumps(response)
 
 @app.route('/<stackName>/removeItem/<int:index>', methods=["GET"])
@@ -82,7 +82,7 @@ def removeItem(stackName, index):
     todo = todos[index]
     stack.removeItem(index);
     factory.getMapper().store(stack, get_db())
-    return json.dumps({"response": "success", "commands": [{"command": "remove", "data": {"id": str(todo.id), "content":todo.content, "priotiry": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}]})
+    return json.dumps({"response": "success", "commands": [{"command": "remove", "data": {"id": str(todo.id), "content":todo.content, "priority": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}]})
 
 @app.route('/<stackName>/raisePriority/<int:index>', methods=["GET"])
 def raisePriority(stackName, index):
@@ -93,7 +93,7 @@ def raisePriority(stackName, index):
     if todo.priority >= 5:
         todo.priority %= 5;
     factory.getMapper().store(stack, get_db())
-    return json.dumps({"response": "success", "commands": [{"command": "update", "data": {"id": str(todo.id), "content":todo.content, "priotiry": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}]})
+    return json.dumps({"response": "success", "commands": [{"command": "update", "data": {"id": str(todo.id), "content":todo.content, "priority": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}]})
 
 
 @app.teardown_appcontext
