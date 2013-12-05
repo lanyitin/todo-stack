@@ -70,7 +70,8 @@ function handleResponse(response) {
 }
 
 function hideItemsInTrashStackExceptLastNItems(num) {
-    target = $(".trash.stack .todo:not(:nth-child(n+"+($(".trash.stack .todo").length - num + 1) +"))");
+    num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
+    target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
     target.each(function (index, elem) {
         if ($(elem).css("display") === "block") {
             $(elem).animate({"height": "toggle"});
@@ -80,7 +81,8 @@ function hideItemsInTrashStackExceptLastNItems(num) {
 }
 
 function showItemsInTrashStackExceptLastNItems(num) {
-    target = $(".trash.stack .todo:not(:nth-child(n+"+($(".trash.stack .todo").length - num + 1) +"))");
+    num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
+    target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
     target.each(function (index, elem) {
         if ($(elem).css("display") === "none") {
             $(elem).animate({"height": "toggle"});
