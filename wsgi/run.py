@@ -3,21 +3,19 @@ from werkzeug.contrib.profiler import ProfilerMiddleware
 from werkzeug.contrib.profiler import MergeStream
 
 from flask import Flask, request, g, abort, redirect, url_for, render_template
+from flask.ext.assets import Environment, Bundle
+
 from core import TodoStack, Todo
 from Mappers import MapperFactory
+
 app = Flask(__name__)
+assets = Environment(app)
 factory = MapperFactory("mongo")
 
-def init_db():
-    with app.app_context():
-        db = get_db()
-        with app.open_resource('schema.sql', mode='r') as f:
-            db.executescript(f.read())
-            db.commit()
+
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        # db = g._database = sqlite3.connect("db");
         mongo_con = pymongo.Connection(os.environ['OPENSHIFT_MONGODB_DB_HOST'], int(os.environ['OPENSHIFT_MONGODB_DB_PORT']))
 
         mongo_db = mongo_con[os.environ['OPENSHIFT_APP_NAME']]
@@ -25,7 +23,6 @@ def get_db():
         db = mongo_db
     return db
 
-# init_db();
 
 @app.route('/')
 def createStack():

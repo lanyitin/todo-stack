@@ -6,3 +6,5 @@ venv
 env_vars
 *.swp
 *.db
+profiler.log
+.webassets-cache/
