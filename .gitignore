@@ -8,3 +8,5 @@ env_vars
 *.db
 profiler.log
 .webassets-cache/
+wsgi/static/js/packed.js
+wsgi/static/css/packed.css

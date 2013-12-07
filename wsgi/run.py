@@ -73,6 +73,7 @@ def displayStack(stackName):
     stack = factory.getMapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
     trash_stack = factory.getMapper().findByName(stackName + "_trash", get_db()) or TodoStack(None, stackName + "_trash")
     response = make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
+    response.set_cookie("sequenceNumber", str(StackCommandDispatcher.openDispatcher(stackName).get_max_sequence_number()))
     return response
 
 @app.route('/<stackName>/push/', methods=["POST"])
