@@ -1,13 +1,10 @@
-import os, sys, json, sqlite3, base64, time, pymongo, json , gevent, uuid, json, logging
-from werkzeug.contrib.profiler import ProfilerMiddleware, MergeStream
-from flask import Flask, request, g, abort, redirect, url_for, render_template, make_response
-from flask.ext.assets import Environment, Bundle
+import os, json, base64, time, pymongo, json , gevent, uuid 
+from flask import Flask, request, g, redirect, url_for, render_template, make_response
+from flask.ext.assets import Environment
 from core import TodoStack, Todo
 from Mappers import MapperFactory
-from gevent import queue
 from werkzeug.debug import DebuggedApplication
 from gevent.pywsgi import WSGIServer
-
 
 class StackCommandDispatcher:
     dispatchers = dict()
@@ -157,10 +154,6 @@ def close_connection(exception):
         db.close()
 
 if __name__ == "__main__":
-    # f = open('profiler.log', 'w')
-    # stream = MergeStream(sys.stdout, f)
-    # app.config['PROFILE'] = True
-    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, stream)
     app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
     app.debug = True
     http = WSGIServer(('', 5000),  DebuggedApplication(app))
