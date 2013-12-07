@@ -8,7 +8,6 @@ from gevent import queue
 from werkzeug.debug import DebuggedApplication
 from gevent.pywsgi import WSGIServer
 
-logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
 class StackCommandDispatcher:
     dispatchers = dict()
@@ -47,7 +46,6 @@ class StackCommandDispatcher:
             commands = list(self.cache.values())
         if len(commands) > 0:
             result = max([x["key"] for x in commands])
-        logging.debug(type(result))
         assert type(result) is int
         return result
 
@@ -159,10 +157,10 @@ def close_connection(exception):
         db.close()
 
 if __name__ == "__main__":
-    f = open('profiler.log', 'w')
-    stream = MergeStream(sys.stdout, f)
+    # f = open('profiler.log', 'w')
+    # stream = MergeStream(sys.stdout, f)
     app.config['PROFILE'] = True
-    app.wsgi_app = ProfilerMiddleware(app.wsgi_app, stream)
+    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, stream)
     app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
     app.debug = True
     http = WSGIServer(('', 5000),  DebuggedApplication(app))
