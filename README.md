@@ -1,3 +1,6 @@
+# News
++ Support collaboration now1
+
 # Main Idea
 Manage the todo in stack-way.
 
@@ -18,4 +21,3 @@ This is an *experimental* todos management tools, which means there is no guaran
 # We may add following features in future
 + Disqus integration for each todo
 + add timestamp to each todo
-+ Collaboration (this is the feature I want to implement first, but I don't how exactly do it)
