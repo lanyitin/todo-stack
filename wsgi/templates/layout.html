@@ -4,8 +4,10 @@
 <title>Stack Todos</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
-<link href="{{ url_for('static',  filename='css/style.css') }}" rel="stylesheet" media="screen">
+
+{% assets filters='cssmin', output='css/packed.css', 'css/bootstrap.min.css', 'css/style.css' %}
+<link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+{% endassets %}
 <!--[if lt IE 9]>
     <script src="{{ url_for('static', filename='js/html5shiv.js') }}"></script>
     <script src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
@@ -25,11 +27,8 @@
     </div>
 </div>
 {% block body %}{% endblock %}
-<script src="//code.jquery.com/jquery.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
-<script src="{{ url_for('static', filename='js/jquery.slimscroll.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/stacktodos.js') }}"></script>
+{% assets filters='jsmin', output='js/packed.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/underscore-min.js', 'js/stacktodos.js' %}
+<script type="text/javascript" src="{{ ASSET_URL }}"></script>
+{% endassets %}
 </body>
 </html>
