@@ -148,6 +148,9 @@ def fetch(stackName, request_sequence_number):
     response = make_response(json.dumps(commands))
     return response
 
+@app.errorhandler(500)
+def page_not_found(error):
+        return str(error)
 
 @app.teardown_appcontext
 def close_connection(exception):
