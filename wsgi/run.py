@@ -73,7 +73,6 @@ def displayStack(stackName):
     stack = factory.getMapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
     trash_stack = factory.getMapper().findByName(stackName + "_trash", get_db()) or TodoStack(None, stackName + "_trash")
     response = make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
-    response.set_cookie("sequenceNumber", str(StackCommandDispatcher.openDispatcher(stackName).get_max_sequence_number()))
     return response
 
 @app.route('/<stackName>/push/', methods=["POST"])
@@ -159,7 +158,7 @@ def close_connection(exception):
 if __name__ == "__main__":
     # f = open('profiler.log', 'w')
     # stream = MergeStream(sys.stdout, f)
-    app.config['PROFILE'] = True
+    # app.config['PROFILE'] = True
     # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, stream)
     app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
     app.debug = True
