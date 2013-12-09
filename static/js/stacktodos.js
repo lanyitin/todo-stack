@@ -85,6 +85,7 @@ function handleCommands(commandsTimePair) {
             var todoDom = $(".stack .todo[data-todo-id=" + command.data.id + "]");
             todoDom.attr("data-todo-order", command.data.order);
             todoDom.attr("data-todo-priority", command.data.priority);
+            $(".stack:not(.trash) .todo").sort(function (a,b) {return $(a).attr("data-todo-order") < $(b).attr("data-todo-order") ? 1 : -1}).appendTo(".stack:not(.trash)")
         } else if (command.command === "removeItem") {
             $(".stack .todo[data-todo-id=" + command.data.id + "]").remove();
         } else if (command.command === "pop") {
@@ -207,7 +208,5 @@ function bindUIEventHandlerToTodoView() {
             poll();
         });
     }
-
     poll();
-
 })();
