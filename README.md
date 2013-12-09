@@ -1,5 +1,5 @@
 # News
-+ Support collaboration now1
++ Support collaboration now!
 
 # Main Idea
 Manage the todo in stack-way.
@@ -15,7 +15,7 @@ This is an *experimental* todos management tools, which means there is no guaran
 + ~~Each stack is stored as a file, and each todo is stored as a line in file.~~
 + You can create your stack by appending by the end of URL i.e http://stack-todos.lanyitin.tw/$stackName.
 + Every stack, **including trash stack**, is **public**, http://stack-todos.lanyitin.tw/$stackName_trash for visit the trash stack.
-+ For now, this project is hosted on Openshift.
++ For now, this project is hosted on Heroku.
 + The online version is using MongoDB as storage, you can switch to sqlite3 for personaly usage by changing __MapperFactory__'s parameter.
 
 # We may add following features in future

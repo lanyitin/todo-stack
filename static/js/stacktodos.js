@@ -85,7 +85,7 @@ function handleCommands(commandsTimePair) {
             var todoDom = $(".stack .todo[data-todo-id=" + command.data.id + "]");
             todoDom.attr("data-todo-order", command.data.order);
             todoDom.attr("data-todo-priority", command.data.priority);
-        } else if (command.command === "delete") {
+        } else if (command.command === "removeItem") {
             $(".stack .todo[data-todo-id=" + command.data.id + "]").remove();
         } else if (command.command === "pop") {
             var todo = $(".stack:not(.trash) .todo:first");
@@ -178,10 +178,7 @@ function bindUIEventHandlerToTodoView() {
     });
 
     $(".stack:not(.trash) .todo .delete").unbind().click(function (e){
-        $.ajax({url: "/" + window.stackName + "/removeItem/" + $(e.target).parent().index() + "/"}).done(function () {
-            $(e.target).parent().remove();
-        });
-
+        $.ajax({url: "/" + window.stackName + "/removeItem/" + $(e.target).parent().index() + "/"})
     });
 }
 (function() {
