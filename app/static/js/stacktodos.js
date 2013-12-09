@@ -73,10 +73,10 @@ function handleCommands(commandsTimePair) {
             var domStr = compiledTodoTemplate({todo: command.data});
             stack.prepend(domStr);
             $("#control-todo-content").val("");
-            if ($(".delete.btn:not(.control):last").css("display") === "none") {
+            if ($(".delete.btn:not(.control):last").css("display") !== "display") {
                 hideDeleteButtons();
             }
-            if ($(".sort.icon:last").css("display") === "none") {
+            if ($(".sort.icon:last").css("display") !== "display") {
                 hideSortIcons();
             }
             bindUIEventHandlerToTodoView();
@@ -85,7 +85,10 @@ function handleCommands(commandsTimePair) {
             var todoDom = $(".stack .todo[data-todo-id=" + command.data.id + "]");
             todoDom.attr("data-todo-order", command.data.order);
             todoDom.attr("data-todo-priority", command.data.priority);
-            $(".stack:not(.trash) .todo").sort(function (a,b) {return $(a).attr("data-todo-order") < $(b).attr("data-todo-order") ? 1 : -1}).appendTo(".stack:not(.trash)")
+            $(".stack:not(.trash) .todo").sort(function (a,b) {
+                return $(a).attr("data-todo-order") < $(b).attr("data-todo-order") ? 1 : -1;
+            }).appendTo(".stack:not(.trash)");
+            todoDom.select(".priority").html(command.data.priority);
         } else if (command.command === "removeItem") {
             $(".stack .todo[data-todo-id=" + command.data.id + "]").remove();
         } else if (command.command === "pop") {
