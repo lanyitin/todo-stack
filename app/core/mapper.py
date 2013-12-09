@@ -1,4 +1,5 @@
-from core import TodoStack, Todo
+from stack import TodoStack
+from other import Todo
 class SqliteStackMapper:
     @classmethod
     def store(cls, stack, db):

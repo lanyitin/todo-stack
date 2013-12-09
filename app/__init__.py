@@ -1,10 +1,7 @@
 import os, json, base64, time, pymongo, json , gevent, uuid, sqlite3, logging
 from flask import Flask, request, g, redirect, url_for, render_template, make_response
 from flask.ext.assets import Environment
-from core import TodoStack, Todo, StackCommandDispatcher
-from Mappers import MapperFactory
-from werkzeug.debug import DebuggedApplication
-from gevent.pywsgi import WSGIServer
+from core import TodoStack, Todo, StackCommandDispatcher, MapperFactory
 from webassets.script import CommandLineEnvironment
 
 app = Flask(__name__)
