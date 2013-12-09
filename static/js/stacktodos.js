@@ -16,7 +16,7 @@ var todoTemplate = "" +
 var compiledTodoTemplate = _.template(todoTemplate);
 
 function showSortIcons() {
-    $("stck:not(.trash) .todo .sort.icon").each(function (index, elem) {
+    $(".stack:not(.trash) .todo .sort.icon").each(function (index, elem) {
         if ($(elem).css("display") === "none") {
             $(elem).toggle();
         }
@@ -31,7 +31,7 @@ function hideSortIcons() {
     });
 }
 function showDeleteButtons() {
-    $("stck:not(.trash) .todo .delete.btn:not(.control)").each(function (index, elem) {
+    $(".stack:not(.trash) .todo .delete.btn:not(.control)").each(function (index, elem) {
         if ($(elem).css("display") === "none") {
             $(elem).toggle();
         }
@@ -46,6 +46,25 @@ function hideDeleteButtons() {
     });
 }
 
+function getCookie(c_name)
+{
+    var c_value = document.cookie;
+    var c_start = c_value.indexOf(" " + c_name + "=");
+    if (c_start == -1) {
+        c_start = c_value.indexOf(c_name + "=");
+    }
+    if (c_start == -1) {
+        c_value = null;
+    } else {
+        c_start = c_value.indexOf("=", c_start) + 1;
+        var c_end = c_value.indexOf(";", c_start);
+        if (c_end == -1) {
+            c_end = c_value.length;
+        }
+        c_value = unescape(c_value.substring(c_start,c_end));
+    }
+    return c_value;
+}
 function handleCommands(commandsTimePair) {
     for(var i = 0; i < commandsTimePair.length; i++) {
         var command = commandsTimePair[i];
@@ -66,7 +85,8 @@ function handleCommands(commandsTimePair) {
             var todoDom = $(".stack .todo[data-todo-id=" + command.data.id + "]");
             todoDom.attr("data-todo-order", command.data.order);
             todoDom.attr("data-todo-priority", command.data.priority);
-        } else if (command.command === "delete") {
+            $(".stack:not(.trash) .todo").sort(function (a,b) {return $(a).attr("data-todo-order") < $(b).attr("data-todo-order") ? 1 : -1}).appendTo(".stack:not(.trash)")
+        } else if (command.command === "removeItem") {
             $(".stack .todo[data-todo-id=" + command.data.id + "]").remove();
         } else if (command.command === "pop") {
             var todo = $(".stack:not(.trash) .todo:first");
@@ -114,11 +134,10 @@ function initControls() {
         });
     });
     $(".control.delete").click(function() {
-        $(".delete.btn:not(.control)").toggle();
         if ($(".delete.btn:not(.control):last").css("display") === "none") {
-            hideDeleteButtons();
-        } else {
             showDeleteButtons();
+        } else {
+            hideDeleteButtons();
         }
     })
     $(".control.sort").click(function() {
@@ -160,10 +179,7 @@ function bindUIEventHandlerToTodoView() {
     });
 
     $(".stack:not(.trash) .todo .delete").unbind().click(function (e){
-        $.ajax({url: "/" + window.stackName + "/removeItem/" + $(e.target).parent().index() + "/"}).done(function () {
-            $(e.target).parent().remove();
-        });
-
+        $.ajax({url: "/" + window.stackName + "/removeItem/" + $(e.target).parent().index() + "/"})
     });
 }
 (function() {
@@ -192,7 +208,5 @@ function bindUIEventHandlerToTodoView() {
             poll();
         });
     }
-
     poll();
-
 })();
