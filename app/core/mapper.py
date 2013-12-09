@@ -3,10 +3,10 @@ from other import Todo
 class SqliteStackMapper:
     @classmethod
     def store(cls, stack, db):
-        SqliteStackMapper.stripName(stack);
-        SqliteStackMapper.createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack);
-        SqliteStackMapper.storeTodos(db, stack);
-        SqliteStackMapper.deletePopoutOrRemoveItem(db, stack);
+        cls.stripName(stack);
+        cls.createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack);
+        cls.storeTodos(db, stack);
+        cls.deletePopoutOrRemoveItem(db, stack);
 
     @staticmethod
     def deletePopoutOrRemoveItem(db, stack):
@@ -16,9 +16,13 @@ class SqliteStackMapper:
                 id_group = ",".join(id_group)
                 cursor = db.cursor().execute("delete from todo where id not in (%s) and stackid=%d" % (id_group, stack.id));
                 db.commit();
+            else:
+                cursor = db.cursor().execute("delete from todo where stackid=%d" % (stack.id,));
+                db.commit();
         else:
-            cursor = db.cursor().execute("delete from todo where stackid=%d" % (stack.id,));
-            db.commit();
+            if stack.id is not None:
+                cursor = db.cursor().execute("delete from todo where stackid=%d" % (stack.id,));
+                db.commit();
 
     @staticmethod
     def storeTodos(db, stack):
@@ -66,12 +70,6 @@ class SqliteStackMapper:
             return stack;
 
 class MongoStackMapper:
-    @classmethod
-    def store(cls, stack, db):
-        MongoStackMapper.stripName(stack);
-        MongoStackMapper.createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack);
-        MongoStackMapper.storeTodos(db, stack);
-        MongoStackMapper.deletePopoutOrRemoveItem(db, stack);
 
     @staticmethod
     def deletePopoutOrRemoveItem(db, stack):

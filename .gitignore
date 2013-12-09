@@ -5,7 +5,7 @@
 venv
 env_vars
 *.swp
-*.db
+*db
 profiler.log
 .webassets-cache/
 wsgi/static/js/packed.js

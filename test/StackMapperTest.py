@@ -4,7 +4,8 @@ sys.path.append(os.path.abspath("."))
 
 from app.core import TodoStack
 from app.core import Todo
-from app.Mappers import SqliteStackMapper
+from app.core import SqliteStackMapper
+
 
 class StackMapperTest(unittest.TestCase):
     def setUp(self):
@@ -114,3 +115,15 @@ class StackMapperTest(unittest.TestCase):
         trash_stack = SqliteStackMapper.findByName(self.stackName + "_trash", self.db)
         self.assertEquals(4, stack.size())
         self.assertEquals(1, trash_stack.size())
+
+    def testEmptyAStackByCallRemoveItem(self):
+        stack = TodoStack(None, self.stackName);
+        for i in range(5):
+            stack.push(i)
+        SqliteStackMapper.store(stack, self.db)
+        self.assertTrue(stack.id is not None)
+        for i in range(5):
+            stack.pop()
+        SqliteStackMapper.store(stack, self.db)
+        stack = SqliteStackMapper.findByName(self.stackName, self.db)
+        self.assertEquals(0, stack.size())

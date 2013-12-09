@@ -1,4 +1,4 @@
-from core import Todo
+from other import Todo
 class Stack:
     def __init__(self):
         self.items = [];
