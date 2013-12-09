@@ -1,7 +1,7 @@
 from __future__ import print_function
 import unittest, os, sys, sqlite3
 sys.path.append(os.path.abspath("."))
-from Mappers import SqliteStackMapper, MapperFactory, MongoStackMapper
+from app.Mappers import SqliteStackMapper, MapperFactory, MongoStackMapper
 class MapperFactoryTest(unittest.TestCase):
 	def testGetMongoMapper(self):
 		factory = MapperFactory("mongo")

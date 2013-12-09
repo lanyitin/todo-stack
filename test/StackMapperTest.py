@@ -2,15 +2,15 @@ from __future__ import print_function
 import unittest, os, sys, sqlite3
 sys.path.append(os.path.abspath("."))
 
-from core import TodoStack
-from core import Todo
-from Mappers import SqliteStackMapper
+from app.core import TodoStack
+from app.core import Todo
+from app.Mappers import SqliteStackMapper
 
 class StackMapperTest(unittest.TestCase):
     def setUp(self):
         self.stackName = "testStack"
         self.db = sqlite3.connect("test.db")
-        with open('schema.sql', mode='r') as f:
+        with open('app/schema.sql', mode='r') as f:
             self.db.executescript(f.read())
             self.db.commit()
     def tearDown(self):

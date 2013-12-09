@@ -2,8 +2,8 @@ from __future__ import print_function
 import unittest, os, sys, sqlite3
 sys.path.append(os.path.abspath("."))
 
-from core import TodoStack, Stack
-from core import Todo
+from app.core import TodoStack, Stack
+from app.core import Todo
 
 class TodoStackTest(unittest.TestCase):
     def setUp(self):

@@ -1,7 +1,7 @@
 import unittest, os, sys
 sys.path.append(os.path.abspath("."))
 
-from core import Stack
+from app.core import Stack
 
 class StackTest(unittest.TestCase):
     def setUp(self):
