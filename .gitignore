@@ -1,12 +1,14 @@
-.project
+# python caches
 *.pyc
 *.pyo
+__pycache__
+
+
 *~
-venv
-env_vars
 *.swp
 *db
-profiler.log
-.webassets-cache/
-wsgi/static/js/packed.js
-wsgi/static/css/packed.css
+*.log
+
+.webassets-cache
+
+packed.*
