@@ -1,12 +1,39 @@
 from stack import TodoStack
 from other import Todo
-class SqliteStackMapper:
+
+class AbstractMapper:
     @classmethod
     def store(cls, stack, db):
         cls.stripName(stack);
         cls.createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack);
         cls.storeTodos(db, stack);
         cls.deletePopoutOrRemoveItem(db, stack);
+    @staticmethod
+    def deletePopoutOrRemoveItem(db, stack):
+        pass
+
+    @staticmethod
+    def storeTodos(db, stack):
+        pass
+
+    @staticmethod
+    def createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack):
+        pass
+
+    @staticmethod
+    def updateStackId(stack):
+        pass
+    
+    @staticmethod
+    def stripName(stack):
+        pass
+
+    @classmethod
+    def findByName(cls, name, db):
+        pass
+    
+
+class SqliteStackMapper(AbstractMapper):
 
     @staticmethod
     def deletePopoutOrRemoveItem(db, stack):
@@ -69,7 +96,7 @@ class SqliteStackMapper:
                 stack.items.append(Todo(id = row[0], content = row[1], order = row[2], stackid = row[3], priority = row[4]));
             return stack;
 
-class MongoStackMapper:
+class MongoStackMapper(AbstractMapper):
 
     @staticmethod
     def deletePopoutOrRemoveItem(db, stack):
