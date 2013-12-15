@@ -9,28 +9,20 @@ app.debug = True
 assets = Environment(app)
 
 def get_db():
-    db = g.get('database', None)
+    db = getattr(g, '_database', None)
     if db is None:
-        db = g.database = sqlite3.connect("db");
+        mongo_con = pymongo.Connection(os.environ['OPENSHIFT_MONGODB_DB_HOST'], int(os.environ['OPENSHIFT_MONGODB_DB_PORT']))
+
+        mongo_db = mongo_con[os.environ['OPENSHIFT_APP_NAME']]
+        mongo_db.authenticate(os.environ['OPENSHIFT_MONGODB_DB_USERNAME'], os.environ['OPENSHIFT_MONGODB_DB_PASSWORD'])
+        db = mongo_db
     return db
+
 def get_mapper():
     mapper = g.get('mapper', None)
     if mapper is None:
-        mapper = g.mapper = MapperFactory("sqlite").getMapper()
+        mapper = g.mapper = MapperFactory("mongo").getMapper()
     return mapper 
-
-
-@app.before_first_request
-def init_db():
-    db = g.get('database', None)
-    if db is None:
-        db = g.database = sqlite3.connect("db");
-
-    with app.app_context():
-        db = get_db()
-        with app.open_resource('schema.sql', mode='r') as f:
-            db.executescript(f.read())
-            db.commit()
 
 @app.route('/')
 def createStack():
@@ -131,7 +123,7 @@ def rebuild_assets():
 
 @app.errorhandler(500)
 def page_not_found(error):
-        return str(error)
+    return str(error)
 
 @app.teardown_appcontext
 def close_connection(exception):
