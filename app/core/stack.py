@@ -18,14 +18,17 @@ class OutOfRangeException(Exception):
         self.message = "{0} is not in range of {1}".format(index, stack)
     def __str__(self):
         return self.message
+class InvalidItemException(Exception):
+    def __init__(self):
+        pass
 
 class Stack(list):
     def push(self, item):
-        print item, self, item in self
         if item in self:
             raise ItemExistException(self, item)
-        if item is not None:
-            self.append(item)
+        if item is None:
+            raise InvalidItemException()
+        self.append(item)
 
     def pop(self):
         if len(self) is 0:
@@ -47,6 +50,7 @@ class Stack(list):
             return list(self)
 
     def removeItem(self, index):
+        index = int(index)
         if index < 0:
             raise InvalidIndexException(index)
         if index >= len(self):
@@ -57,9 +61,8 @@ class Stack(list):
         return item
 
     def moveItem(self, fromIndex, toIndex):
+        fromIndex, toIndex = int(fromIndex), int(toIndex)
         item = self.removeItem(fromIndex)
-        print "item from index {0}: {1}".format(fromIndex, item)
-        print "insert at index {0}".format(toIndex)
         self.insert(toIndex, item)
 
 class TodoStack(Stack):
@@ -70,15 +73,18 @@ class TodoStack(Stack):
     
     def push(self, item):
         if not isinstance(item, Todo):
-            item = Todo(content = item)
-        if item.stackid is not self.id:
-            item.id = None
-        maxOrder = 0
-        if self.size() > 0:
-            maxOrder = self[-1].order + 1
-        item.order = maxOrder
+            raise InvalidItemException
+        if item.content == "" or item.content == None:
+            raise InvalidItemException
+        Stack.push(self, item)
         item.stackid = self.id
-        if item.content is not None and item.content is not "":
-            if not isinstance(item.content, unicode):
-                item.content = unicode(item.content)
-            Stack.push(self, item)
+        self.assign_order_to_todos()
+
+    def assign_order_to_todos(self):
+        enum = enumerate(self)
+        for index, todo in enum:
+            todo.order = index
+
+    def moveItem(self, fromIndex, toIndex):
+        Stack.moveItem(self, fromIndex, toIndex)
+        self.assign_order_to_todos()
