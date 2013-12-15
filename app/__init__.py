@@ -117,7 +117,6 @@ def rebuild_assets():
     log.setLevel(logging.DEBUG)
 
     cmdenv = CommandLineEnvironment(assets, log)
-    # cmdenv.invoke('build')
     cmdenv.build()
     return "success"
 
