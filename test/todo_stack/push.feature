@@ -12,5 +12,5 @@ Feature: push
         Given we have a stack
         When push todo item with random attributes and content ""
         then get InvalidItemException
-        When push todo item with random attributes and content None
+        When push todo item with random attributes and content Non"e
         then get InvalidItemException

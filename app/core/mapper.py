@@ -34,7 +34,6 @@ class AbstractMapper:
     
 
 class SqliteStackMapper(AbstractMapper):
->>>>>>> c6f6c5c1abb7f00daf08fab17f6e3cc97bb47ec6
 
     @staticmethod
     def deletePopoutOrRemoveItem(db, stack):

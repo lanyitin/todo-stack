@@ -7,6 +7,10 @@ from app.core import TodoStack, EmptyStackException, ItemExistException, Invalid
 def step_impl(context):
     context.stack = TodoStack(1, "blabla")
 
+@when(u'pop out an item')
+def step_impl(context):
+    context.popoutedItem = context.stack.pop()
+    print context.popoutedItem 
 
 @when(u'push todo item with random attributes and content {item}')
 def step_impl(context, item):
@@ -52,3 +56,7 @@ def step_impl(context, items):
     for index, todo in enumerate(context.stack):
         assert todo.content == items[index]
         assert todo.order == index
+
+@then(u'the pop out item\'s stackid is None')
+def step_impl(context):
+    assert context.popoutedItem.stackid is None

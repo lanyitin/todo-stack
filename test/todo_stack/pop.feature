@@ -1,5 +1,5 @@
-Feature: moveItem
-    Scenario: move items in todo_stack should change the order of todo item
+Feature: pop
+    Scenario: the stackid will be set to None after pop out
         Given we have a stack
         When push todo item with random attributes and content 7
         When push todo item with random attributes and content 6
@@ -8,6 +8,5 @@ Feature: moveItem
         When push todo item with random attributes and content 0
         When push todo item with random attributes and content 1
         When push todo item with random attributes and content 2
-        When move item from index 3 to index 6
         When pop out an item
-        then the stack is [7,6,8,0,1,2,3]
+        then the pop out item's stackid is None

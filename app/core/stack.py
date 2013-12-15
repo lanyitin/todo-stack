@@ -88,3 +88,7 @@ class TodoStack(Stack):
     def moveItem(self, fromIndex, toIndex):
         Stack.moveItem(self, fromIndex, toIndex)
         self.assign_order_to_todos()
+
+    def pop(self):
+        self.peek().stackid = None
+        return Stack.pop(self)
