@@ -19,15 +19,17 @@ class OutOfRangeException(Exception):
     def __str__(self):
         return self.message
 class InvalidItemException(Exception):
-    def __init__(self):
-        pass
+    def __init__(self, item):
+        self.message = "push item {0}: {1}".format(item, type(item))
+    def __str__(self):
+        return self.message
 
 class Stack(list):
     def push(self, item):
         if item in self:
             raise ItemExistException(self, item)
         if item is None:
-            raise InvalidItemException()
+            raise InvalidItemException(item)
         self.append(item)
 
     def pop(self):
@@ -73,9 +75,9 @@ class TodoStack(Stack):
     
     def push(self, item):
         if not isinstance(item, Todo):
-            raise InvalidItemException
+            raise InvalidItemException(item)
         if item.content == "" or item.content == None:
-            raise InvalidItemException
+            raise InvalidItemException(item)
         Stack.push(self, item)
         item.stackid = self.id
         self.assign_order_to_todos()

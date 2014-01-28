@@ -72,7 +72,7 @@ class SqliteStackMapper(AbstractMapper):
 
     @staticmethod
     def updateStackId(stack):
-        for item in stack.items:
+        for item in stack:
             item.stackid = stack.id
 
     @staticmethod
@@ -86,20 +86,20 @@ class SqliteStackMapper(AbstractMapper):
         cursor = db.cursor()
         rows = cursor.execute("select * from stack where name=?", (name,))
         row = rows.fetchone()
-        if row is None:
-            return None
-        else:
+        if row is not None:
             stack =  TodoStack(row[0], row[1])
             cursor = db.cursor()
             rows = cursor.execute("select * from todo where stackid=? order by `order` asc", (stack.id,))
             for row in rows.fetchall():
-                stack.items.append(Todo(id = row[0], content = row[1], order = row[2], stackid = row[3], priority = row[4]))
+                stack.append(Todo(id = row[0], content = row[1], order = row[2], stackid = row[3], priority = row[4]))
             return stack
-
+        else:
+            raise Exception("can not find stack %s" % (name))
 class MongoStackMapper(AbstractMapper):
 
     @staticmethod
     def deletePopoutOrRemoveItem(db, stack):
+        print stack.__dict__
         if stack.size() > 0:
             id_group = [todo.id for todo in stack.getItems() if todo.id is not None]
             if len(id_group) > 0:
@@ -110,6 +110,7 @@ class MongoStackMapper(AbstractMapper):
 
     @staticmethod
     def storeTodos(db, stack):
+        print stack.__dict__
         for item in stack.getItems():
             if item.id is None:
                 item.id = db.stacktodos.todos.insert(item.__dict__)
@@ -118,43 +119,50 @@ class MongoStackMapper(AbstractMapper):
 
     @staticmethod
     def createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack):
+        print stack.__dict__
         if stack.id is None and stack.size() > 0:
             stack.id = db.stacktodos.stack.insert({"name": stack.name})
             SqliteStackMapper.updateStackId(stack)
 
     @staticmethod
     def updateStackId(stack):
-        for item in stack.items:
+        print stack.__dict__
+        for item in stack:
             item.stackid = stack.id
 
     @staticmethod
     def stripName(stack):
+        print stack.__dict__
         if " " in stack.name:
             stack.name = stack.name.strip(' \t\n\r')
 
 
     @classmethod
     def findByName(cls, name, db):
-        rows = list(db.stacktodos.stack.find({"name": name}))
-        if len(rows) is 0:
-            return None
-        else:
+        rows = list(db.stacktodos.stack.find({"name": unicode(name)}))
+        for row in rows:
+            print row
+        if len(rows) > 0:
             row = rows[0]
             stack =  TodoStack(row["_id"], row["name"])
             rows = list(db.stacktodos.todos.find({"stackid": stack.id}))
             for row in rows:
                 if "priority" in row:
-                    stack.items.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"], priority = row["priority"]))
+                    stack.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"], priority = row["priority"]))
                 else:
-                    stack.items.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"]))
+                    stack.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"]))
             return stack
+        else:
+            raise Exception("can not find stack %s" % (name))
 
 
 class MapperFactory:
     def __init__(self, type):
         self.type = type
     def getMapper(self):
-        if self.type is "mongo":
+        if self.type == "mongo":
             return MongoStackMapper
-        elif self.type is "sqlite":
+        elif self.type == "sqlite":
             return SqliteStackMapper
+        else:
+            raise Exception("not support type: " + self.type)

@@ -31,16 +31,29 @@ def createStack():
 
 @app.route('/<stackName>')
 def displayStack(stackName):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
-    trash_stack = get_mapper().findByName(stackName + "_trash", get_db()) or TodoStack(None, stackName + "_trash")
+    try:
+        stack = get_mapper().findByName(stackName, get_db())
+    except Exception:
+        stack = TodoStack(None, stackName)
+    try:
+        trash_stack = get_mapper().findByName(stackName + "_trash", get_db())
+    except Exception:
+        trash_stack = TodoStack(None, stackName + "_trash")
     response = make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
     response.set_cookie("sequenceNumber", str(StackCommandDispatcher.openDispatcher(stackName).get_max_sequence_number()))
     return response
 
 @app.route('/<stackName>/push/', methods=["POST"])
 def pushItem(stackName):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
-    stack.push(request.form['item'])
+    try:
+        stack = get_mapper().findByName(stackName, get_db())
+    except Exception:
+        stack = TodoStack(None, stackName)
+    try:
+        trash_stack = get_mapper().findByName(stackName + "_trash", get_db())
+    except Exception:
+        trash_stack = TodoStack(None, stackName + "_trash")
+    stack.push(Todo(content = request.form['item']))
     get_mapper().store(stack, get_db())
     todo = stack.peek()
     command = {"command": "push", "data": {"id": str(todo.id), "content":todo.content, "priority": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}
@@ -49,8 +62,14 @@ def pushItem(stackName):
 
 @app.route('/<stackName>/pop/', methods=["GET"])
 def popItem(stackName):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
-    trash_stack = get_mapper().findByName(stackName + "_trash", get_db()) or TodoStack(None, stackName + "_trash")
+    try:
+        stack = get_mapper().findByName(stackName, get_db())
+    except Exception:
+        stack = TodoStack(None, stackName)
+    try:
+        trash_stack = get_mapper().findByName(stackName + "_trash", get_db())
+    except Exception:
+        trash_stack = TodoStack(None, stackName + "_trash")
     todo = stack.pop()
     trash_stack.push(todo)
     get_mapper().store(stack, get_db())
@@ -61,7 +80,14 @@ def popItem(stackName):
 
 @app.route('/<stackName>/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
 def moveItem(stackName, fromIndex, toIndex):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
+    try:
+        stack = get_mapper().findByName(stackName, get_db())
+    except Exception:
+        stack = TodoStack(None, stackName)
+    try:
+        trash_stack = get_mapper().findByName(stackName + "_trash", get_db())
+    except Exception:
+        trash_stack = TodoStack(None, stackName + "_trash")
     stack.moveItem(fromIndex, toIndex)
     get_mapper().store(stack, get_db())
     todos = stack.getItems(True)
@@ -82,7 +108,14 @@ def moveItem(stackName, fromIndex, toIndex):
 
 @app.route('/<stackName>/removeItem/<int:index>/', methods=["GET"])
 def removeItem(stackName, index):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
+    try:
+        stack = get_mapper().findByName(stackName, get_db())
+    except Exception:
+        stack = TodoStack(None, stackName)
+    try:
+        trash_stack = get_mapper().findByName(stackName + "_trash", get_db())
+    except Exception:
+        trash_stack = TodoStack(None, stackName + "_trash")
     todos = stack.getItems(True)
     todo = todos[index]
     stack.removeItem(index)
@@ -93,7 +126,14 @@ def removeItem(stackName, index):
 
 @app.route('/<stackName>/raisePriority/<int:index>/', methods=["GET"])
 def raisePriority(stackName, index):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
+    try:
+        stack = get_mapper().findByName(stackName, get_db())
+    except Exception:
+        stack = TodoStack(None, stackName)
+    try:
+        trash_stack = get_mapper().findByName(stackName + "_trash", get_db())
+    except Exception:
+        trash_stack = TodoStack(None, stackName + "_trash")
     todos = stack.getItems(True)
     todo = todos[index]
     todo.priority += 1
