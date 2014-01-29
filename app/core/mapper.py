@@ -1,5 +1,6 @@
 from stack import TodoStack
 from other import Todo
+import pymongo
 
 class AbstractMapper:
     @classmethod
@@ -99,10 +100,11 @@ class MongoStackMapper(AbstractMapper):
 
     @staticmethod
     def deletePopoutOrRemoveItem(db, stack):
-        print stack.__dict__
         if stack.size() > 0:
-            id_group = [todo.id for todo in stack.getItems() if todo.id is not None]
+            id_group = [todo.id for todo in stack.getItems()]
             if len(id_group) > 0:
+                for row in db.stacktodos.todos.find({"_id": {'$nin': id_group}, "stackid": stack.id}):
+                    print("remove",row)
                 db.stacktodos.todos.remove({"_id": {'$nin': id_group}, "stackid": stack.id})
         else:
             db.stacktodos.todos.remove({"stackid": stack.id})
@@ -110,29 +112,27 @@ class MongoStackMapper(AbstractMapper):
 
     @staticmethod
     def storeTodos(db, stack):
-        print stack.__dict__
         for item in stack.getItems():
             if item.id is None:
+                print("insert", item.__dict__)
                 item.id = db.stacktodos.todos.insert(item.__dict__)
             else:
+                print("update", item.__dict__)
                 db.stacktodos.todos.update({"_id": item.id}, item.__dict__)
 
     @staticmethod
     def createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack):
-        print stack.__dict__
         if stack.id is None and stack.size() > 0:
             stack.id = db.stacktodos.stack.insert({"name": stack.name})
             SqliteStackMapper.updateStackId(stack)
 
     @staticmethod
     def updateStackId(stack):
-        print stack.__dict__
         for item in stack:
             item.stackid = stack.id
 
     @staticmethod
     def stripName(stack):
-        print stack.__dict__
         if " " in stack.name:
             stack.name = stack.name.strip(' \t\n\r')
 
@@ -140,12 +140,10 @@ class MongoStackMapper(AbstractMapper):
     @classmethod
     def findByName(cls, name, db):
         rows = list(db.stacktodos.stack.find({"name": unicode(name)}))
-        for row in rows:
-            print row
         if len(rows) > 0:
             row = rows[0]
             stack =  TodoStack(row["_id"], row["name"])
-            rows = list(db.stacktodos.todos.find({"stackid": stack.id}))
+            rows = list(db.stacktodos.todos.find({"stackid": stack.id}).sort("order", pymongo.ASCENDING))
             for row in rows:
                 if "priority" in row:
                     stack.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"], priority = row["priority"]))

@@ -44,6 +44,7 @@ def step_impl(context, items):
         trash_stack = context.mapper.findByName(context.stack.name + "_trash", db)
     except Exception:
         trash_stack = TodoStack(None, context.stack.name + "_trash")
+    assert trash_stack.size() > 0
     for index, todo in enumerate(trash_stack):
         print(todo.content, unicode(items[index]))
         assert todo.content == unicode(items[index])
@@ -84,4 +85,5 @@ def step_impl(context, name, items):
         todo = Todo(stackid = stackid, content = items[index], order = index)
         db.stacktodos.todos.insert(todo.__dict__)
     context.stack = context.mapper.findByName(name, db)
+    print(stackid, context.stack.id)
     assert stackid == context.stack.id

@@ -88,6 +88,9 @@ def moveItem(stackName, fromIndex, toIndex):
         trash_stack = get_mapper().findByName(stackName + "_trash", get_db())
     except Exception:
         trash_stack = TodoStack(None, stackName + "_trash")
+    fromIndex = abs(fromIndex - stack.size() + 1)
+    toIndex = abs(toIndex - stack.size() + 1)
+    print(fromIndex, toIndex)
     stack.moveItem(fromIndex, toIndex)
     get_mapper().store(stack, get_db())
     todos = stack.getItems(True)
@@ -108,6 +111,12 @@ def moveItem(stackName, fromIndex, toIndex):
 
 @app.route('/<stackName>/removeItem/<int:index>/', methods=["GET"])
 def removeItem(stackName, index):
+    # abs(index - size() + 1)
+    # 0 1 2 3 4 5 6
+
+    # 1 2 3 4 5 6 7
+
+    # 6 5 4 3 2 1 0
     try:
         stack = get_mapper().findByName(stackName, get_db())
     except Exception:
@@ -116,7 +125,9 @@ def removeItem(stackName, index):
         trash_stack = get_mapper().findByName(stackName + "_trash", get_db())
     except Exception:
         trash_stack = TodoStack(None, stackName + "_trash")
-    todos = stack.getItems(True)
+    index = abs(index - stack.size() + 1)
+    print(index)
+    todos = stack.getItems(False)
     todo = todos[index]
     stack.removeItem(index)
     get_mapper().store(stack, get_db())
@@ -134,7 +145,8 @@ def raisePriority(stackName, index):
         trash_stack = get_mapper().findByName(stackName + "_trash", get_db())
     except Exception:
         trash_stack = TodoStack(None, stackName + "_trash")
-    todos = stack.getItems(True)
+    index = abs(index - stack.size() + 1)
+    todos = stack.getItems(False)
     todo = todos[index]
     todo.priority += 1
     if todo.priority >= 5:

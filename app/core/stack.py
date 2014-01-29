@@ -36,6 +36,7 @@ class Stack(list):
         if len(self) is 0:
             raise EmptyStackException()
         item = list.pop(self)
+        print(item)
         return item
     def size(self):
         return len(self)
@@ -60,6 +61,7 @@ class Stack(list):
 
         item = self[index]
         del self[index]
+        print(index, item)
         return item
 
     def moveItem(self, fromIndex, toIndex):
@@ -78,6 +80,7 @@ class TodoStack(Stack):
             raise InvalidItemException(item)
         if item.content == "" or item.content == None:
             raise InvalidItemException(item)
+        item.id = None
         Stack.push(self, item)
         item.stackid = self.id
         self.assign_order_to_todos()
