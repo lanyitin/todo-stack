@@ -1,12 +1,17 @@
-import os, json, base64, time, pymongo, json , gevent, uuid, sqlite3, logging
+import os, json, base64, time, pymongo, json , gevent, uuid, sqlite3, logging, hashlib
 from flask import Flask, request, g, redirect, url_for, render_template, make_response
 from flask.ext.assets import Environment
-from core import TodoStack, Todo, StackCommandDispatcher, MapperFactory
+from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
+from core import TodoStack, Todo, StackCommandDispatcher, MapperFactory, User, UserMapper
 from webassets.script import CommandLineEnvironment
 
+login_manager = LoginManager()
 app = Flask(__name__)
 app.debug = True
 assets = Environment(app)
+login_manager.init_app(app)
+login_manager.login_view = "/login"
+
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -24,22 +29,61 @@ def get_mapper():
         mapper = g.mapper = MapperFactory("mongo").getMapper()
     return mapper 
 
-@app.route('/')
-def createStack():
-    url = "/" + base64.b64encode(str(time.time()))
-    return redirect(url.strip(' \t\n\r%\\') )
+@app.before_request
+def before_request():
+    g.user = current_user
 
-@app.route('/<stackName>')
+@login_manager.user_loader
+def load_user(id):
+    return UserMapper.findById(id,  get_db())
+
+
+@app.route('/login', methods = ['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+    username = request.form['username']
+    password = hashlib.md5(request.form['password']).hexdigest()
+    registered_user = UserMapper.findByUsernameAndPassword(username, password, get_db())
+    if registered_user is None:
+        return redirect(url_for('login'))
+    login_user(registered_user)
+    return redirect(url_for('main'))
+
+@app.route('/')
+@login_required
+def main():
+    return render_template('layout.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('main')) 
+
+@app.route('/register', methods = ['GET', 'POST'])
+def register():
+    if request.method == 'GET':
+        return render_template('register.html')
+    username = request.form['username']
+    password = hashlib.md5(request.form['password']).hexdigest()
+    user = User(username = username, password = password, authenticated = False, id = None)
+    UserMapper.register(user, get_db())
+    return redirect(url_for('login'))
+
+@app.route('/stack/<stackName>')
+@login_required
 def displayStack(stackName):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
-    trash_stack = get_mapper().findByName(stackName + "_trash", get_db()) or TodoStack(None, stackName + "_trash")
+    stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
+    trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, "trash")
     response = make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
     response.set_cookie("sequenceNumber", str(StackCommandDispatcher.openDispatcher(stackName).get_max_sequence_number()))
     return response
 
-@app.route('/<stackName>/push/', methods=["POST"])
+@app.route('/stack/<stackName>/push/', methods=["POST"])
+@login_required
 def pushItem(stackName):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
+    stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
     stack.push(request.form['item'])
     get_mapper().store(stack, get_db())
     todo = stack.peek()
@@ -47,10 +91,11 @@ def pushItem(stackName):
     StackCommandDispatcher.openDispatcher(stackName).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
 
-@app.route('/<stackName>/pop/', methods=["GET"])
+@app.route('/stack/<stackName>/pop/', methods=["GET"])
+@login_required
 def popItem(stackName):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
-    trash_stack = get_mapper().findByName(stackName + "_trash", get_db()) or TodoStack(None, stackName + "_trash")
+    stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
+    trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, "trash")
     todo = stack.pop()
     trash_stack.push(todo)
     get_mapper().store(stack, get_db())
@@ -59,9 +104,10 @@ def popItem(stackName):
     StackCommandDispatcher.openDispatcher(stackName).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
 
-@app.route('/<stackName>/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
+@app.route('/stack/<stackName>/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
+@login_required
 def moveItem(stackName, fromIndex, toIndex):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
+    stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
     stack.moveItem(fromIndex, toIndex)
     get_mapper().store(stack, get_db())
     todos = stack.getItems(True)
@@ -80,9 +126,10 @@ def moveItem(stackName, fromIndex, toIndex):
     StackCommandDispatcher.openDispatcher(stackName).new_command(response["commands"])
     return json.dumps(response)
 
-@app.route('/<stackName>/removeItem/<int:index>/', methods=["GET"])
+@app.route('/stack/<stackName>/removeItem/<int:index>/', methods=["GET"])
+@login_required
 def removeItem(stackName, index):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
+    stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
     todos = stack.getItems(True)
     todo = todos[index]
     stack.removeItem(index)
@@ -91,9 +138,10 @@ def removeItem(stackName, index):
     StackCommandDispatcher.openDispatcher(stackName).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
 
-@app.route('/<stackName>/raisePriority/<int:index>/', methods=["GET"])
+@app.route('/stack/<stackName>/raisePriority/<int:index>/', methods=["GET"])
+@login_required
 def raisePriority(stackName, index):
-    stack = get_mapper().findByName(stackName, get_db()) or TodoStack(None, stackName)
+    stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
     todos = stack.getItems(True)
     todo = todos[index]
     todo.priority += 1
@@ -104,7 +152,8 @@ def raisePriority(stackName, index):
     StackCommandDispatcher.openDispatcher(stackName).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
 
-@app.route('/<stackName>/fetch/<int:request_sequence_number>/', methods=["GET"])
+@app.route('/stack/<stackName>/fetch/<int:request_sequence_number>/', methods=["GET"])
+@login_required
 def fetch(stackName, request_sequence_number):
     commands = StackCommandDispatcher.openDispatcher(stackName).fetch_command(request_sequence_number)
     response = make_response(json.dumps(commands))

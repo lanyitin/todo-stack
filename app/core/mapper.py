@@ -1,5 +1,6 @@
 from stack import TodoStack
-from other import Todo
+from other import Todo, User
+from bson.objectid import ObjectId
 
 class AbstractMapper:
     @classmethod
@@ -29,72 +30,9 @@ class AbstractMapper:
         pass
 
     @classmethod
-    def findByName(cls, name, db):
+    def findByNameAndUserId(cls, name, userid, db):
         pass
     
-
-class SqliteStackMapper(AbstractMapper):
-
-    @staticmethod
-    def deletePopoutOrRemoveItem(db, stack):
-        if stack.size() > 0:
-            id_group = [str(todo.id) for todo in stack.getItems() if todo.id is not None]
-            if len(id_group) > 0:
-                id_group = ",".join(id_group)
-                cursor = db.cursor().execute("delete from todo where id not in (%s) and stackid=%d" % (id_group, stack.id))
-                db.commit()
-            else:
-                cursor = db.cursor().execute("delete from todo where stackid=%d" % (stack.id,))
-                db.commit()
-        else:
-            if stack.id is not None:
-                cursor = db.cursor().execute("delete from todo where stackid=%d" % (stack.id,))
-                db.commit()
-
-    @staticmethod
-    def storeTodos(db, stack):
-        for item in stack.getItems():
-            update_items = []
-            if item.id is None:
-                cursor = db.cursor().execute("insert into todo (content, `order`, stackid, priority) values (?, ?, ?, ?)", (item.content, item.order, item.stackid, item.priority))
-                item.id = cursor.lastrowid
-            else:
-                cursor = db.cursor().execute("update todo set content=?, `order`=?, stackid=?, priority=? where id=?", (item.content, item.order, item.stackid, item.priority, item.id))
-            db.commit()
-
-    @staticmethod
-    def createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack):
-        if stack.id is None and stack.size() > 0:
-            cursor = db.cursor().execute("insert into stack (name) values (?)", (stack.name,))
-            db.commit()
-            stack.id = cursor.lastrowid
-            SqliteStackMapper.updateStackId(stack)
-
-    @staticmethod
-    def updateStackId(stack):
-        for item in stack.items:
-            item.stackid = stack.id
-
-    @staticmethod
-    def stripName(stack):
-        if " " in stack.name:
-            stack.name = stack.name.strip(' \t\n\r')
-
-
-    @classmethod
-    def findByName(cls, name, db):
-        cursor = db.cursor()
-        rows = cursor.execute("select * from stack where name=?", (name,))
-        row = rows.fetchone()
-        if row is None:
-            return None
-        else:
-            stack =  TodoStack(row[0], row[1])
-            cursor = db.cursor()
-            rows = cursor.execute("select * from todo where stackid=? order by `order` asc", (stack.id,))
-            for row in rows.fetchall():
-                stack.items.append(Todo(id = row[0], content = row[1], order = row[2], stackid = row[3], priority = row[4]))
-            return stack
 
 class MongoStackMapper(AbstractMapper):
 
@@ -120,11 +58,11 @@ class MongoStackMapper(AbstractMapper):
     def createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack):
         if stack.id is None and stack.size() > 0:
             stack.id = db.stacktodos.stack.insert({"name": stack.name})
-            SqliteStackMapper.updateStackId(stack)
+            MongoStackMapper.updateStackId(stack)
 
     @staticmethod
     def updateStackId(stack):
-        for item in stack.items:
+        for item in stack:
             item.stackid = stack.id
 
     @staticmethod
@@ -134,8 +72,8 @@ class MongoStackMapper(AbstractMapper):
 
 
     @classmethod
-    def findByName(cls, name, db):
-        rows = list(db.stacktodos.stack.find({"name": name}))
+    def findByNameAndUserId(cls, name, userid, db):
+        rows = list(db.stacktodos.stack.find({"name": name, "userid": ObjectId(userid)}))
         if len(rows) is 0:
             return None
         else:
@@ -144,11 +82,34 @@ class MongoStackMapper(AbstractMapper):
             rows = list(db.stacktodos.todos.find({"stackid": stack.id}))
             for row in rows:
                 if "priority" in row:
-                    stack.items.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"], priority = row["priority"]))
+                    stack.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"], priority = row["priority"]))
                 else:
-                    stack.items.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"]))
+                    stack.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"]))
             return stack
 
+class UserMapper:
+    @classmethod
+    def register(clazz, user, db):
+        rows = list(db.stacktodos.user.find({"username": user.username}))
+        if len(rows) > 0:
+            raise Exception("user {0} exists".format(user.username))
+        user.id = db.stacktodos.user.insert({"username": user.username, "password": user.password})
+
+    @classmethod
+    def findById(clazz, id, db):
+        rows = list(db.stacktodos.user.find({"_id": ObjectId(id)}))
+        if len(rows) is 0:
+            return None
+        row = rows[0]
+        return User(id = row['_id'], username = row['username'], password = row['password'], authenticated = True)
+
+    @classmethod
+    def findByUsernameAndPassword(clazz, username, password, db):
+        rows = list(db.stacktodos.user.find({"username": username, "password": password}))
+        if len(rows) is 0:
+            return None
+        row = rows[0]
+        return User(id = row['_id'], username = row['username'], password = row['password'], authenticated = True)
 
 class MapperFactory:
     def __init__(self, type):
@@ -156,5 +117,3 @@ class MapperFactory:
     def getMapper(self):
         if self.type is "mongo":
             return MongoStackMapper
-        elif self.type is "sqlite":
-            return SqliteStackMapper

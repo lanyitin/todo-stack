@@ -128,11 +128,11 @@ function showItemsInTrashStackExceptLastNItems(num) {
 
 function initControls() {
     $(".control.pop").click(function() {
-        $.ajax({ url: "/" + window.stackName + "/pop/" });
+        $.ajax({ url: "/stack/" + window.stackName + "/pop/" });
     });
     $(".control.push").click(function() {
         $.ajax({
-            url: "/" + window.stackName + "/push/" , type:"POST",
+            url: "/stack/" + window.stackName + "/push/" , type:"POST",
             data:{"item":$("#control-todo-content").val()}
         });
     });
@@ -164,7 +164,7 @@ function initControls() {
         update: function ( event, ui) {
             var from = ui.item.data("start_pos");
             var to = ui.item.index();
-            $.ajax({ url: "/" + window.stackName + "/moveItem/" + from + "/" + to + "/" });
+            $.ajax({ url: "/stack/" + window.stackName + "/moveItem/" + from + "/" + to + "/" });
         },
         revert: true,
         handle: ".sort.icon"
@@ -176,13 +176,13 @@ function bindUIEventHandlerToTodoView() {
         var currentPriority = $(e.target).attr("data-todo-priority");
         var todoId = $(e.target).attr("data-todo-id");
         var index = $(e.target).parent().index();
-        $.ajax({url: "/" + window.stackName + "/raisePriority/" + index + "/" }).done(function (){
+        $.ajax({url: "/stack/" + window.stackName + "/raisePriority/" + index + "/" }).done(function (){
             $(e.target).html((parseInt($(e.target).html()) + 1) % 5);
         });
     });
 
     $(".stack:not(.trash) .todo .delete").unbind().click(function (e){
-        $.ajax({url: "/" + window.stackName + "/removeItem/" + $(e.target).parent().index() + "/"})
+        $.ajax({url: "/stack/" + window.stackName + "/removeItem/" + $(e.target).parent().index() + "/"})
     });
 }
 (function() {
@@ -206,7 +206,7 @@ function bindUIEventHandlerToTodoView() {
         }
     }
     function poll () {
-        $.ajax({url: "/" + window.stackName + "/fetch/" + getSequenceNumber() + "/"}).done(function (data) {
+        $.ajax({url: "/stack/" + window.stackName + "/fetch/" + getSequenceNumber() + "/"}).done(function (data) {
             handleFetchResponse(data);
             poll();
         });

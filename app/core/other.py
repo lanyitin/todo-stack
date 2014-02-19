@@ -68,3 +68,23 @@ class StackCommandDispatcher:
             result = max([x["key"] for x in commands])
         assert type(result) is int
         return result
+
+class User:
+    def __init__(self, **argus):
+        self.__is_authenticated__ = argus['authenticated'] or False
+        self.id = unicode(argus['id'])
+        self.username = argus['username']
+        self.password = argus['password']
+
+    # used by flask-login
+    def is_authenticated(self):
+        return self.__is_authenticated__
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return self.id
