@@ -55,7 +55,7 @@
         {% block body %}{% endblock %}
     </div>
 </div>
-{% assets filters='jsmin', output='js/packed.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/underscore-min.js', 'js/stacktodos.js', 'js/`typeahead.bundle.js' %}
+{% assets filters='jsmin', output='js/packed.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/underscore-min.js', 'js/stacktodos.js' %}
 <script type="text/javascript" src="{{ ASSET_URL }}"></script>
 {% endassets %}
 </body>
