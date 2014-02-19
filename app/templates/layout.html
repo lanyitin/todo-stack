@@ -13,6 +13,15 @@
     <script src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
     <![endif]-->
 <style>
+.navbar-form + .dropdown-menu {
+    right: auto;
+    margin-left: 15px;
+    margin-right: 15px;
+    top: 40px;
+    width: 177px;
+    border-top-width: 0px;
+    border-top-radius: 0px;
+}
 .ui-helper-hidden-accessible {
     display: none;
 }
@@ -33,19 +42,19 @@
         {% if g.user.is_authenticated() %}
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                <form class="navbar-form dropdown-toggle" data-toggle="dropdown" role="search">
+                    <div class="form-group">
+                        <input id="stack_list_input" type="text" class="form-control stack_list_autocomplete" placeholder="find or create a stack">
+                    </div>
+                </form>
+                <ul class="dropdown-menu" id="stack_list_dropdown">
+                </ul>
+                </li>
                 <li>
                 <a href="{{ url_for("logout") }}">Log out</a>
                 </li>
             </ul>
-            <li class="dropdown">
-            <form class="navbar-form navbar-right dropdown-toggle" data-toggle="dropdown" role="search">
-                <div class="form-group">
-                    <input type="text" class="form-control stack_list_autocomplete" placeholder="find or create a stack">
-                </div>
-            </form>
-            <ul class="dropdown-menu" id="stack_list_dropdown">
-            </ul>
-            </li>
         </div><!--/.navbar-collapse -->
         {% endif %}
     </div>
@@ -55,7 +64,7 @@
         {% block body %}{% endblock %}
     </div>
 </div>
-{% assets filters='jsmin', output='js/packed.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/underscore-min.js', 'js/stacktodos.js' %}
+{% assets output='js/packed.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/underscore-min.js', 'js/stacktodos.js' %}
 <script type="text/javascript" src="{{ ASSET_URL }}"></script>
 {% endassets %}
 </body>
