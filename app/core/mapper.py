@@ -5,9 +5,9 @@ import pymongo
 
 class AbstractMapper:
     @classmethod
-    def store(cls, stack, db):
+    def store(cls, stack, userid, db):
         cls.stripName(stack)
-        cls.createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack)
+        cls.createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack, userid)
         cls.storeTodos(db, stack)
         cls.deletePopoutOrRemoveItem(db, stack)
     @staticmethod
@@ -19,7 +19,7 @@ class AbstractMapper:
         pass
 
     @staticmethod
-    def createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack):
+    def createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack, userid):
         pass
 
     @staticmethod
@@ -53,16 +53,15 @@ class MongoStackMapper(AbstractMapper):
     def storeTodos(db, stack):
         for item in stack.getItems():
             if item.id is None:
-                print("insert", item.__dict__)
                 item.id = db.stacktodos.todos.insert(item.__dict__)
+                db.stacktodos.todos.update({"_id": item.id}, item.__dict__)
             else:
-                print("update", item.__dict__)
                 db.stacktodos.todos.update({"_id": item.id}, item.__dict__)
 
     @staticmethod
-    def createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack):
+    def createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack, userid):
         if stack.id is None and stack.size() > 0:
-            stack.id = db.stacktodos.stack.insert({"name": stack.name})
+            stack.id = db.stacktodos.stack.insert({"name": stack.name, "userid": ObjectId(userid)})
             MongoStackMapper.updateStackId(stack)
 
     @staticmethod

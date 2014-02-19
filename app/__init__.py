@@ -1,9 +1,10 @@
-import os, json, base64, time, pymongo, json , gevent, uuid, sqlite3, logging, hashlib
-from flask import Flask, request, g, redirect, url_for, render_template, make_response
+import os, json, base64, time, pymongo, json , gevent, uuid, sqlite3, logging, hashlib, re, json
+from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
 from core import TodoStack, Todo, StackCommandDispatcher, MapperFactory, User, UserMapper
 from webassets.script import CommandLineEnvironment
+from bson import ObjectId
 
 login_manager = LoginManager()
 app = Flask(__name__)
@@ -71,6 +72,18 @@ def register():
     UserMapper.register(user, get_db())
     return redirect(url_for('login'))
 
+@app.route('/stack/list', methods = ['GET'])
+@login_required
+def listStack():
+    db = get_db()
+    if request.args['match'] is not None and request.args['match'] is not "":
+        regx = re.compile("^{0}".format(request.args['match']), re.IGNORECASE)
+        rows = list(db.stacktodos.stack.find({"userid": ObjectId(g.user.id), "name": regx}, fields = ["name"]))
+    else:
+        rows = list(db.stacktodos.stack.find({"userid": ObjectId(g.user.id)}, fields = ["name"]))
+    names = [row['name'] for row in rows]
+    return json.dumps(names)
+
 @app.route('/stack/<stackName>')
 @login_required
 def displayStack(stackName):
@@ -81,7 +94,7 @@ def displayStack(stackName):
     try:
         trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, "trash")
     except Exception:
-        trash_stack = TodoStack(None, stackName + "_trash")
+        trash_stack = TodoStack(None, "trash")
     response = make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
     response.set_cookie("sequenceNumber", str(StackCommandDispatcher.openDispatcher(stackName).get_max_sequence_number()))
     return response
@@ -96,9 +109,9 @@ def pushItem(stackName):
     try:
         trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, "trash")
     except Exception:
-        trash_stack = TodoStack(None, stackName + "_trash")
+        trash_stack = TodoStack(None, "trash")
     stack.push(Todo(content = request.form['item']))
-    get_mapper().store(stack, get_db())
+    get_mapper().store(stack, g.user.id, get_db())
     todo = stack.peek()
     command = {"command": "push", "data": {"id": str(todo.id), "content":todo.content, "priority": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}
     StackCommandDispatcher.openDispatcher(stackName).new_command([command])
@@ -114,11 +127,11 @@ def popItem(stackName):
     try:
         trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, "trash")
     except Exception:
-        trash_stack = TodoStack(None, stackName + "_trash")
+        trash_stack = TodoStack(None, "trash")
     todo = stack.pop()
     trash_stack.push(todo)
-    get_mapper().store(stack, get_db())
-    get_mapper().store(trash_stack, get_db())
+    get_mapper().store(stack, g.user.id, get_db())
+    get_mapper().store(trash_stack, g.user.id, get_db())
     command = {"command": "pop", "data": {"id": str(todo.id), "content":todo.content, "priority": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}
     StackCommandDispatcher.openDispatcher(stackName).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
@@ -131,13 +144,13 @@ def moveItem(stackName, fromIndex, toIndex):
     except Exception:
         stack = TodoStack(None, stackName)
     try:
-        trash_stack = get_mapper().findByName(stackName + "_trash", get_db())
+        trash_stack = get_mapper().findByName("trash", get_db())
     except Exception:
-        trash_stack = TodoStack(None, stackName + "_trash")
+        trash_stack = TodoStack(None, "trash")
     fromIndex = abs(fromIndex - stack.size() + 1)
     toIndex = abs(toIndex - stack.size() + 1)
     stack.moveItem(fromIndex, toIndex)
-    get_mapper().store(stack, get_db())
+    get_mapper().store(stack, g.user.id, get_db())
     todos = stack.getItems(True)
     response = {"response": "success", "commands": []}
     begin = end = 0
@@ -164,13 +177,13 @@ def removeItem(stackName, index):
     try:
         trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, stackName)
     except Exception:
-        trash_stack = TodoStack(None, stackName + "_trash")
+        trash_stack = TodoStack(None, "trash")
     index = abs(index - stack.size() + 1)
     print(index)
     todos = stack.getItems(False)
     todo = todos[index]
     stack.removeItem(index)
-    get_mapper().store(stack, get_db())
+    get_mapper().store(stack, g.user.id, get_db())
     command = {"command": "removeItem", "data": {"id": str(todo.id), "content":todo.content, "priority": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}
     StackCommandDispatcher.openDispatcher(stackName).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
@@ -185,14 +198,14 @@ def raisePriority(stackName, index):
     try:
         trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, stackName)
     except Exception:
-        trash_stack = TodoStack(None, stackName + "_trash")
+        trash_stack = TodoStack(None, "trash")
     index = abs(index - stack.size() + 1)
     todos = stack.getItems(False)
     todo = todos[index]
     todo.priority += 1
     if todo.priority >= 5:
         todo.priority %= 5
-    get_mapper().store(stack, get_db())
+    get_mapper().store(stack, g.user.id, get_db())
     command = {"response": "success", "commands": [{"command": "update", "data": {"id": str(todo.id), "content":todo.content, "priority": todo.priority, "stackid": str(todo.stackid), "order": todo.order}}]}
     StackCommandDispatcher.openDispatcher(stackName).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
