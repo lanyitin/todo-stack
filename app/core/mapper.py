@@ -1,6 +1,7 @@
 from stack import TodoStack
 from other import Todo, User
 from bson.objectid import ObjectId
+import pymongo
 
 class AbstractMapper:
     @classmethod
@@ -39,8 +40,10 @@ class MongoStackMapper(AbstractMapper):
     @staticmethod
     def deletePopoutOrRemoveItem(db, stack):
         if stack.size() > 0:
-            id_group = [todo.id for todo in stack.getItems() if todo.id is not None]
+            id_group = [todo.id for todo in stack.getItems()]
             if len(id_group) > 0:
+                for row in db.stacktodos.todos.find({"_id": {'$nin': id_group}, "stackid": stack.id}):
+                    print("remove",row)
                 db.stacktodos.todos.remove({"_id": {'$nin': id_group}, "stackid": stack.id})
         else:
             db.stacktodos.todos.remove({"stackid": stack.id})
@@ -50,8 +53,10 @@ class MongoStackMapper(AbstractMapper):
     def storeTodos(db, stack):
         for item in stack.getItems():
             if item.id is None:
+                print("insert", item.__dict__)
                 item.id = db.stacktodos.todos.insert(item.__dict__)
             else:
+                print("update", item.__dict__)
                 db.stacktodos.todos.update({"_id": item.id}, item.__dict__)
 
     @staticmethod
@@ -74,18 +79,18 @@ class MongoStackMapper(AbstractMapper):
     @classmethod
     def findByNameAndUserId(cls, name, userid, db):
         rows = list(db.stacktodos.stack.find({"name": name, "userid": ObjectId(userid)}))
-        if len(rows) is 0:
-            return None
-        else:
+        if len(rows) > 0:
             row = rows[0]
             stack =  TodoStack(row["_id"], row["name"])
-            rows = list(db.stacktodos.todos.find({"stackid": stack.id}))
+            rows = list(db.stacktodos.todos.find({"stackid": stack.id}).sort("order", pymongo.ASCENDING))
             for row in rows:
                 if "priority" in row:
                     stack.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"], priority = row["priority"]))
                 else:
                     stack.append(Todo(id = row["_id"], content = row["content"], order = row["order"], stackid = row["stackid"]))
             return stack
+        else:
+            raise Exception("can not find stack %s" % (name))
 
 class UserMapper:
     @classmethod
@@ -115,5 +120,5 @@ class MapperFactory:
     def __init__(self, type):
         self.type = type
     def getMapper(self):
-        if self.type is "mongo":
+        if self.type == "mongo":
             return MongoStackMapper

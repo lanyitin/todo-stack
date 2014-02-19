@@ -82,13 +82,11 @@ function handleCommands(commandsTimePair) {
             bindUIEventHandlerToTodoView();
 
         } else if (command.command === "update") {
+            console.log(command);
             var todoDom = $(".stack .todo[data-todo-id=" + command.data.id + "]");
             todoDom.attr("data-todo-order", command.data.order);
             todoDom.attr("data-todo-priority", command.data.priority);
-            $(".stack:not(.trash) .todo").sort(function (a,b) {
-                return $(a).attr("data-todo-order") < $(b).attr("data-todo-order") ? 1 : -1;
-            }).appendTo(".stack:not(.trash)");
-            todoDom.select(".priority").html(command.data.priority);
+            todoDom.children(".priority").html(command.data.priority);
         } else if (command.command === "removeItem") {
             $(".stack .todo[data-todo-id=" + command.data.id + "]").remove();
         } else if (command.command === "pop") {
@@ -102,6 +100,10 @@ function handleCommands(commandsTimePair) {
             }
         }
     }
+    $(".stack:not(.trash) .todo").sort(function (a,b) {
+        console.log(a, b);
+        return $(a).attr("data-todo-order") < $(b).attr("data-todo-order") ? 1 : -1;
+    }).appendTo(".stack:not(.trash)");
 }
 
 function hideItemsInTrashStackExceptLastNItems(num) {
