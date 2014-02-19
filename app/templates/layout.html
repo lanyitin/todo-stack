@@ -12,6 +12,11 @@
     <script src="{{ url_for('static', filename='js/html5shiv.js') }}"></script>
     <script src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
     <![endif]-->
+<style>
+.ui-helper-hidden-accessible {
+    display: none;
+}
+</style>
 </head>
 <body>
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -32,11 +37,15 @@
                 <a href="{{ url_for("logout") }}">Log out</a>
                 </li>
             </ul>
-            <form class="navbar-form navbar-right" role="search">
+            <li class="dropdown">
+            <form class="navbar-form navbar-right dropdown-toggle" data-toggle="dropdown" role="search">
                 <div class="form-group">
                     <input type="text" class="form-control stack_list_autocomplete" placeholder="find or create a stack">
                 </div>
             </form>
+            <ul class="dropdown-menu" id="stack_list_dropdown">
+            </ul>
+            </li>
         </div><!--/.navbar-collapse -->
         {% endif %}
     </div>
@@ -46,37 +55,8 @@
         {% block body %}{% endblock %}
     </div>
 </div>
-{% assets filters='jsmin', output='js/packed.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/underscore-min.js', 'js/stacktodos.js' %}
+{% assets filters='jsmin', output='js/packed.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/underscore-min.js', 'js/stacktodos.js', 'js/`typeahead.bundle.js' %}
 <script type="text/javascript" src="{{ ASSET_URL }}"></script>
 {% endassets %}
 </body>
-<script>
-$(".stack_list_autocomplete").autocomplete({
-    source : function(request, response) {
-        $.ajax({
-            url : "/stack/list",
-            data : {
-                match : request.term
-            },
-            success : function(data) {
-                data = JSON.parse(data);
-                response($.map(data, function(item) {
-                    return {
-                        label : item,
-                        value : item
-                    };
-            }));
-            }
-        });
-    },
-    minLength : 1,
-    open : function() {
-               $(this).removeClass("ui-corner-all").addClass("ui-corner-top");
-           },
-    close : function() {
-                $(this).removeClass("ui-corner-top").addClass("ui-corner-all");
-            },
-    select : function (event, ui) {console.log(ui.label); window.location = "/stack/" + ui.label;}
-});_
-</script>
 </html>

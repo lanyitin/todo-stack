@@ -215,3 +215,38 @@ function bindUIEventHandlerToTodoView() {
     }
     poll();
 })();
+
+($(".stack_list_autocomplete").autocomplete({
+     source : function(request, response) {
+         $.ajax({
+             url : "/stack/list",
+             data : {
+                 match : request.term
+             },
+             success : function(data) {
+                 data = JSON.parse(data);
+                 response($.map(data, function(item) {
+                     return {
+                         label : item,
+                     value : item
+                     };
+                 }));
+             }
+         });
+     },
+     minLength : 1,
+     open : function() {
+         $(this).removeClass("ui-corner-all").addClass("ui-corner-top");
+     },
+     close : function() {
+         $(this).removeClass("ui-corner-top").addClass("ui-corner-all");
+     },
+     select : function (event, ui) {window.location = "/stack/" + ui.item.label;}
+     _renderMenu: function( ul, items ) {
+         $("#stack_list_dropdown").empty();
+         $.each( items, function( index, item ) {
+             $("#stack_list_dropdown").append($("<li>").attr( "data-value", item.value ).append( $( "<a>" ).text( item.label ));
+         });
+     }
+});
+)();
