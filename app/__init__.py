@@ -9,6 +9,7 @@ from bson import ObjectId
 login_manager = LoginManager()
 app = Flask(__name__)
 app.debug = True
+app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 assets = Environment(app)
 login_manager.init_app(app)
 login_manager.login_view = "/login"
