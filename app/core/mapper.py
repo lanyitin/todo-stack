@@ -78,7 +78,7 @@ class MongoStackMapper(AbstractMapper):
 
     @classmethod
     def findByNameAndUserId(cls, name, userid, db):
-        rows = list(db.stacktodos.stack.find({"name": name, "userid": ObjectId(userid)}))
+        rows = list(db.stacktodos.stack.find({"name": unicode(name), "userid": ObjectId(userid)}))
         if len(rows) > 0:
             row = rows[0]
             stack =  TodoStack(row["_id"], row["name"])
