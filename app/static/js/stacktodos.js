@@ -241,7 +241,7 @@ function bindUIEventHandlerToTodoView() {
      close : function() {
          $(this).removeClass("ui-corner-top").addClass("ui-corner-all");
      },
-     select : function (event, ui) {window.location = "/stack/" + ui.item.label;}
+     select : function (event, ui) {window.location = "/stack/" + ui.item.label;},
      _renderMenu: function( ul, items ) {
          $("#stack_list_dropdown").empty();
          $.each( items, function( index, item ) {
