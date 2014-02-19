@@ -245,7 +245,7 @@ function bindUIEventHandlerToTodoView() {
      _renderMenu: function( ul, items ) {
          $("#stack_list_dropdown").empty();
          $.each( items, function( index, item ) {
-             $("#stack_list_dropdown").append($("<li>").attr( "data-value", item.value ).append( $( "<a>" ).text( item.label ));
+             $("#stack_list_dropdown").append($("<li>").attr( "data-value", item.value ).append( $( "<a>" ).text( item.label )));
          });
      }
 });
