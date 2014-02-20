@@ -73,7 +73,7 @@ def register():
     UserMapper.register(user, get_db())
     return redirect(url_for('login'))
 
-@app.route('/stack/list', methods = ['GET'])
+@app.route('/stack/list')
 @login_required
 def listStack():
     db = get_db()
@@ -88,14 +88,8 @@ def listStack():
 @app.route('/stack/<stackName>')
 @login_required
 def displayStack(stackName):
-    try:
-        stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
-    except Exception:
-        stack = TodoStack(None, stackName)
-    try:
-        trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, "trash")
-    except Exception:
-        trash_stack = TodoStack(None, "trash")
+    stack = findStackByName(stackName)
+    trash_stack = findStackByName("trash")
     response = make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
     response.set_cookie("sequenceNumber", str(StackCommandDispatcher.openDispatcher(stackName).get_max_sequence_number()))
     return response
@@ -103,14 +97,8 @@ def displayStack(stackName):
 @app.route('/stack/<stackName>/push/', methods=["POST"])
 @login_required
 def pushItem(stackName):
-    try:
-        stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
-    except Exception:
-        stack = TodoStack(None, stackName)
-    try:
-        trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, "trash")
-    except Exception:
-        trash_stack = TodoStack(None, "trash")
+    stack = findStackByName(stackName)
+    trash_stack = findStackByName("trash")
     stack.push(Todo(content = request.form['item']))
     get_mapper().store(stack, g.user.id, get_db())
     todo = stack.peek()
@@ -121,14 +109,8 @@ def pushItem(stackName):
 @app.route('/stack/<stackName>/pop/', methods=["GET"])
 @login_required
 def popItem(stackName):
-    try:
-        stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
-    except Exception:
-        stack = TodoStack(None, stackName)
-    try:
-        trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, "trash")
-    except Exception:
-        trash_stack = TodoStack(None, "trash")
+    stack = findStackByName(stackName)
+    trash_stack = findStackByName("trash")
     todo = stack.pop()
     trash_stack.push(todo)
     get_mapper().store(stack, g.user.id, get_db())
@@ -140,14 +122,8 @@ def popItem(stackName):
 @app.route('/stack/<stackName>/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
 @login_required
 def moveItem(stackName, fromIndex, toIndex):
-    try:
-        stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
-    except Exception:
-        stack = TodoStack(None, stackName)
-    try:
-        trash_stack = get_mapper().findByName("trash", get_db())
-    except Exception:
-        trash_stack = TodoStack(None, "trash")
+    stack = findStackByName(stackName)
+    trash_stack = findStackByName("trash")
     fromIndex = abs(fromIndex - stack.size() + 1)
     toIndex = abs(toIndex - stack.size() + 1)
     stack.moveItem(fromIndex, toIndex)
@@ -171,14 +147,8 @@ def moveItem(stackName, fromIndex, toIndex):
 @app.route('/stack/<stackName>/removeItem/<int:index>/', methods=["GET"])
 @login_required
 def removeItem(stackName, index):
-    try:
-        stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
-    except Exception:
-        stack = TodoStack(None, stackName)
-    try:
-        trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, stackName)
-    except Exception:
-        trash_stack = TodoStack(None, "trash")
+    stack = findStackByName(stackName)
+    trash_stack = findStackByName("trash")
     index = abs(index - stack.size() + 1)
     print(index)
     todos = stack.getItems(False)
@@ -189,17 +159,18 @@ def removeItem(stackName, index):
     StackCommandDispatcher.openDispatcher(stackName).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
 
+@app.route('/stack/<stackName>/delete', methods=["GET"])
+@login_required
+def deleteStack(stackName):
+    stack = findStackByName(stackName)
+    get_mapper().store(TodoStack(stack.id, stack.name), g.user.id, get_db())
+    return redirect(url_for('main'))
+
 @app.route('/stack/<stackName>/raisePriority/<int:index>/', methods=["GET"])
 @login_required
 def raisePriority(stackName, index):
-    try:
-        stack = get_mapper().findByNameAndUserId(stackName, g.user.id, get_db()) or TodoStack(None, stackName)
-    except Exception:
-        stack = TodoStack(None, stackName)
-    try:
-        trash_stack = get_mapper().findByNameAndUserId("trash", g.user.id, get_db()) or TodoStack(None, stackName)
-    except Exception:
-        trash_stack = TodoStack(None, "trash")
+    stack = findStackByName(stackName)
+    trash_stack = findStackByName("trash")
     index = abs(index - stack.size() + 1)
     todos = stack.getItems(False)
     todo = todos[index]
@@ -238,6 +209,14 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
+def findStackByName(stackName):
+    try:
+        return get_mapper().findByNameAndUserId(stackName, g.user.id, get_db())
+    except Exception:
+        return TodoStack(None, stackName)
+
+def findTrashStack():
+    return findStackByName("trash")
 
 if __name__ == "__main__":
     app.run()

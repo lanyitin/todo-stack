@@ -47,6 +47,7 @@ class MongoStackMapper(AbstractMapper):
                 db.stacktodos.todos.remove({"_id": {'$nin': id_group}, "stackid": stack.id})
         else:
             db.stacktodos.todos.remove({"stackid": stack.id})
+            db.stacktodos.stack.remove({"_id": stack.id})
 
 
     @staticmethod
@@ -61,6 +62,9 @@ class MongoStackMapper(AbstractMapper):
     @staticmethod
     def createStackOnlyIfTheStackHasNoIdAndHasAtLeastOneItem(db, stack, userid):
         if stack.id is None and stack.size() > 0:
+            rows = list(db.stacktodos.stack.find({"name": stack.name, "userid": ObjectId(userid)}))
+            if len(rows) > 0:
+                raise Exception({"name": stack.name, "userid": ObjectId(userid)}, "exists")
             stack.id = db.stacktodos.stack.insert({"name": stack.name, "userid": ObjectId(userid)})
             MongoStackMapper.updateStackId(stack)
 

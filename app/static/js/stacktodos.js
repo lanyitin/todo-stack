@@ -220,7 +220,7 @@ function bindUIEventHandlerToTodoView() {
     $.ui.autocomplete.prototype._renderMenu = function( ul, items ) {
         $("#stack_list_dropdown").html("");
         $.each( items, function( index, item ) {
-            $("<li>").attr( "data-value", item.value ).append( $( "<a>" ).text( item.label ).click(function () {$("#stack_list_input").val($(this).parent().attr("data-value")); $("stack_list_input").keypress();})).click(function () {$(this).parent().css("display", "none")}).appendTo($("#stack_list_dropdown"));
+            $("<li>").attr( "data-value", item.value ).append( $( "<a>" ).text( item.label ).click(function () {$("#stack_list_input").val($(this).parent().attr("data-value")).focus(); $("stack_list_input").keypress();})).click(function () {$(this).parent().css("display", "none")}).appendTo($("#stack_list_dropdown"));
         });
     }
     $(".stack_list_autocomplete").autocomplete({
