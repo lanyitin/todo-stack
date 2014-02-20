@@ -245,9 +245,9 @@ function bindUIEventHandlerToTodoView() {
     }).off('click');
     $("#stack_list_input").keypress(function (event) {
         if (event.keyCode == 13) { // enter key
-            var url = "/stack/" + $(this).val();
-            console.log(url);
-            $(location).attr('href', document.location.host + url);
+            var url = "\/stack\/" + $(this).val();
+            window.location.replace(url);
+            return false;
         }
     }).click(function () {
         if ($("#stack_list_dropdown li").size() == 0) {
@@ -257,7 +257,11 @@ function bindUIEventHandlerToTodoView() {
         }
     });
     $("#stack_list_dropdown").bind("DOMSubtreeModified", function () {
-        $(this).css("display", "block");
+        if ($(this).children("li").size() > 0) {
+            $(this).css("display", "block");
+        } else {
+            $(this).css("display", "none");
+        }
     });
 
 })();
