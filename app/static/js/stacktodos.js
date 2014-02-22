@@ -68,6 +68,7 @@ function getCookie(c_name)
 function handleCommands(commandsTimePair) {
     for(var i = 0; i < commandsTimePair.length; i++) {
         var command = commandsTimePair[i];
+        console.log(command);
         if (command.command === "push") {
             var stack = $(".stack:not(.trash)");
             var domStr = compiledTodoTemplate({todo: command.data});
@@ -80,9 +81,19 @@ function handleCommands(commandsTimePair) {
                 hideSortIcons();
             }
             bindUIEventHandlerToTodoView();
-
+        } else if (command.command === "append") {
+            var stack = $(".stack:not(.trash)");
+            var domStr = compiledTodoTemplate({todo: command.data});
+            stack.append(domStr);
+            $("#control-todo-content").val("");
+            if ($(".delete.btn:not(.control):last").css("display") !== "display") {
+                hideDeleteButtons();
+            }
+            if ($(".sort.icon:last").css("display") !== "display") {
+                hideSortIcons();
+            }
+            bindUIEventHandlerToTodoView();
         } else if (command.command === "update") {
-            console.log(command);
             var todoDom = $(".stack .todo[data-todo-id=" + command.data.id + "]");
             todoDom.attr("data-todo-order", command.data.order);
             todoDom.attr("data-todo-priority", command.data.priority);
@@ -101,7 +112,6 @@ function handleCommands(commandsTimePair) {
         }
     }
     $(".stack:not(.trash) .todo").sort(function (a,b) {
-        console.log(a, b);
         return $(a).attr("data-todo-order") < $(b).attr("data-todo-order") ? 1 : -1;
     }).appendTo(".stack:not(.trash)");
 }
@@ -130,11 +140,17 @@ function showItemsInTrashStackExceptLastNItems(num) {
 
 function initControls() {
     $(".control.pop").click(function() {
-        $.ajax({ url: "/stack/" + window.stackName + "/pop/" });
+        $.ajax({ url: "/pop/" });
     });
     $(".control.push").click(function() {
         $.ajax({
-            url: "/stack/" + window.stackName + "/push/" , type:"POST",
+            url: "/push/" , type:"POST",
+            data:{"item":$("#control-todo-content").val()}
+        });
+    });
+    $(".control.append").click(function() {
+        $.ajax({
+            url: "/append/" , type:"POST",
             data:{"item":$("#control-todo-content").val()}
         });
     });
@@ -166,7 +182,7 @@ function initControls() {
         update: function ( event, ui) {
             var from = ui.item.data("start_pos");
             var to = ui.item.index();
-            $.ajax({ url: "/stack/" + window.stackName + "/moveItem/" + from + "/" + to + "/" });
+            $.ajax({ url: "/moveItem/" + from + "/" + to + "/" });
         },
         revert: true,
         handle: ".sort.icon"
@@ -175,16 +191,14 @@ function initControls() {
 
 function bindUIEventHandlerToTodoView() {
     $(".todo .priority").unbind().click(function(e) {
-        var currentPriority = $(e.target).attr("data-todo-priority");
         var todoId = $(e.target).attr("data-todo-id");
-        var index = $(e.target).parent().index();
-        $.ajax({url: "/stack/" + window.stackName + "/raisePriority/" + index + "/" }).done(function (){
+        $.ajax({url: "/raisePriority/" + todoId + "/" }).done(function (){
             $(e.target).html((parseInt($(e.target).html()) + 1) % 5);
         });
     });
 
     $(".stack:not(.trash) .todo .delete").unbind().click(function (e){
-        $.ajax({url: "/stack/" + window.stackName + "/removeItem/" + $(e.target).parent().index() + "/"})
+        $.ajax({url: "/removeItem/" + $(e.target).parent().attr("data-todo-id") + "/"})
     });
 }
 (function() {
@@ -208,7 +222,7 @@ function bindUIEventHandlerToTodoView() {
         }
     }
     function poll () {
-        $.ajax({url: "/stack/" + window.stackName + "/fetch/" + getSequenceNumber() + "/"}).done(function (data) {
+        $.ajax({url: "/fetch/" + getSequenceNumber() + "/"}).done(function (data) {
             handleFetchResponse(data);
             poll();
         });
@@ -226,7 +240,7 @@ function bindUIEventHandlerToTodoView() {
     $(".stack_list_autocomplete").autocomplete({
         source : function(request, response) {
             $.ajax({
-                url : "/stack/list",
+                url : "/tag/list",
                 data : {
                     match : request.term
                 },
@@ -245,7 +259,7 @@ function bindUIEventHandlerToTodoView() {
     }).off('click');
     $("#stack_list_input").keypress(function (event) {
         if (event.keyCode == 13) { // enter key
-            var url = "\/stack\/" + $(this).val();
+            url = "\/tag\/" + $(this).val();
             window.location.replace(url);
             return false;
         }

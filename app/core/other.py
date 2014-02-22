@@ -1,33 +1,6 @@
 from __future__ import print_function
 import gevent
-
-class Todo:
-    def __init__(self, **argus):
-        if "id" in argus:
-            self.id = argus["id"];
-        else:
-            self.id = None;
-
-        if "order" in argus:
-            self.order = argus["order"];
-        else:
-            self.order = None;
-
-        if "stackid" in argus:
-            self.stackid = argus["stackid"];
-        else:
-            self.stackid = None;
-
-        if "priority" in argus:
-            self.priority = (argus["priority"] % 5);
-        else:
-            self.priority = 2;
-
-        self.content = argus["content"];
-
-    def __str__(self):
-        return str({"id":self.id, "content":self.content, "order":self.order, "stackid":self.stackid, "priority":self.priority})
-
+from gevent.event import Event
 
 class StackCommandDispatcher:
     dispatchers = dict()
@@ -40,7 +13,7 @@ class StackCommandDispatcher:
     def __init__(self, stackid):
         self.stackid = stackid
         self.cache = dict()
-        self.evt = gevent.event.Event()
+        self.evt = Event()
 
     def new_command(self, data):
         newNumber = self.get_max_sequence_number() + 1
@@ -68,23 +41,3 @@ class StackCommandDispatcher:
             result = max([x["key"] for x in commands])
         assert type(result) is int
         return result
-
-class User:
-    def __init__(self, **argus):
-        self.__is_authenticated__ = argus['authenticated'] or False
-        self.id = unicode(argus['id'])
-        self.username = argus['username']
-        self.password = argus['password']
-
-    # used by flask-login
-    def is_authenticated(self):
-        return self.__is_authenticated__
-
-    def is_active(self):
-        return True
-
-    def is_anonymous(self):
-        return False
-
-    def get_id(self):
-        return self.id
