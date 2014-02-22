@@ -3,7 +3,6 @@
 <div class="col-md-10 col-md-offset-1">
     <h1>
         <span>{{ stack.name }}</span>
-        <a href="/clean" class="glyphicon glyphicon-trash"></a>
         <div class="btn-group pull-right">
             <button class="btn btn-info sort control">Sort</button>
             <button class="btn btn-warning pop control">Pop</button>
@@ -11,8 +10,11 @@
         </div>
     </h1>
     <div class="list-group stack-container">
-        <div class="trash control">
-            <div id="trash_expand_collapse_btn" class="btn btn-success"></div>
+        <div class="trash control text-center">
+            <div class="btn-group">
+                <div id="trash_expand_collapse_btn" class="btn btn-success"></div>
+                <div class="btn clean trash btn-warning">Clean Trash<span class="glyphicon glyphicon-trash"></span></div>
+            </div>
         </div>
         <div class="stack trash sortable">
             {% for todo in trash_stack %}

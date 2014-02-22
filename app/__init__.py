@@ -201,9 +201,22 @@ def removeItem(todoid):
     StackCommandDispatcher.openDispatcher(g.user.id).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
 
-@app.route('/raisePriority/<int:index>/', methods=["GET"])
+@app.route('/clean_trash', methods=["GET"])
 @login_required
-def raisePriority(index):
+def cleanTrash():
+    todos = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).all()
+    commands = []
+    for todo in todos:
+        db.session.delete(todo)
+        command = {"command": "removeItem", "data": todo2dict(todo)}
+        commands.append(command)
+    db.session.commit()
+    StackCommandDispatcher.openDispatcher(g.user.id).new_command(commands)
+    return json.dumps({"response": "success", "commands": commands})
+
+@app.route('/raisePriority/<int:todoid>/', methods=["GET"])
+@login_required
+def raisePriority(todoid):
     todo = Todo.query.filter_by(id = todoid).first()
     todo.priority += 1
     if todo.priority >= 5:

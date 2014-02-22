@@ -80,7 +80,6 @@ function handleCommands(commandsTimePair) {
             if ($(".sort.icon:last").css("display") !== "display") {
                 hideSortIcons();
             }
-            bindUIEventHandlerToTodoView();
         } else if (command.command === "append") {
             var stack = $(".stack:not(.trash)");
             var domStr = compiledTodoTemplate({todo: command.data});
@@ -92,7 +91,6 @@ function handleCommands(commandsTimePair) {
             if ($(".sort.icon:last").css("display") !== "display") {
                 hideSortIcons();
             }
-            bindUIEventHandlerToTodoView();
         } else if (command.command === "update") {
             var todoDom = $(".stack .todo[data-todo-id=" + command.data.id + "]");
             todoDom.attr("data-todo-order", command.data.order);
@@ -154,6 +152,11 @@ function initControls() {
             data:{"item":$("#control-todo-content").val()}
         });
     });
+    $(".clean.trash").click(function() {
+        $.ajax({
+            url: "/clean_trash"
+        });
+    });
     $(".control.delete").click(function() {
         if ($(".delete.btn:not(.control):last").css("display") === "none") {
             showDeleteButtons();
@@ -168,13 +171,14 @@ function initControls() {
             hideSortIcons();
         }
     });
-    $("#trash_expand_collapse_btn").click(function (e, thiz) {
+    var toggleTrashStack = function (e, thiz) {
         if ($(".trash.stack .todo:first").css("display") === "block") {
             hideItemsInTrashStackExceptLastNItems(2);
         } else {
             showItemsInTrashStackExceptLastNItems(2);
         }
-    });
+    }
+    $("#trash_expand_collapse_btn").click(toggleTrashStack);
     $(".sortable").sortable({
         start: function ( event, ui ) {
             ui.item.data("start_pos", ui.item.index());
@@ -190,14 +194,14 @@ function initControls() {
 }
 
 function bindUIEventHandlerToTodoView() {
-    $(".todo .priority").unbind().click(function(e) {
-        var todoId = $(e.target).attr("data-todo-id");
+    $(document).on('click', ".todo .priority", function(e) {
+        var todoId = $(e.target).parent().attr("data-todo-id");
         $.ajax({url: "/raisePriority/" + todoId + "/" }).done(function (){
             $(e.target).html((parseInt($(e.target).html()) + 1) % 5);
         });
     });
 
-    $(".stack:not(.trash) .todo .delete").unbind().click(function (e){
+    $(document).on('click', ".stack:not(.trash) .todo .delete", function (e){
         $.ajax({url: "/removeItem/" + $(e.target).parent().attr("data-todo-id") + "/"})
     });
 }
