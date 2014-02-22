@@ -158,8 +158,8 @@ def popItem():
         db.session.commit()
         todo = top_item
         command = {"command": "pop", "data": todo2dict(todo)}
-    StackCommandDispatcher.openDispatcher(g.user.id).new_command([command])
-    return json.dumps({"response": "success", "commands": [command]})
+        StackCommandDispatcher.openDispatcher(g.user.id).new_command([command])
+        return json.dumps({"response": "success", "commands": [command]})
 
 @app.route('/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
 @login_required

@@ -1,14 +1,13 @@
 {% extends "layout.html" %}
 {% block body %}
-<div class="col-md-10 col-md-offset-1">
-    <h1>
-        <span>{{ stack.name }}</span>
-        <div class="btn-group pull-right">
-            <button class="btn btn-info sort control">Sort</button>
-            <button class="btn btn-warning pop control">Pop</button>
-            <button class="btn btn-danger delete control">Delete</button>
-        </div>
-    </h1>
+<div  class="row">
+    <div class="btn-group pull-right">
+        <button class="btn btn-info sort control">Sort</button>
+        <button class="btn btn-warning pop control">Pop</button>
+        <button class="btn btn-danger delete control">Delete</button>
+    </div>
+</div>
+<div  class="row">
     <div class="list-group stack-container">
         <div class="trash control text-center">
             <div class="btn-group">
