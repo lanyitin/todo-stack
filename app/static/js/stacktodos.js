@@ -8,18 +8,11 @@ function setSequenceNumber(n) {
 }
 var compiledTodoTemplate = _.template($("#todo_template").html());
 
-function drawBorderOfStack () {
-    $(".stack .stack-ui-container").css("border-top-width", "0px").css("border-bottom-width", "0px").css("border-radius", "0px").css("border-top-style", "none").css("border-bottom-style", "none");
-    $(".stack:not(.trash) .stack-ui-container:last").css("border-bottom-width", "3px").css("border-bottom-left-radius", "5px").css("border-bottom-right-radius", "5px").css("border-bottom-style", "solid");
-    $(".stack.trash .stack-ui-container:visible:first").css("border-top-width", "3px").css("border-top-left-radius", "5px").css("border-top-right-radius", "5px").css("border-top-style", "solid");
-}
-
 function hideItemsInTrashStackExceptLastNItems(num) {
     num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
     target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
     target.hide();
     $("#trash_expand_collapse_btn").html("Expand");
-    drawBorderOfStack();
 }
 
 function showItemsInTrashStackExceptLastNItems(num) {
@@ -27,7 +20,6 @@ function showItemsInTrashStackExceptLastNItems(num) {
     target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
     target.show()
     $("#trash_expand_collapse_btn").html("Collapse");
-    drawBorderOfStack();
 }
 
 function showSortIcons() {
@@ -198,7 +190,6 @@ $(".stack").on('DOMNodeInserted DOMNodeRemoved', function () {
     } else {
         showItemsInTrashStackExceptLastNItems(2);
     }
-    drawBorderOfStack();
 });
 $(document).ready(function () {
     setSequenceNumber(getCookie("sequenceNumber") || 0);

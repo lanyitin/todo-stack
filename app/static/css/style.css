@@ -33,6 +33,20 @@ body {
 .stack:not(.trash) .todo:nth-child(even) .stack-ui-container {
   background-color: #b9d4ec;
 }
+.stack-ui-top {
+  border-top-width: 3px;
+  border-top-style: solid;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border-color: #f0ad4e;
+}
+.stack-ui-bottom {
+  border-bottom-width: 3px;
+  border-bottom-style: solid;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-color: #428bca;
+}
 #content-input {
   -webkit-border-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f0ad4e), to(#428bca)) 1 100%;
   -webkit-border-image: -webkit-linear-gradient(#f0ad4e, #428bca) 1 100%;

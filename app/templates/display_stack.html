@@ -15,10 +15,16 @@
                 <div class="btn control clean trash btn-warning">Clean Trash<span class="glyphicon glyphicon-trash"></span></div>
             </div>
         </div>
+        <div class="container">
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+            <div class="stack-ui-container stack-ui-top col-lg-10 col-md-10 col-sm-10 col-xs-10"></div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+        </div>
         <div class="stack trash sortable">
         </div>
         <div class="container">
-            <div id="content-input" class="col-lg-10 col-md-10 col-sm-10 col-xs-1 col-lg-offset-1 col-md-offset-1 col-sm-offset-1 col-xs-offset-1">
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+            <div id="content-input" class="col-lg-10 col-md-10 col-sm-10 col-xs-10">
                 <div class="form">
                     <div class="input-group input-group-lg">
                         <span class="input-group-btn">
@@ -31,14 +37,20 @@
                     </div>
                 </div>
             </div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
         </div>
         <div class="stack sortable">
+        </div>
+        <div class="container">
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+            <div class="stack-ui-container stack-ui-bottom col-lg-10 col-md-10 col-sm-10 col-xs-10"></div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
         </div>
     </div>
 </div>
 <script id="todo_template" type="text/template"">
 <div class="todo container" data-todo-priority="<%= todo.priority %>" data-todo-order="<%= todo.order %>" data-todo-id="<%= todo.id %>">
-    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-4">
+    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
         <span class="sort icon btn glyphicon glyphicon-sort pull-right"></span>
     </div>
     <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
@@ -46,10 +58,10 @@
         <span class="content"><%- todo.content %></span>
         <% _.each(todo.tags, function(tag) { %>  <a class="badge" href="/tag/<%- tag %>"><%- tag %></a> <% }); %>
     </div>
-    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-4">
+    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
         <span class="delete icon btn glyphicon glyphicon-remove-circle pull-left"></span>
     </div>
-    
+
 </div>
 {% endblock %}
 {% block extra_script %}
