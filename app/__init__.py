@@ -78,17 +78,6 @@ def register():
     db.session.commit();
     return redirect(url_for('login'))
 
-@app.route('/tag/list')
-@login_required
-def listTag():
-    if request.args['match'] is not None and request.args['match'] is not "":
-        regx = re.compile("^{0}".format(request.args['match']), re.IGNORECASE)
-        rows = db.session.query(Tag).filter(and_(Tag.name.op('regexp')(regx), Tag.owner_user_id == g.user.id))
-    else:
-        rows = Tag.query.filter_by(owner_user_id = g.user.id).all()
-    names = [row.name for row in rows]
-    return json.dumps(names)
-
 @app.route('/tag/<tagName>')
 @login_required
 def displayTag(tagName):
@@ -97,17 +86,6 @@ def displayTag(tagName):
     todo_stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).all()
     trash_stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).order_by(Todo.push_date_time).all()
     return make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
-
-@app.route('/tag/<tagName>/delete', methods=["GET"])
-@login_required
-def deleteTag(tagName):
-    tag = Tag.query.filter_by(owner_user_id = g.user.id, naem = tagName).first()
-    todos = Todo.query.filter(Todo.tags.has(id = tag.id)).all()
-    for todo in todos:
-        todo.tags.remove(tag)
-    db.session.delete(tag)
-    db.session.commit()
-    return redirect(url_for('main'))
 
 @app.route('/push/', methods=["POST"])
 @login_required
@@ -122,8 +100,6 @@ def pushItem():
         todo.order = top_item.order + 1
     else:
         todo.order = 0
-    print (todo)
-    print (top_item)
     parseAndAddTagsFromContent(todo)
     db.session.add(todo)
     db.session.commit()
@@ -212,11 +188,18 @@ def moveItem(fromIndex, toIndex):
 def removeItem(todoid):
     todo = Todo.query.filter_by(id = todoid).first()
     db.session.delete(todo)
+    tags = Tag.query.filter(~Tag.todos.any()).all()
+    for tag in tags:
+        db.session.delete(tag)
     db.session.commit()
     command = {"command": "removeItem", "data": todo2dict(todo)}
     StackCommandDispatcher.openDispatcher(g.user.id).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
 
+@app.route('/tag/list', methods=["GET"])
+@login_required
+def tagList():
+    return make_response( str(Tag.query.filter_by(owner_user_id = g.user.id).all()) )
 @app.route('/clean_trash', methods=["GET"])
 @login_required
 def cleanTrash():
@@ -226,6 +209,9 @@ def cleanTrash():
         db.session.delete(todo)
         command = {"command": "removeItem", "data": todo2dict(todo)}
         commands.append(command)
+    tags = Tag.query.filter(~Tag.todos.any()).all()
+    for tag in tags:
+        db.session.delete(tag)
     db.session.commit()
     StackCommandDispatcher.openDispatcher(g.user.id).new_command(commands)
     return json.dumps({"response": "success", "commands": commands})
@@ -237,7 +223,7 @@ def raisePriority(todoid):
     todo.priority += 1
     if todo.priority >= 5:
         todo.priority %= 5
-    db.session.delete(todo)
+    db.session.add(todo)
     db.session.commit()
     command = {"response": "success", "commands": [{"command": "update", "data": todo2dict(todo)}]}
     StackCommandDispatcher.openDispatcher(g.user.id).new_command([command])
