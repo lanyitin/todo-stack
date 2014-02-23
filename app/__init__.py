@@ -92,7 +92,8 @@ def listTag():
 @app.route('/tag/<tagName>')
 @login_required
 def displayTag(tagName):
-    stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False).all()
+    stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False) \
+        .filter(Todo.tags.any(name = tagName)).all()
     todo_stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).all()
     trash_stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).order_by(Todo.push_date_time).all()
     return make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
@@ -101,7 +102,7 @@ def displayTag(tagName):
 @login_required
 def deleteTag(tagName):
     tag = Tag.query.filter_by(owner_user_id = g.user.id, naem = tagName).first()
-    todos = Todo.query.filter_by(Todo.tags.has(id = tag.id)).all()
+    todos = Todo.query.filter(Todo.tags.has(id = tag.id)).all()
     for todo in todos:
         todo.tags.remove(tag)
     db.session.delete(tag)

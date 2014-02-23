@@ -14,34 +14,33 @@ function drawBorderOfStack () {
     $(".stack.trash .stack-ui-container:visible:first").css("border-top-width", "3px").css("border-top-left-radius", "5px").css("border-top-right-radius", "5px").css("border-top-style", "solid");
 }
 
-function showSortIcons() {
-    $(".stack:not(.trash) .todo .sort.icon").each(function (index, elem) {
-        if ($(elem).css("display") == "none") {
-            $(elem).toggle();
-        }
+function hideItemsInTrashStackExceptLastNItems(num) {
+    num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
+    target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
+    target.hide();
+    $("#trash_expand_collapse_btn").html("Expand");
+    drawBorderOfStack();
+}
 
-    });
+function showItemsInTrashStackExceptLastNItems(num) {
+    num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
+    target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
+    target.show()
+    $("#trash_expand_collapse_btn").html("Collapse");
+    drawBorderOfStack();
+}
+
+function showSortIcons() {
+    $(".stack:not(.trash) .todo .sort.icon").show();
 }
 function hideSortIcons() {
-    $(".sort.icon").each(function (index, elem) {
-        if ($(elem).css("display") != "none") {
-            $(elem).toggle();
-        }
-    });
+    $(".sort.icon").hide();
 }
 function showDeleteButtons() {
-    $(".stack:not(.trash) .todo .delete").each(function (index, elem) {
-        if ($(elem).css("display") == "none") {
-            $(elem).toggle();
-        }
-    });
+    $(".stack:not(.trash) .todo .delete").show();
 }
 function hideDeleteButtons() {
-    $(".stack:not(.trash) .todo .delete").each(function (index, elem) {
-        if ($(elem).css("display") != "none") {
-            $(elem).toggle();
-        }
-    });
+    $(".stack:not(.trash) .todo .delete").hide();
 }
 
 function getCookie(c_name)
@@ -97,29 +96,6 @@ function handleCommands(commandsTimePair) {
     }).appendTo(".stack:not(.trash)");
 }
 
-function hideItemsInTrashStackExceptLastNItems(num) {
-    num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
-    target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
-    target.each(function (index, elem) {
-        if ($(elem).css("display") != "none") {
-            $(elem).hide();
-        }
-    });
-    drawBorderOfStack();
-    $("#trash_expand_collapse_btn").html("Expand");
-}
-
-function showItemsInTrashStackExceptLastNItems(num) {
-    num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
-    target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
-    target.each(function (index, elem) {
-        if ($(elem).css("display") == "none") {
-            $(elem).show();
-        }
-    });
-    $("#trash_expand_collapse_btn").html("Collapse");
-    drawBorderOfStack();
-}
 
 function initControls() {
     $(".control.pop").click(function() {
@@ -143,24 +119,24 @@ function initControls() {
         });
     });
     $(".control.delete").click(function() {
-        if ($(".delete.btn:not(.control):last").css("display") == "none") {
+        if ($(".delete.btn:not(.control):last").is(":hidden")) {
             showDeleteButtons();
         } else {
             hideDeleteButtons();
         }
     })
     $(".control.sort").click(function() {
-        if ($(".sort.icon:last").css("display") == "none") {
+        if ($(".sort.icon:last").is(":hidden")) {
             showSortIcons();
         } else {
             hideSortIcons();
         }
     });
     var toggleTrashStack = function (e, thiz) {
-        if ($(".trash.stack .todo:first").css("display") != "none") {
-            hideItemsInTrashStackExceptLastNItems(2);
-        } else {
+        if ($(".trash.stack .todo:first").is(":hidden")) {
             showItemsInTrashStackExceptLastNItems(2);
+        } else {
+            hideItemsInTrashStackExceptLastNItems(2);
         }
     }
     $("#trash_expand_collapse_btn").click(toggleTrashStack);
@@ -205,19 +181,19 @@ $(document).on('click', ".todo .delete", function (e){
 });
 
 $(".stack").on('DOMNodeInserted DOMNodeRemoved', function () {
-    if ($(".stack:not(.trash) .todo:last .delete").css("display") == "none") {
+    if ($(".stack:not(.trash) .todo:last .delete").is(":hidden")) {
         hideDeleteButtons();
     } else {
         showDeleteButtons();
     }
 
-    if ($(".stack:not(.trash) .todo:last .sort").css("display") == "none") {
+    if ($(".stack:not(.trash) .todo:last .sort").is(":hidden")) {
         hideSortIcons();
     } else {
         showSortIcons();
     }
 
-    if ($(".stack.trash .todo:first").css("display") == "none") {
+    if ($(".stack.trash .todo:first").is(":hidden")) {
         hideItemsInTrashStackExceptLastNItems(2);
     } else {
         showItemsInTrashStackExceptLastNItems(2);
