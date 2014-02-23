@@ -33,9 +33,6 @@ body {
 .stack:not(.trash) .todo:nth-child(even) .stack-ui-container {
   background-color: #b9d4ec;
 }
-.content {
-  font-size: 1.5em;
-}
 #content-input {
   -webkit-border-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f0ad4e), to(#428bca)) 1 100%;
   -webkit-border-image: -webkit-linear-gradient(#f0ad4e, #428bca) 1 100%;
