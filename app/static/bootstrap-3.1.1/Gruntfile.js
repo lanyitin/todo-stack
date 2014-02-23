@@ -165,6 +165,16 @@ module.exports = function (grunt) {
           'dist/css/<%= pkg.name %>.css': 'less/bootstrap.less'
         }
       },
+      compileStacktodo: {
+        options: {
+          strictMath: true,
+          sourceMap: true,
+          outputSourceFiles: true,
+        },
+        files: {
+          'dist/css/style.css': 'less/stacktodo.less'
+        }
+      },
       compileTheme: {
         options: {
           strictMath: true,
@@ -255,6 +265,11 @@ module.exports = function (grunt) {
           'fonts/*'
         ],
         dest: 'docs/dist'
+      },
+      dist: {
+        expand: true,
+        src: 'dist/*',
+        dest: '../'
       }
     },
 
@@ -395,7 +410,7 @@ module.exports = function (grunt) {
   grunt.registerTask('dist-docs', 'copy:docs');
 
   // Full distribution task.
-  grunt.registerTask('dist', ['clean', 'dist-css', 'copy:fonts', 'dist-js', 'dist-docs']);
+  grunt.registerTask('dist', ['clean', 'dist-css', 'copy:fonts', 'dist-js', 'dist-docs', 'copy:dist']);
 
   // Default task.
   grunt.registerTask('default', ['test', 'dist', 'build-glyphicons-data', 'build-customizer', 'update-shrinkwrap']);

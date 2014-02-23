@@ -1,0 +1,63 @@
+@import "variables.less";
+@import "mixins.less";
+
+@stack-border-width: 3px;
+@trash-stack-background: lighten(@brand-warning, 30%);
+@normal-stack-background: lighten(@brand-primary, 30%);
+body {
+    padding-top: @navbar-height;
+    padding-bottom: 20px;
+}
+
+.todo .content {
+    .button-size(@padding-base-vertical; @padding-base-horizontal; @font-size-base; @line-height-base; @border-radius-base);
+    display: inline-block;
+}
+
+.stack-ui-container {
+    border-left-style: solid;
+    border-right-style: solid;
+    border-left-width: @stack-border-width;
+    border-right-width: @stack-border-width;
+}
+
+.trash.stack {
+    & .sort.icon {
+        display: none !important;
+    }
+    & .delete.icon {
+        display: none !important;
+    }
+
+    .todo {
+        .stack-ui-container {
+            border-color: @brand-warning;
+        }
+        &:nth-child(even) :nth-child(even) {
+            background-color: @trash-stack-background;
+        }
+    }
+}
+
+.stack:not(.trash) {
+    .todo {
+        .stack-ui-container {
+            border-color: @brand-primary;
+        }
+        &:nth-child(even) .stack-ui-container {
+            background-color: @normal-stack-background;
+        }
+    }
+
+}
+
+.content {
+    font-size: 1.5em;
+}
+
+#content-input {
+    -webkit-border-image: -webkit-gradient(linear, 0 0, 0 100%, from(@brand-warning), to(@brand-primary)) 1 100%;
+    -webkit-border-image: -webkit-linear-gradient(@brand-warning, @brand-primary) 1 100%;
+    -o-border-image: -o-linear-gradient(@brand-warning, @brand-primary) 1 100%;
+    -moz-border-image: -moz-linear-gradient(@brand-warning, @brand-primary) 1 100%; 
+}

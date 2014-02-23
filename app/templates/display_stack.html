@@ -17,8 +17,8 @@
         </div>
         <div class="stack trash sortable">
         </div>
-        <div class="row">
-            <div class="col-md-12">
+        <div class="container">
+            <div id="content-input" class="col-lg-10 col-md-10 col-sm-10 col-xs-1 col-lg-offset-1 col-md-offset-1 col-sm-offset-1 col-xs-offset-1">
                 <div class="form">
                     <div class="input-group input-group-lg">
                         <span class="input-group-btn">
@@ -35,6 +35,21 @@
         <div class="stack sortable">
         </div>
     </div>
+</div>
+<script id="todo_template" type="text/template"">
+<div class="todo container" data-todo-priority="<%= todo.priority %>" data-todo-order="<%= todo.order %>" data-todo-id="<%= todo.id %>">
+    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-4">
+        <span class="sort icon btn glyphicon glyphicon-sort pull-right"></span>
+    </div>
+    <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
+        <span class="priority pull-left btn"><%= todo.priority %></span>
+        <span class="content"><%- todo.content %></span>
+        <% _.each(todo.tags, function(tag) { %>  <span class="badge"><%- tag %></span> <% }); %>
+    </div>
+    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-4">
+        <span class="delete icon btn glyphicon glyphicon-remove-circle pull-left"></span>
+    </div>
+    
 </div>
 {% endblock %}
 {% block extra_script %}

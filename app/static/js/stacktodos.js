@@ -8,9 +8,15 @@ function setSequenceNumber(n) {
 }
 var compiledTodoTemplate = _.template($("#todo_template").html());
 
+function drawBorderOfStack () {
+    $(".stack .stack-ui-container").css("border-top-width", "0px").css("border-bottom-width", "0px").css("border-radius", "0px").css("border-top-style", "none").css("border-bottom-style", "none");
+    $(".stack:not(.trash) .stack-ui-container:last").css("border-bottom-width", "3px").css("border-bottom-left-radius", "5px").css("border-bottom-right-radius", "5px").css("border-bottom-style", "solid");
+    $(".stack.trash .stack-ui-container:visible:first").css("border-top-width", "3px").css("border-top-left-radius", "5px").css("border-top-right-radius", "5px").css("border-top-style", "solid");
+}
+
 function showSortIcons() {
     $(".stack:not(.trash) .todo .sort.icon").each(function (index, elem) {
-        if ($(elem).css("display") === "none") {
+        if ($(elem).css("display") == "none") {
             $(elem).toggle();
         }
 
@@ -18,21 +24,21 @@ function showSortIcons() {
 }
 function hideSortIcons() {
     $(".sort.icon").each(function (index, elem) {
-        if ($(elem).css("display") === "block") {
+        if ($(elem).css("display") != "none") {
             $(elem).toggle();
         }
     });
 }
 function showDeleteButtons() {
     $(".stack:not(.trash) .todo .delete").each(function (index, elem) {
-        if ($(elem).css("display") === "none") {
+        if ($(elem).css("display") == "none") {
             $(elem).toggle();
         }
     });
 }
 function hideDeleteButtons() {
     $(".stack:not(.trash) .todo .delete").each(function (index, elem) {
-        if ($(elem).css("display") === "block") {
+        if ($(elem).css("display") != "none") {
             $(elem).toggle();
         }
     });
@@ -60,7 +66,6 @@ function getCookie(c_name)
 function handleCommands(commandsTimePair) {
     for(var i = 0; i < commandsTimePair.length; i++) {
         var command = commandsTimePair[i];
-        console.log(command);
         if (command.command == "push") {
             var stack = $(".stack:not(.trash)");
             var domStr = compiledTodoTemplate({todo: command.data});
@@ -96,10 +101,11 @@ function hideItemsInTrashStackExceptLastNItems(num) {
     num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
     target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
     target.each(function (index, elem) {
-        if ($(elem).css("display") === "block") {
-            $(elem).animate({"height": "toggle"});
+        if ($(elem).css("display") != "none") {
+            $(elem).hide();
         }
     });
+    drawBorderOfStack();
     $("#trash_expand_collapse_btn").html("Expand");
 }
 
@@ -107,11 +113,12 @@ function showItemsInTrashStackExceptLastNItems(num) {
     num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
     target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
     target.each(function (index, elem) {
-        if ($(elem).css("display") === "none") {
-            $(elem).animate({"height": "toggle"});
+        if ($(elem).css("display") == "none") {
+            $(elem).show();
         }
     });
     $("#trash_expand_collapse_btn").html("Collapse");
+    drawBorderOfStack();
 }
 
 function initControls() {
@@ -136,21 +143,21 @@ function initControls() {
         });
     });
     $(".control.delete").click(function() {
-        if ($(".delete.btn:not(.control):last").css("display") === "none") {
+        if ($(".delete.btn:not(.control):last").css("display") == "none") {
             showDeleteButtons();
         } else {
             hideDeleteButtons();
         }
     })
     $(".control.sort").click(function() {
-        if ($(".sort.icon:last").css("display") === "none") {
+        if ($(".sort.icon:last").css("display") == "none") {
             showSortIcons();
         } else {
             hideSortIcons();
         }
     });
     var toggleTrashStack = function (e, thiz) {
-        if ($(".trash.stack .todo:first").css("display") === "block") {
+        if ($(".trash.stack .todo:first").css("display") != "none") {
             hideItemsInTrashStackExceptLastNItems(2);
         } else {
             showItemsInTrashStackExceptLastNItems(2);
@@ -170,42 +177,8 @@ function initControls() {
         handle: ".sort.icon"
     });
 }
-
-function bindUIEventHandlerToTodoView() {
-    $(document).on('click', ".todo .priority", function(e) {
-        var todoId = $(e.target).parent().attr("data-todo-id");
-        $.ajax({url: "/raisePriority/" + todoId + "/" }).done(function (){
-            $(e.target).html((parseInt($(e.target).html()) + 1) % 5);
-        });
-    });
-
-    $(document).on('click', ".stack:not(.trash) .todo .delete", function (e){
-        $.ajax({url: "/removeItem/" + $(e.target).parent().attr("data-todo-id") + "/"})
-    });
-
-    $(document).on('change', ".stack:not(.trash)", function () {
-        if ($(".stack:not(.trash) .todo:last .delete").css("display") === "block") {
-            showDeleteButtons();
-        } else {
-            hideDeleteButtons();
-        }
-
-        if ($(".stack:not(.trash) .todo:last .sort").css("display") === "block") {
-            showSortIcons();
-        } else {
-            hideSortIcons();
-        }
-    });
-}
-(function() {
-    setSequenceNumber(getCookie("sequenceNumber") || 0);
-    initControls();
-    bindUIEventHandlerToTodoView();
-    hideItemsInTrashStackExceptLastNItems(2);
-    hideSortIcons();
-    hideDeleteButtons();
-
-    var handleFetchResponse = function (data) {
+function poll () {
+    $.ajax({url: "/fetch/" + getSequenceNumber() + "/"}).done(function (data) {
         data = JSON.parse(data);
         setSequenceNumber(parseInt(data.command_update_sequence_number));
         for (var i = 0; i < data.commands.length; i++) {
@@ -216,12 +189,40 @@ function bindUIEventHandlerToTodoView() {
                 }
             }
         }
+        poll();
+    });
+}
+
+$(document).on('click', ".todo .priority", function(e) {
+    var todoId = $(e.target).parent().attr("data-todo-id");
+    $.ajax({url: "/raisePriority/" + todoId + "/" }).done(function (){
+        $(e.target).html((parseInt($(e.target).html()) + 1) % 5);
+    });
+});
+
+$(document).on('click', ".todo .delete", function (e){
+    $.ajax({url: "/removeItem/" + $(e.target).parent().parent().attr("data-todo-id") + "/"})
+});
+
+$(".stack").on('DOMNodeInserted DOMNodeRemoved', function () {
+    if ($(".stack:not(.trash) .todo:last .delete").css("display") == "none") {
+        hideDeleteButtons();
+    } else {
+        showDeleteButtons();
     }
-    function poll () {
-        $.ajax({url: "/fetch/" + getSequenceNumber() + "/"}).done(function (data) {
-            handleFetchResponse(data);
-            poll();
-        });
+
+    if ($(".stack:not(.trash) .todo:last .sort").css("display") == "none") {
+        hideSortIcons();
+    } else {
+        showSortIcons();
     }
+    drawBorderOfStack();
+});
+$(document).ready(function () {
+    setSequenceNumber(getCookie("sequenceNumber") || 0);
+    initControls();
+    hideItemsInTrashStackExceptLastNItems(2);
+    hideSortIcons();
+    hideDeleteButtons();
     poll();
-})();
+});

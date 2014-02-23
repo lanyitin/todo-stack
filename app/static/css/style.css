@@ -4,4 +4,41 @@ body {
 }
 .todo .content {
   padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.428571429;
+  border-radius: 4px;
+  display: inline-block;
+}
+.stack-ui-container {
+  border-left-style: solid;
+  border-right-style: solid;
+  border-left-width: 3px;
+  border-right-width: 3px;
+}
+.trash.stack .sort.icon {
+  display: none !important;
+}
+.trash.stack .delete.icon {
+  display: none !important;
+}
+.trash.stack .todo .stack-ui-container {
+  border-color: #f0ad4e;
+}
+.trash.stack .todo:nth-child(even) :nth-child(even) {
+  background-color: #fceedb;
+}
+.stack:not(.trash) .todo .stack-ui-container {
+  border-color: #428bca;
+}
+.stack:not(.trash) .todo:nth-child(even) .stack-ui-container {
+  background-color: #b9d4ec;
+}
+.content {
+  font-size: 1.5em;
+}
+#content-input {
+  -webkit-border-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f0ad4e), to(#428bca)) 1 100%;
+  -webkit-border-image: -webkit-linear-gradient(#f0ad4e, #428bca) 1 100%;
+  -o-border-image: -o-linear-gradient(#f0ad4e, #428bca) 1 100%;
+  -moz-border-image: -moz-linear-gradient(#f0ad4e, #428bca) 1 100%;
 }
