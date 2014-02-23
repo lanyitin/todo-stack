@@ -10,7 +10,7 @@ var todoTemplate = "" +
 "<div class=\"list-group-item todo container\" data-todo-priority=\"<%= todo.priority %>\" data-todo-order=\"<%= todo.order %>\" data-todo-id=\"<%= todo.id %>\">" +
 "    <div class=\"glyphicon glyphicon-sort sort icon pull-left\"></div>" +
 "    <div class=\"priority pull-left btn\"><%= todo.priority %></div>" +
-"    <div class=\"content pull-left\"><%= todo.content %></div>" +
+"    <div class=\"content\"><%= todo.content %><% _.each(todo.tags, function(tag) { %><a href=\"/tag/<%= tag %>\" class=\"glyphicon glyphicon-tag pull-right\"><%= tag %></a><% }) %></div>" +
 "    <button class=\"delete btn btn-danger pull-right\">Delete</button>" +
 "</div>";
 var compiledTodoTemplate = _.template(todoTemplate);
@@ -232,54 +232,4 @@ function bindUIEventHandlerToTodoView() {
         });
     }
     poll();
-})();
-
-(function () {
-    $.ui.autocomplete.prototype._renderMenu = function( ul, items ) {
-        $("#stack_list_dropdown").html("");
-        $.each( items, function( index, item ) {
-            $("<li>").attr( "data-value", item.value ).append( $( "<a>" ).text( item.label ).click(function () {$("#stack_list_input").val($(this).parent().attr("data-value")).focus(); $("stack_list_input").keypress();})).click(function () {$(this).parent().css("display", "none")}).appendTo($("#stack_list_dropdown"));
-        });
-    }
-    $(".stack_list_autocomplete").autocomplete({
-        source : function(request, response) {
-            $.ajax({
-                url : "/tag/list",
-                data : {
-                    match : request.term
-                },
-                success : function(data) {
-                    data = JSON.parse(data);
-                    response($.map(data, function(item) {
-                        return {
-                            label : item,
-                        value : item
-                        };
-                    }));
-                }
-            });
-        },
-        minLength : 0,
-    }).off('click');
-    $("#stack_list_input").keypress(function (event) {
-        if (event.keyCode == 13) { // enter key
-            url = "\/tag\/" + $(this).val();
-            window.location.replace(url);
-            return false;
-        }
-    }).click(function () {
-        if ($("#stack_list_dropdown li").size() == 0) {
-            $("#stack_list_dropdown").css("display", "none");
-        } else {
-            $("#stack_list_dropdown").css("display", "block");
-        }
-    });
-    $("#stack_list_dropdown").bind("DOMSubtreeModified", function () {
-        if ($(this).children("li").size() > 0) {
-            $(this).css("display", "block");
-        } else {
-            $(this).css("display", "none");
-        }
-    });
-
 })();

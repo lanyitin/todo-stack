@@ -20,7 +20,7 @@
             <div class="list-group-item todo container" data-todo-priority="{{ todo.priority }}" data-todo-order="{{ todo.order }}" data-todo-id="{{ todo.id }}">
                 <div class="glyphicon glyphicon-sort sort icon pull-left"></div>
                 <div class="priority pull-left btn">{{ todo.priority }}</div>
-                <div class="content pull-left">{{ todo.content }}</div>
+                <div class="content">{{ todo.content }}{% for tag in todo.tags %}<a href="/tag/{{tag.name}}" class="glyphicon glyphicon-tag pull-right">{{tag.name}}</a>{% endfor %}</div>
                 <div class="delete btn btn-danger pull-right">Delete</div>
             </div>
             {% endfor %}
@@ -45,7 +45,7 @@
             <div class="list-group-item todo container" data-todo-priority="{{ todo.priority }}" data-todo-order="{{ todo.order }}" data-todo-id="{{ todo.id }}">
                 <div class="glyphicon glyphicon-sort sort icon pull-left"></div>
                 <div class="priority pull-left btn">{{ todo.priority }}</div>
-                <div class="content pull-left">{{ todo.content }}</div>
+                <div class="content">{{ todo.content }}{% for tag in todo.tags %}<a href="/tag/{{tag.name}}" class="glyphicon glyphicon-tag pull-right">{{tag.name}}</a>{% endfor %}</div>
                 <div class="delete btn btn-danger pull-right">Delete</div>
             </div>
             {% endfor %}
