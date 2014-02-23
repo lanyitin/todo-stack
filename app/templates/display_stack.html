@@ -16,14 +16,6 @@
             </div>
         </div>
         <div class="stack trash sortable">
-            {% for todo in trash_stack %}
-            <div class="list-group-item todo container" data-todo-priority="{{ todo.priority }}" data-todo-order="{{ todo.order }}" data-todo-id="{{ todo.id }}">
-                <div class="glyphicon glyphicon-sort sort icon pull-left"></div>
-                <div class="priority pull-left btn">{{ todo.priority }}</div>
-                <div class="content">{{ todo.content }}{% for tag in todo.tags %}<a href="/tag/{{tag.name}}" class="glyphicon glyphicon-tag pull-right">{{tag.name}}</a>{% endfor %}</div>
-                <div class="delete btn btn-danger pull-right">Delete</div>
-            </div>
-            {% endfor %}
         </div>
         <div class="row">
             <div class="col-md-12">
@@ -41,15 +33,15 @@
             </div>
         </div>
         <div class="stack sortable">
-            {% for todo in stack %}
-            <div class="list-group-item todo container" data-todo-priority="{{ todo.priority }}" data-todo-order="{{ todo.order }}" data-todo-id="{{ todo.id }}">
-                <div class="glyphicon glyphicon-sort sort icon pull-left"></div>
-                <div class="priority pull-left btn">{{ todo.priority }}</div>
-                <div class="content">{{ todo.content }}{% for tag in todo.tags %}<a href="/tag/{{tag.name}}" class="glyphicon glyphicon-tag pull-right">{{tag.name}}</a>{% endfor %}</div>
-                <div class="delete btn btn-danger pull-right">Delete</div>
-            </div>
-            {% endfor %}
         </div>
     </div>
 </div>
+{% endblock %}
+{% block extra_script %}
+    {% for todo in stack %}
+    handleCommands([{"command": "append", "data": {"id": {{todo.id}}, "content": "{{todo.content}}", "priority": {{todo.priority}}, "order": {{todo.order}}, tags: [{% for tag in todo.tags %}"{{tag.name}}"{%- if not loop.last -%},{%- endif -%}{% endfor %}]} }]);
+    {% endfor %}
+    {% for todo in trash_stack %}
+    handleCommands([{"command": "append_trash", "data": {"id": {{todo.id}}, "content": "{{todo.content}}", "priority": {{todo.priority}}, "order": {{todo.order}}, tags: [{% for tag in todo.tags %}"{{tag.name}}"{%- if not loop.last -%},{%- endif -%}{% endfor %}]} }]);
+    {% endfor %}
 {% endblock %}

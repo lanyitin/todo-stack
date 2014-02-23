@@ -24,6 +24,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://lanyitin:jiun789
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 app.debug = True
 
+def todo2json(todo):
+    return json.dumps(todo2dict(todo))
+
+app.jinja_env.filters['jsonify'] = todo2json
+
 
 @app.before_request
 def before_request():
@@ -107,13 +112,16 @@ def deleteTag(tagName):
 def pushItem():
     top_item = Todo.query.filter_by(owner_user_id=g.user.id, in_trash=False).order_by(desc(Todo.order)).first()
     todo = Todo()
-
     todo.content = request.form['item']
     todo.push_date_time = datetime.utcnow()
     todo.owner_user_id = g.user.id
     todo.priority = 2
     if top_item is not None:
         todo.order = top_item.order + 1
+    else:
+        todo.order = 0
+    print (todo)
+    print (top_item)
     parseAndAddTagsFromContent(todo)
     db.session.add(todo)
     db.session.commit()
@@ -271,11 +279,9 @@ def parseAndAddTagsFromContent(todo):
         for elem in parsed:
             if elem[0] == "@":
                 tags.append(elem[1:])
-                todo.content = todo.content.replace(elem, "")
+                todo.content = todo.content.replace(elem, "").strip()
     except Exception as e:
         pass
-    else:
-        todo.order = 0
 
     for tag in tags:
         tag_ = Tag.query.filter_by(owner_user_id = g.user.id, name = tag).first()

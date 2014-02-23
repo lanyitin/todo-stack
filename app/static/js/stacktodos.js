@@ -11,7 +11,7 @@ var todoTemplate = "" +
 "    <div class=\"glyphicon glyphicon-sort sort icon pull-left\"></div>" +
 "    <div class=\"priority pull-left btn\"><%= todo.priority %></div>" +
 "    <div class=\"content\"><%= todo.content %><% _.each(todo.tags, function(tag) { %><a href=\"/tag/<%= tag %>\" class=\"glyphicon glyphicon-tag pull-right\"><%= tag %></a><% }) %></div>" +
-"    <button class=\"delete btn btn-danger pull-right\">Delete</button>" +
+"    <span class=\"delete btn glyphicon glyphicon-remove-circlepull-right\"></span>" +
 "</div>";
 var compiledTodoTemplate = _.template(todoTemplate);
 
@@ -31,15 +31,14 @@ function hideSortIcons() {
     });
 }
 function showDeleteButtons() {
-    $(".stack:not(.trash) .todo .delete.btn:not(.control)").each(function (index, elem) {
+    $(".stack:not(.trash) .todo .delete").each(function (index, elem) {
         if ($(elem).css("display") === "none") {
             $(elem).toggle();
         }
-
     });
 }
 function hideDeleteButtons() {
-    $(".delete.btn:not(.control)").each(function (index, elem) {
+    $(".stack:not(.trash) .todo .delete").each(function (index, elem) {
         if ($(elem).css("display") === "block") {
             $(elem).toggle();
         }
@@ -91,6 +90,10 @@ function handleCommands(commandsTimePair) {
             if ($(".sort.icon:last").css("display") !== "display") {
                 hideSortIcons();
             }
+        } else if (command.command === "append_trash") {
+            var stack = $(".stack.trash");
+            var domStr = compiledTodoTemplate({todo: command.data});
+            stack.append(domStr);
         } else if (command.command === "update") {
             var todoDom = $(".stack .todo[data-todo-id=" + command.data.id + "]");
             todoDom.attr("data-todo-order", command.data.order);
@@ -100,9 +103,6 @@ function handleCommands(commandsTimePair) {
             $(".stack .todo[data-todo-id=" + command.data.id + "]").remove();
         } else if (command.command === "pop") {
             var todo = $(".stack:not(.trash) .todo:first");
-            todo.select(".delete").remove();
-            todo.select(".sort").remove();
-            todo.select(".priority").remove();
             $(".trash.stack").append(todo);
             if ($(".trash.stack .todo:first").css("display") === "none") {
                 hideItemsInTrashStackExceptLastNItems(2);
