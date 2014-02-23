@@ -11,7 +11,7 @@ var todoTemplate = "" +
 "    <div class=\"glyphicon glyphicon-sort sort icon pull-left\"></div>" +
 "    <div class=\"priority pull-left btn\"><%= todo.priority %></div>" +
 "    <div class=\"content\"><%= todo.content %><% _.each(todo.tags, function(tag) { %><a href=\"/tag/<%= tag %>\" class=\"glyphicon glyphicon-tag pull-right\"><%= tag %></a><% }) %></div>" +
-"    <span class=\"delete btn glyphicon glyphicon-remove-circlepull-right\"></span>" +
+"    <div class=\"delete btn glyphicon glyphicon-remove-circlepull-right\"></div>" +
 "</div>";
 var compiledTodoTemplate = _.template(todoTemplate);
 
@@ -68,45 +68,30 @@ function handleCommands(commandsTimePair) {
     for(var i = 0; i < commandsTimePair.length; i++) {
         var command = commandsTimePair[i];
         console.log(command);
-        if (command.command === "push") {
+        if (command.command == "push") {
             var stack = $(".stack:not(.trash)");
             var domStr = compiledTodoTemplate({todo: command.data});
             stack.prepend(domStr);
             $("#control-todo-content").val("");
-            if ($(".delete.btn:not(.control):last").css("display") !== "display") {
-                hideDeleteButtons();
-            }
-            if ($(".sort.icon:last").css("display") !== "display") {
-                hideSortIcons();
-            }
-        } else if (command.command === "append") {
+        } else if (command.command == "append") {
             var stack = $(".stack:not(.trash)");
             var domStr = compiledTodoTemplate({todo: command.data});
             stack.append(domStr);
             $("#control-todo-content").val("");
-            if ($(".delete.btn:not(.control):last").css("display") !== "display") {
-                hideDeleteButtons();
-            }
-            if ($(".sort.icon:last").css("display") !== "display") {
-                hideSortIcons();
-            }
-        } else if (command.command === "append_trash") {
+        } else if (command.command == "append_trash") {
             var stack = $(".stack.trash");
             var domStr = compiledTodoTemplate({todo: command.data});
             stack.append(domStr);
-        } else if (command.command === "update") {
+        } else if (command.command == "update") {
             var todoDom = $(".stack .todo[data-todo-id=" + command.data.id + "]");
             todoDom.attr("data-todo-order", command.data.order);
             todoDom.attr("data-todo-priority", command.data.priority);
             todoDom.children(".priority").html(command.data.priority);
-        } else if (command.command === "removeItem") {
+        } else if (command.command == "removeItem") {
             $(".stack .todo[data-todo-id=" + command.data.id + "]").remove();
-        } else if (command.command === "pop") {
+        } else if (command.command == "pop") {
             var todo = $(".stack:not(.trash) .todo:first");
             $(".trash.stack").append(todo);
-            if ($(".trash.stack .todo:first").css("display") === "none") {
-                hideItemsInTrashStackExceptLastNItems(2);
-            }
         }
     }
     $(".stack:not(.trash) .todo").sort(function (a,b) {
@@ -152,7 +137,7 @@ function initControls() {
             data:{"item":$("#control-todo-content").val()}
         });
     });
-    $(".clean.trash").click(function() {
+    $(".control.clean.trash").click(function() {
         $.ajax({
             url: "/clean_trash"
         });
@@ -203,6 +188,20 @@ function bindUIEventHandlerToTodoView() {
 
     $(document).on('click', ".stack:not(.trash) .todo .delete", function (e){
         $.ajax({url: "/removeItem/" + $(e.target).parent().attr("data-todo-id") + "/"})
+    });
+
+    $(document).on('change', ".stack:not(.trash)", function () {
+        if ($(".stack:not(.trash) .todo:last .delete").css("display") === "block") {
+            showDeleteButtons();
+        } else {
+            hideDeleteButtons();
+        }
+
+        if ($(".stack:not(.trash) .todo:last .sort").css("display") === "block") {
+            showSortIcons();
+        } else {
+            hideSortIcons();
+        }
     });
 }
 (function() {

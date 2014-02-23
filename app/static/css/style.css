@@ -2,7 +2,7 @@ body {
   padding-top: 50px;
   padding-bottom: 20px;
 }
-.trash.control {
+.trash.control:not(.clean) {
   position: relative;
   z-index: 2;
   top: 15px;

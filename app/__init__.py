@@ -147,16 +147,18 @@ def appendItem():
     parseAndAddTagsFromContent(todo)
     response = {"response": "success", "commands": []}
     processed_item = todo
-    response['commands'].append({"command": "append", "data": todo2dict(todo)})
-    for top_item in stack:
-        top_item.order = processed_item.order + 1
-        processed_item = top_item
-        db.session.add(processed_item)
-        response['commands'].append({"command": "update", "data": todo2dict(processed_item)})
-
     db.session.add(todo)
     db.session.commit()
-    StackCommandDispatcher.openDispatcher(g.user.id).new_command([response['commands']])
+    response['commands'].append({"command": "append", "data": todo2dict(todo)})
+
+    for top_item in stack:
+        top_item.order = processed_item.order + 1
+        db.session.add(top_item)
+        response['commands'].append({"command": "update", "data": todo2dict(top_item)})
+        processed_item = top_item
+
+    db.session.commit()
+    StackCommandDispatcher.openDispatcher(g.user.id).new_command(response['commands'])
     return json.dumps(response)
 
 @app.route('/pop/', methods=["GET"])
