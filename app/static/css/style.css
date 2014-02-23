@@ -2,54 +2,6 @@ body {
   padding-top: 50px;
   padding-bottom: 20px;
 }
-.trash.control:not(.clean) {
-  position: relative;
-  z-index: 2;
-  top: 15px;
-}
-.stack {
-  border-style: solid;
-}
-.stack:not(.trash) {
-  border-color: #357ebd;
-  border-top-style: none;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
-.stack:not(.trash) .todo:nth-child(even) {
-  color: #3a87ad;
-  background-color: #d9edf7;
-}
-.stack.trash {
-  border-color: #ac2925;
-  border-bottom-style: none;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-}
-.stack.trash .todo:nth-child(even) {
-  color: #eea236;
-  background-color: #f4ef8f;
-}
-.stack.trash .todo .content {
-  text-decoration: line-through;
-}
-.stack.trash .todo .delete {
-  display: none;
-}
-.stack.trash .todo .sort {
-  display: none;
-}
-.todo {
-  font-weight: bold;
-  font-size: 1.5em;
-  width: 100%;
-}
 .todo .content {
-  font-size: 1em;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-}
-.todo:first-child,
-.todo:last-child {
-  border-radius: 0px;
+  padding: 6px 12px;
 }

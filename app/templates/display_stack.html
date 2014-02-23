@@ -8,7 +8,7 @@
     </div>
 </div>
 <div  class="row">
-    <div class="list-group stack-container">
+    <div class="stack-container">
         <div class="trash control text-center">
             <div class="btn-group">
                 <div id="trash_expand_collapse_btn" class="btn btn-success"></div>
@@ -28,7 +28,7 @@
                         <span class="input-group-btn">
                             <button class="btn btn-success control push"/>Push</button>
                         </span>
-                    </div><!-- /input-group -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -39,9 +39,9 @@
 {% endblock %}
 {% block extra_script %}
     {% for todo in stack %}
-    handleCommands([{"command": "append", "data": {"id": {{todo.id}}, "content": "{{todo.content}}", "priority": {{todo.priority}}, "order": {{todo.order}}, tags: [{% for tag in todo.tags %}"{{tag.name}}"{%- if not loop.last -%},{%- endif -%}{% endfor %}]} }]);
+    handleCommands([{"command": "append", "data":{{ todo|todo2json|safe }} }]);
     {% endfor %}
     {% for todo in trash_stack %}
-    handleCommands([{"command": "append_trash", "data": {"id": {{todo.id}}, "content": "{{todo.content}}", "priority": {{todo.priority}}, "order": {{todo.order}}, tags: [{% for tag in todo.tags %}"{{tag.name}}"{%- if not loop.last -%},{%- endif -%}{% endfor %}]} }]);
+    handleCommands([{"command": "append_trash", "data":{{ todo|todo2json|safe }} }]);
     {% endfor %}
 {% endblock %}

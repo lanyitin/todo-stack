@@ -27,7 +27,7 @@ app.debug = True
 def todo2json(todo):
     return json.dumps(todo2dict(todo))
 
-app.jinja_env.filters['jsonify'] = todo2json
+app.jinja_env.filters['todo2json'] = todo2json
 
 
 @app.before_request

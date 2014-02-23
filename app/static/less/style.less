@@ -3,58 +3,6 @@ body {
   padding-bottom: 20px;
 }
 
-.trash.control:not(.clean) {
-  position:relative;
-  z-index:2;
-  top:15px;
-}
-
-.stack {
-  border-style:solid;
-}
-
-.stack:not(.trash) {
-  border-color:#357ebd;
-  border-top-style:none;
-  border-top-style:none;
-  border-bottom-left-radius:5px;
-  border-bottom-right-radius:5px;
-
-  .todo:nth-child(even) {
-    color:#3a87ad;
-    background-color:#d9edf7;
-  }
-}
-
-.stack.trash {
-  border-color:#ac2925;
-  border-bottom-style:none;
-  border-top-left-radius:5px;
-  border-top-right-radius:5px;
-
-  .todo {
-    &:nth-child(even) {
-      color:#eea236;
-      background-color:#f4ef8f;
-    }
-    .content{text-decoration: line-through;}
-    .delete {display:none}
-    .sort {display:none}
-  }
-}
-
-.todo {
-  font-weight:bold;
-  font-size:1.5em;
-  width:100%;
-
-  .content {
-    font-size:1em;
-      word-wrap:break-word;
-      white-space:pre-wrap;
-  }
-
-  &:first-child, &:last-child {
-    border-radius:0px;
-  }
+.todo .content {
+    padding: 6px 12px;
 }

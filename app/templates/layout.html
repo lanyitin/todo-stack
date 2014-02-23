@@ -41,6 +41,15 @@
         {% block body %}{% endblock %}
     </div>
 </div>
+<script id="todo_template" type="text/template"">
+<div class="todo container" data-todo-priority="<%= todo.priority %>" data-todo-order="<%= todo.order %>" data-todo-id="<%= todo.id %>">
+    <span class="sort icon pull-left btn glyphicon glyphicon-sort"></span>
+    <span class="priority pull-left btn"><%= todo.priority %></span>
+    <span class="content"><%= todo.content %></span>
+    <span class="glyphicon glyphicon-remove-circle delete pull-right btn"></span>
+    <span class="text-right pull-right btn"><%- todo.tags %></span>
+</div>
+</script>
 {% assets output='js/packed.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/underscore-min.js', 'js/stacktodos.js' %}
 <script type="text/javascript" src="{{ ASSET_URL }}"></script>
 {% endassets %}

@@ -6,14 +6,7 @@ function getSequenceNumber() {
 function setSequenceNumber(n) {
     sequenceNumber = n;
 }
-var todoTemplate = "" + 
-"<div class=\"list-group-item todo container\" data-todo-priority=\"<%= todo.priority %>\" data-todo-order=\"<%= todo.order %>\" data-todo-id=\"<%= todo.id %>\">" +
-"    <div class=\"glyphicon glyphicon-sort sort icon pull-left\"></div>" +
-"    <div class=\"priority pull-left btn\"><%= todo.priority %></div>" +
-"    <div class=\"content\"><%= todo.content %><% _.each(todo.tags, function(tag) { %><a href=\"/tag/<%= tag %>\" class=\"glyphicon glyphicon-tag pull-right\"><%= tag %></a><% }) %></div>" +
-"    <div class=\"delete btn glyphicon glyphicon-remove-circlepull-right\"></div>" +
-"</div>";
-var compiledTodoTemplate = _.template(todoTemplate);
+var compiledTodoTemplate = _.template($("#todo_template").html());
 
 function showSortIcons() {
     $(".stack:not(.trash) .todo .sort.icon").each(function (index, elem) {
