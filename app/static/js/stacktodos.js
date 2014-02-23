@@ -123,7 +123,7 @@ function showItemsInTrashStackExceptLastNItems(num) {
 
 function initControls() {
     $(".control.pop").click(function() {
-        $.ajax({ url: "/pop/" });
+        $.ajax({ url: "/moveToTrash/" + $(".stack:not(.trash) .todo:first").attr("data-todo-id") });
     });
     $(".control.push").click(function() {
         $.ajax({
@@ -215,6 +215,12 @@ $(".stack").on('DOMNodeInserted DOMNodeRemoved', function () {
         hideSortIcons();
     } else {
         showSortIcons();
+    }
+
+    if ($(".stack.trash .todo:first").css("display") == "none") {
+        hideItemsInTrashStackExceptLastNItems(2);
+    } else {
+        showItemsInTrashStackExceptLastNItems(2);
     }
     drawBorderOfStack();
 });

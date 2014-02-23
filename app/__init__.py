@@ -20,7 +20,7 @@ assets = Environment(app)
 login_manager.init_app(app)
 login_manager.login_view = "/login"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://lanyitin:jiun7892@localhost/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'.format(os.environ['OPENSHIFT_MYSQL_DB_USERNAME'], os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'], os.environ['OPENSHIFT_MYSQL_DB_HOST'], os.environ['OPENSHIFT_MYSQL_DB_PORT'])
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 app.debug = True
 
@@ -94,6 +94,7 @@ def listTag():
 def displayTag(tagName):
     stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False).all()
     todo_stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).all()
+    trash_stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).order_by(Todo.push_date_time).all()
     return make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
 
 @app.route('/tag/<tagName>/delete', methods=["GET"])
@@ -161,10 +162,10 @@ def appendItem():
     StackCommandDispatcher.openDispatcher(g.user.id).new_command(response['commands'])
     return json.dumps(response)
 
-@app.route('/pop/', methods=["GET"])
+@app.route('/moveToTrash/<int:todoid>', methods=["GET"])
 @login_required
-def popItem():
-    top_item = Todo.query.filter_by(owner_user_id=g.user.id, in_trash=False).order_by(desc(Todo.order)).first()
+def moveToTrash(todoid):
+    top_item = Todo.query.filter_by(id=todoid).order_by(desc(Todo.order)).first()
     if top_item is not None:
         top_item.in_trash = True
         top_item.push_date_time = datetime.utcnow()

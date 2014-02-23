@@ -1,8 +1,9 @@
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask
 if __name__ == '__main__':
+    import os
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://lanyitin:jiun7892@localhost/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'.format(os.environ['OPENSHIFT_MYSQL_DB_USERNAME'], os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'], os.environ['OPENSHIFT_MYSQL_DB_HOST'], os.environ['OPENSHIFT_MYSQL_DB_PORT'])
     db = SQLAlchemy(app)
 else:
     db = SQLAlchemy()
@@ -14,7 +15,8 @@ class User(db.Model):
     password = db.Column(db.String(120), unique=True, nullable = False)
 
     def __init__(self, **argus):
-        self.id = unicode(argus['id'])
+        if 'id' in argus:
+            self.id = unicode(argus['id'])
         self.username = argus['username']
         self.password = argus['password']
         self.email = argus['email']

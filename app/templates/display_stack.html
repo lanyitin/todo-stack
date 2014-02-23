@@ -44,7 +44,7 @@
     <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
         <span class="priority pull-left btn"><%= todo.priority %></span>
         <span class="content"><%- todo.content %></span>
-        <% _.each(todo.tags, function(tag) { %>  <span class="badge"><%- tag %></span> <% }); %>
+        <% _.each(todo.tags, function(tag) { %>  <a class="badge" href="/tag/<%- tag %>"><%- tag %></a> <% }); %>
     </div>
     <div class="col-lg-1 col-md-1 col-sm-1 col-xs-4">
         <span class="delete icon btn glyphicon glyphicon-remove-circle pull-left"></span>
