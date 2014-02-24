@@ -1,5 +1,8 @@
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask
+from datetime import datetime
+from pyparsing import *
+
 if __name__ == '__main__':
     import os
     app = Flask(__name__)
@@ -7,6 +10,8 @@ if __name__ == '__main__':
     db = SQLAlchemy(app)
 else:
     db = SQLAlchemy()
+
+
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
@@ -41,11 +46,14 @@ tag_todo_assication = db.Table('tag_todo_association',
 
 class Todo(db.Model):
     __tablename__ = 'todo'
+    emailExpr = Regex(r"(?P<user>[A-Za-z0-9._%+-]+)@(?P<hostname>[A-Za-z0-9.-]+)\.(?P<domain>[A-Za-z]{2,4})")
+    tagExpr = Regex(r"(?P<tag>@[A-Za-z0-9]+)")
+    todo_content_parser = OneOrMore((Or(CharsNotIn("@ ") | emailExpr)) + Optional(" ")) + Optional(OneOrMore(tagExpr))
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable = False)
     push_date_time = db.Column(db.DateTime, nullable = False)
     order = db.Column(db.Integer, nullable = False)
-    priority = db.Column(db.Integer, nullable = False)
+    priority = db.Column(db.Integer, default = 2, nullable = False)
     in_trash = db.Column(db.Boolean, default=False, nullable = False)
 
     owner_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
@@ -57,6 +65,34 @@ class Todo(db.Model):
         return str({"id":self.id, "content":self.content, "order":self.order, "owner_user_id":self.owner_user_id, "priority":self.priority, "tags": self.tags})
     def __repr__(self):
         return self.__str__()
+    def __init__(self, content, owner_user_id):
+        self.owner_user_id = owner_user_id
+        self.push_date_time = datetime.utcnow()
+        self.content = content
+        self.parseAndAddTagsFromContent()
+    def parseAndAddTagsFromContent(self):
+        tags = list()
+        try:
+            parsed = Todo.todo_content_parser.parseString("u'" + self.content + "'")
+            print parsed
+            for elem in parsed:
+                if elem[0] == "@":
+                    tags.append(elem[1:])
+                    self.content = self.replace_last(self.content, elem, "").strip()
+        except Exception as e:
+            print e
+
+        for tagName in tags:
+            tagInstance_ = Tag.query.filter_by(owner_user_id = self.owner_user_id, name = tagName).first()
+            if tagInstance_ is None:
+                tagInstance_ = Tag()
+                tagInstance_.owner_user_id = g.user.id
+                tagInstance_.name = tagName
+                db.session.add(tagInstance_)
+            self.tags.append(tagInstance_)
+    def replace_last(self, source_string, replace_what, replace_with):
+        head, sep, tail = source_string.rpartition(replace_what)
+        return head + replace_with + tail
 
 class Tag(db.Model):
     __tablename__ = 'tag'

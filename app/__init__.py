@@ -1,5 +1,4 @@
 import os, json, base64, time, json , gevent, uuid, sqlite3, logging, hashlib, re, json
-from datetime import datetime
 from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
@@ -8,10 +7,8 @@ from core import StackCommandDispatcher
 from core.model import db, Todo, User, Tag
 from webassets.script import CommandLineEnvironment
 from sqlalchemy import and_, desc
-from pyparsing import *
 
 
-todo_content_parser = lineStart + OneOrMore(Word(printables)) + Optional(OneOrMore("@" + Word( alphanums )))
 
 login_manager = LoginManager()
 app = Flask(__name__)
@@ -91,16 +88,11 @@ def displayTag(tagName):
 @login_required
 def pushItem():
     top_item = Todo.query.filter_by(owner_user_id=g.user.id, in_trash=False).order_by(desc(Todo.order)).first()
-    todo = Todo()
-    todo.content = request.form['item']
-    todo.push_date_time = datetime.utcnow()
-    todo.owner_user_id = g.user.id
-    todo.priority = 2
+    todo = Todo(request.form['item'], g.user.id)
     if top_item is not None:
         todo.order = top_item.order + 1
     else:
         todo.order = 0
-    parseAndAddTagsFromContent(todo)
     db.session.add(todo)
     db.session.commit()
     command = {"command": "push", "data": todo2dict(todo)}
@@ -110,11 +102,7 @@ def pushItem():
 @app.route('/append/', methods=["POST"])
 @login_required
 def appendItem():
-    todo = Todo()
-    todo.content = request.form['item']
-    todo.push_date_time = datetime.utcnow()
-    todo.owner_user_id = g.user.id
-    todo.priority = 2
+    todo = Todo(request.form['item'], g.user.id)
 
     stack = Todo.query.filter_by(owner_user_id=g.user.id, in_trash=False).order_by(Todo.order).all()
     if len(stack) > 0 and stack[0].order > 1:
@@ -122,7 +110,6 @@ def appendItem():
     else:
         todo.order = 0
 
-    parseAndAddTagsFromContent(todo)
     response = {"response": "success", "commands": []}
     processed_item = todo
     db.session.add(todo)
@@ -261,26 +248,6 @@ def todo2dict(todo):
     for tag in todo.tags:
         tags.append(tag.name)
     return {"id": todo.id, "content":todo.content, "priority": todo.priority, "order": todo.order, "tags": tags}
-
-def parseAndAddTagsFromContent(todo):
-    tags = list()
-    try:
-        parsed = todo_content_parser.parseString(todo.content)
-        for elem in parsed:
-            if elem[0] == "@":
-                tags.append(elem[1:])
-                todo.content = todo.content.replace(elem, "").strip()
-    except Exception as e:
-        pass
-
-    for tag in tags:
-        tag_ = Tag.query.filter_by(owner_user_id = g.user.id, name = tag).first()
-        if tag_ is None:
-            tag_ = Tag()
-            tag_.owner_user_id = g.user.id
-            tag_.name = tag
-            db.session.add(tag_)
-        todo.tags.append(tag_)
 
 if __name__ == "__main__":
     app.run()
