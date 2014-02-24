@@ -9,8 +9,6 @@ from core.model import db, Todo, User, Tag
 from webassets.script import CommandLineEnvironment
 from sqlalchemy import and_, desc
 
-
-
 login_manager = LoginManager()
 app = Flask(__name__)
 db.init_app(app)
