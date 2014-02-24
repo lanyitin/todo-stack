@@ -1,4 +1,5 @@
 import os, json, base64, time, json , gevent, uuid, sqlite3, logging, hashlib, re, json
+from datetime import datetime
 from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
@@ -143,7 +144,7 @@ def moveToTrash(todoid):
 @app.route('/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
 @login_required
 def moveItem(fromIndex, toIndex):
-    stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False).all()
+    stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False).order_by(Todo.order).all()
     fromIndex = abs(fromIndex - len(stack) + 1)
     toIndex = abs(toIndex - len(stack) + 1)
     response = {"response": "success", "commands": []}
