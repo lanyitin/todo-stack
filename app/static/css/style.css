@@ -33,6 +33,14 @@ body {
 .stack:not(.trash) .todo:nth-child(even) .stack-ui-container {
   background-color: #b9d4ec;
 }
+.stack:not(.trash) .todo .delete,
+.stack:not(.trash) .todo .sort {
+  display: none;
+}
+.stack:not(.trash) .todo:hover .delete,
+.stack:not(.trash) .todo:hover .sort {
+  display: block;
+}
 .stack-ui-top {
   border-top-width: 3px;
   border-top-style: solid;

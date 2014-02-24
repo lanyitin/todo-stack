@@ -12,27 +12,14 @@ function hideItemsInTrashStackExceptLastNItems(num) {
     num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
     target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
     target.hide();
-    $("#trash_expand_collapse_btn").html("Expand");
+    $("#trash_expand_collapse_btn").html("Expand Trash");
 }
 
 function showItemsInTrashStackExceptLastNItems(num) {
     num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
     target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
     target.show()
-    $("#trash_expand_collapse_btn").html("Collapse");
-}
-
-function showSortIcons() {
-    $(".stack:not(.trash) .todo .sort.icon").show();
-}
-function hideSortIcons() {
-    $(".sort.icon").hide();
-}
-function showDeleteButtons() {
-    $(".stack:not(.trash) .todo .delete").show();
-}
-function hideDeleteButtons() {
-    $(".stack:not(.trash) .todo .delete").hide();
+    $("#trash_expand_collapse_btn").html("Collapse Trash");
 }
 
 function getCookie(c_name)
@@ -110,20 +97,6 @@ function initControls() {
             url: "/clean_trash"
         });
     });
-    $(".control.delete").click(function() {
-        if ($(".delete.btn:not(.control):last").is(":hidden")) {
-            showDeleteButtons();
-        } else {
-            hideDeleteButtons();
-        }
-    })
-    $(".control.sort").click(function() {
-        if ($(".sort.icon:last").is(":hidden")) {
-            showSortIcons();
-        } else {
-            hideSortIcons();
-        }
-    });
     var toggleTrashStack = function (e, thiz) {
         if ($(".trash.stack .todo:first").is(":hidden")) {
             showItemsInTrashStackExceptLastNItems(2);
@@ -142,7 +115,8 @@ function initControls() {
             $.ajax({ url: "/moveItem/" + from + "/" + to + "/" });
         },
         revert: true,
-        handle: ".sort.icon"
+        handle: ".sort.icon",
+        axis: "y"
     });
 }
 function poll () {
@@ -173,18 +147,6 @@ $(document).on('click', ".todo .delete", function (e){
 });
 
 $(".stack").on('DOMNodeInserted DOMNodeRemoved', function () {
-    if ($(".stack:not(.trash) .todo:last .delete").is(":hidden")) {
-        hideDeleteButtons();
-    } else {
-        showDeleteButtons();
-    }
-
-    if ($(".stack:not(.trash) .todo:last .sort").is(":hidden")) {
-        hideSortIcons();
-    } else {
-        showSortIcons();
-    }
-
     if ($(".stack.trash .todo:first").is(":hidden")) {
         hideItemsInTrashStackExceptLastNItems(2);
     } else {
@@ -195,7 +157,5 @@ $(document).ready(function () {
     setSequenceNumber(getCookie("sequenceNumber") || 0);
     initControls();
     hideItemsInTrashStackExceptLastNItems(2);
-    hideSortIcons();
-    hideDeleteButtons();
     poll();
 });

@@ -1,17 +1,11 @@
 {% extends "layout.html" %}
 {% block body %}
 <div  class="row">
-    <div class="btn-group pull-right">
-        <button class="btn btn-info sort control">Sort</button>
-        <button class="btn btn-warning pop control">Pop</button>
-        <button class="btn btn-danger delete control">Delete</button>
-    </div>
-</div>
-<div  class="row">
     <div class="stack-container">
         <div class="trash control text-center">
             <div class="btn-group">
                 <div id="trash_expand_collapse_btn" class="btn btn-success"></div>
+                <button class="btn btn-danger pop control">Pop</button>
                 <div class="btn control clean trash btn-warning">Clean Trash<span class="glyphicon glyphicon-trash"></span></div>
             </div>
         </div>
@@ -28,11 +22,11 @@
                 <div class="form">
                     <div class="input-group input-group-lg">
                         <span class="input-group-btn">
-                            <button class="btn btn-success control append"/>Append</button>
+                            <button class="btn btn-success control append">Append</button>
                         </span>
                         <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content">
                         <span class="input-group-btn">
-                            <button class="btn btn-success control push"/>Push</button>
+                            <button class="btn btn-success control push">Push</button>
                         </span>
                     </div>
                 </div>
@@ -48,7 +42,7 @@
         </div>
     </div>
 </div>
-<script id="todo_template" type="text/template"">
+<script id="todo_template" type="text/template">
 <div class="todo container" data-todo-priority="<%= todo.priority %>" data-todo-order="<%= todo.order %>" data-todo-id="<%= todo.id %>">
     <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
         <span class="sort icon btn glyphicon glyphicon-sort pull-right"></span>
@@ -61,8 +55,8 @@
     <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
         <span class="delete icon btn glyphicon glyphicon-remove-circle pull-left"></span>
     </div>
-
 </div>
+</script>
 {% endblock %}
 {% block extra_script %}
     {% for todo in stack %}

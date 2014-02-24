@@ -47,6 +47,14 @@ body {
         &:nth-child(even) .stack-ui-container {
             background-color: @normal-stack-background;
         }
+        & .delete, & .sort {
+            display: none;
+        }
+        &:hover {
+            & .delete, & .sort {
+                display: block;
+            }
+        }
     }
 
 }
