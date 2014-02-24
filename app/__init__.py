@@ -6,7 +6,6 @@ from flask.ext.login import LoginManager, login_user , logout_user , current_use
 from flask.ext.sqlalchemy import SQLAlchemy
 from core import StackCommandDispatcher  
 from core.model import db, Todo, User, Tag
-from webassets.script import CommandLineEnvironment
 from sqlalchemy import and_, desc
 
 login_manager = LoginManager()
@@ -174,7 +173,9 @@ def moveItem(fromIndex, toIndex):
 def removeItem(todoid):
     todo = Todo.query.filter_by(id = todoid).first()
     db.session.delete(todo)
-    tags = Tag.query.filter(~Tag.todos.any()).all()
+    db.session.commit()
+    tags = Tag.query.filter_by(owner_user_id=g.user.id).all()
+    tags = [tag for tag in tags if len(tag.todos) is 0]
     for tag in tags:
         db.session.delete(tag)
     db.session.commit()
@@ -195,7 +196,9 @@ def cleanTrash():
         db.session.delete(todo)
         command = {"command": "removeItem", "data": todo2dict(todo)}
         commands.append(command)
-    tags = Tag.query.filter(~Tag.todos.any()).all()
+    db.session.commit()
+    tags = Tag.query.filter_by(owner_user_id=g.user.id).all()
+    tags = [tag for tag in tags if len(tag.todos) is 0]
     for tag in tags:
         db.session.delete(tag)
     db.session.commit()
@@ -221,16 +224,6 @@ def fetch(request_sequence_number):
     commands = StackCommandDispatcher.openDispatcher(g.user.id).fetch_command(request_sequence_number)
     response = make_response(json.dumps(commands))
     return response
-
-@app.route('/rebuild_assets/', methods=["GET"])
-def rebuild_assets():
-    log = logging.getLogger('webassets')
-    log.addHandler(logging.StreamHandler())
-    log.setLevel(logging.DEBUG)
-
-    cmdenv = CommandLineEnvironment(assets, log)
-    cmdenv.build()
-    return "success"
 
 @app.errorhandler(500)
 def page_not_found(error):

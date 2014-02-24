@@ -86,7 +86,7 @@ class Todo(db.Model):
             tagInstance_ = Tag.query.filter_by(owner_user_id = self.owner_user_id, name = tagName).first()
             if tagInstance_ is None:
                 tagInstance_ = Tag()
-                tagInstance_.owner_user_id = g.user.id
+                tagInstance_.owner_user_id = self.owner_user_id
                 tagInstance_.name = tagName
                 db.session.add(tagInstance_)
             self.tags.append(tagInstance_)
