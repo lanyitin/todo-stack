@@ -6,7 +6,10 @@ function getSequenceNumber() {
 function setSequenceNumber(n) {
     sequenceNumber = n;
 }
-var compiledTodoTemplate = _.template($("#todo_template").html());
+var compiledTodoTemplate;
+if ($("#todo_template").size() > 0) {
+compiledTodoTemplate = _.template($("#todo_template").html());
+}
 
 function hideItemsInTrashStackExceptLastNItems(num) {
     num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
