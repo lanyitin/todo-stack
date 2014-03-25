@@ -10,6 +10,7 @@ from sqlalchemy import and_, desc
 
 login_manager = LoginManager()
 app = Flask(__name__)
+app.config["APPLICATION_ROOT"] = "/stacktodos"
 db.init_app(app)
 assets = Environment(app)
 login_manager.init_app(app)
