@@ -15,7 +15,7 @@ assets = Environment(app)
 login_manager.init_app(app)
 login_manager.login_view = "/login"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'.format(os.environ['OPENSHIFT_MYSQL_DB_USERNAME'], os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'], os.environ['OPENSHIFT_MYSQL_DB_HOST'], os.environ['OPENSHIFT_MYSQL_DB_PORT'])
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'.format(os.environ['STACKTODOS_MYSQL_DB_USERNAME'], os.environ['STACKTODOS_MYSQL_DB_PASSWORD'], os.environ['STACKTODOS_MYSQL_DB_HOST'], os.environ['STACKTODOS_MYSQL_DB_PORT'])
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 app.debug = True
 
