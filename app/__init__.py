@@ -10,7 +10,6 @@ from sqlalchemy import and_, desc
 
 login_manager = LoginManager()
 app = Flask(__name__)
-app.config["APPLICATION_ROOT"] = "/stacktodos"
 db.init_app(app)
 assets = Environment(app)
 login_manager.init_app(app)
@@ -37,15 +36,19 @@ def load_user(id):
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
+    if g.user is not None and g.user.is_authenticated():
+	    return redirect(request.args.get("next") or url_for("main"))
+
     if request.method == 'GET':
         return render_template('login.html')
+
     username = request.form['username']
     password = hashlib.md5(request.form['password']).hexdigest()
     registered_user = User.query.filter_by(username = username, password = password).first()
     if registered_user is None:
         return redirect(url_for('login'))
     login_user(registered_user)
-    return redirect(url_for('main'))
+    return redirect(request.args.get("next") or url_for("main"))
 
 @app.route('/logout')
 @login_required
@@ -241,6 +244,3 @@ def todo2dict(todo):
     for tag in todo.tags:
         tags.append(tag.name)
     return {"id": todo.id, "content":todo.content, "priority": todo.priority, "order": todo.order, "tags": tags}
-
-if __name__ == "__main__":
-    app.run()
