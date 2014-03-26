@@ -17,7 +17,6 @@ itsdangerous==0.23
 jsmin==2.0.8
 mysql-connector-python==1.1.6
 parse==1.6.3
-pymongo==2.6.3
 pyparsing==2.0.1
 webassets==0.8
 wsgiref==0.1.2
