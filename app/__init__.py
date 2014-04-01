@@ -1,10 +1,9 @@
-import os, json, base64, time, json , gevent, uuid, sqlite3, logging, hashlib, re, json
+import os, json, base64, time, json , uuid, sqlite3, logging, hashlib, re, json
 from datetime import datetime
 from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
 from flask.ext.sqlalchemy import SQLAlchemy
-from core import StackCommandDispatcher  
 from core.model import db, Todo, User, Tag
 from sqlalchemy import and_, desc
 
@@ -62,7 +61,6 @@ def main():
     stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False).order_by(desc(Todo.order)).all()
     trash_stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).order_by(Todo.push_date_time).all()
     response = make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
-    response.set_cookie("sequenceNumber", str(StackCommandDispatcher.openDispatcher(g.user.id).get_max_sequence_number()))
     return response
 
 @app.route('/register', methods = ['GET', 'POST'])
@@ -98,7 +96,6 @@ def pushItem():
     db.session.add(todo)
     db.session.commit()
     command = {"command": "push", "data": todo2dict(todo)}
-    StackCommandDispatcher.openDispatcher(g.user.id).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
 
 @app.route('/append/', methods=["POST"])
@@ -125,7 +122,6 @@ def appendItem():
         processed_item = top_item
 
     db.session.commit()
-    StackCommandDispatcher.openDispatcher(g.user.id).new_command(response['commands'])
     return json.dumps(response)
 
 @app.route('/moveToTrash/<int:todoid>', methods=["GET"])
@@ -139,7 +135,6 @@ def moveToTrash(todoid):
         db.session.commit()
         todo = top_item
         command = {"command": "pop", "data": todo2dict(todo)}
-        StackCommandDispatcher.openDispatcher(g.user.id).new_command([command])
         return json.dumps({"response": "success", "commands": [command]})
 
 @app.route('/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
@@ -169,7 +164,6 @@ def moveItem(fromIndex, toIndex):
         response["commands"].append(command)
 
     db.session.commit()
-    StackCommandDispatcher.openDispatcher(g.user.id).new_command(response["commands"])
     return json.dumps(response)
 
 @app.route('/removeItem/<int:todoid>/', methods=["GET"])
@@ -184,7 +178,6 @@ def removeItem(todoid):
         db.session.delete(tag)
     db.session.commit()
     command = {"command": "removeItem", "data": todo2dict(todo)}
-    StackCommandDispatcher.openDispatcher(g.user.id).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
 
 @app.route('/tag/list', methods=["GET"])
@@ -206,7 +199,6 @@ def cleanTrash():
     for tag in tags:
         db.session.delete(tag)
     db.session.commit()
-    StackCommandDispatcher.openDispatcher(g.user.id).new_command(commands)
     return json.dumps({"response": "success", "commands": commands})
 
 @app.route('/raisePriority/<int:todoid>/', methods=["GET"])
@@ -219,15 +211,7 @@ def raisePriority(todoid):
     db.session.add(todo)
     db.session.commit()
     command = {"response": "success", "commands": [{"command": "update", "data": todo2dict(todo)}]}
-    StackCommandDispatcher.openDispatcher(g.user.id).new_command([command])
     return json.dumps({"response": "success", "commands": [command]})
-
-@app.route('/fetch/<int:request_sequence_number>/', methods=["GET"])
-@login_required
-def fetch(request_sequence_number):
-    commands = StackCommandDispatcher.openDispatcher(g.user.id).fetch_command(request_sequence_number)
-    response = make_response(json.dumps(commands))
-    return response
 
 @app.errorhandler(500)
 def page_not_found(error):

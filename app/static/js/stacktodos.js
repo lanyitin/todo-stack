@@ -8,7 +8,7 @@ function setSequenceNumber(n) {
 }
 var compiledTodoTemplate;
 if ($("#todo_template").size() > 0) {
-compiledTodoTemplate = _.template($("#todo_template").html());
+    compiledTodoTemplate = _.template($("#todo_template").html());
 }
 
 function hideItemsInTrashStackExceptLastNItems(num) {
@@ -21,7 +21,7 @@ function hideItemsInTrashStackExceptLastNItems(num) {
 function showItemsInTrashStackExceptLastNItems(num) {
     num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
     target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
-    target.show()
+    target.show();
     $("#trash_expand_collapse_btn").html("Collapse Trash");
 }
 
@@ -81,23 +81,34 @@ function handleCommands(commandsTimePair) {
 
 function initControls() {
     $(".control.pop").click(function() {
-        $.ajax({ url: "/moveToTrash/" + $(".stack:not(.trash) .todo:first").attr("data-todo-id") });
+        $.ajax({ 
+            url: "/moveToTrash/" + $(".stack:not(.trash) .todo:first").attr("data-todo-id")
+        }).done(function (data) {
+            handleCommands(JSON.parse(data).commands);
+        });
     });
     $(".control.push").click(function() {
         $.ajax({
             url: "/push/" , type:"POST",
             data:{"item":$("#control-todo-content").val()}
+        }).done(function (data) {
+            console.log(data);
+            handleCommands(JSON.parse(data).commands);
         });
     });
     $(".control.append").click(function() {
         $.ajax({
             url: "/append/" , type:"POST",
             data:{"item":$("#control-todo-content").val()}
+        }).done(function (data) {
+            handleCommands(JSON.parse(data).commands);
         });
     });
     $(".control.clean.trash").click(function() {
         $.ajax({
             url: "/clean_trash"
+        }).done(function (data) {
+            handleCommands(JSON.parse(data).commands);
         });
     });
     var toggleTrashStack = function (e, thiz) {
@@ -115,38 +126,32 @@ function initControls() {
         update: function ( event, ui) {
             var from = ui.item.data("start_pos");
             var to = ui.item.index();
-            $.ajax({ url: "/moveItem/" + from + "/" + to + "/" });
+            $.ajax({ 
+                url: "/moveItem/" + from + "/" + to + "/"
+            }).done(function (data) {
+                handleCommands(JSON.parse(data).commands);
+            });
         },
         revert: true,
         handle: ".sort.icon",
         axis: "y"
     });
 }
-function poll () {
-    $.ajax({url: "/fetch/" + getSequenceNumber() + "/"}).done(function (data) {
-        data = JSON.parse(data);
-        setSequenceNumber(parseInt(data.command_update_sequence_number));
-        for (var i = 0; i < data.commands.length; i++) {
-            if (data.commands[i] !== null) {
-                var commands = data.commands[i].commands;
-                if (commands !== undefined) {
-                    handleCommands(commands);
-                }
-            }
-        }
-        poll();
-    });
-}
 
 $(document).on('click', ".todo .priority", function(e) {
     var todoId = $(e.target).parent().attr("data-todo-id");
-    $.ajax({url: "/raisePriority/" + todoId + "/" }).done(function (){
+    $.ajax({url: "/raisePriority/" + todoId + "/" }).done(function (data){
         $(e.target).html((parseInt($(e.target).html()) + 1) % 5);
+        handleCommands(JSON.parse(data).commands);
     });
 });
 
 $(document).on('click', ".todo .delete", function (e){
-    $.ajax({url: "/removeItem/" + $(e.target).parent().parent().attr("data-todo-id") + "/"})
+    $.ajax({
+        url: "/removeItem/" + $(e.target).parent().parent().attr("data-todo-id") + "/"
+    }).done(function (data) {
+        handleCommands(JSON.parse(data).commands);
+    });
 });
 
 $(".stack").on('DOMNodeInserted DOMNodeRemoved', function () {
@@ -160,5 +165,4 @@ $(document).ready(function () {
     setSequenceNumber(getCookie("sequenceNumber") || 0);
     initControls();
     hideItemsInTrashStackExceptLastNItems(2);
-    poll();
 });
