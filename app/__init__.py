@@ -88,15 +88,14 @@ def displayTag(tagName):
 @login_required
 def pushItem():
     top_item = Todo.query.filter_by(owner_user_id=g.user.id, in_trash=False).order_by(desc(Todo.order)).first()
-    todo = Todo(request.form['item'], g.user.id)
+    todo = Todo(request.json['item'], g.user.id)
     if top_item is not None:
         todo.order = top_item.order + 1
     else:
         todo.order = 0
     db.session.add(todo)
     db.session.commit()
-    command = {"command": "push", "data": todo2dict(todo)}
-    return json.dumps({"response": "success", "commands": [command]})
+    return Response(json.dumps(todo2dict(todo)), mimetype='application/json')
 
 @app.route('/append/', methods=["POST"])
 @login_required

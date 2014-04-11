@@ -87,15 +87,15 @@ function initControls() {
             handleCommands(JSON.parse(data).commands);
         });
     });
-    $(".control.push").click(function() {
-        $.ajax({
-            url: "/push/" , type:"POST",
-            data:{"item":$("#control-todo-content").val()}
-        }).done(function (data) {
-            console.log(data);
-            handleCommands(JSON.parse(data).commands);
-        });
-    });
+    // $(".control.push").click(function() {
+    //     $.ajax({
+    //         url: "/push/" , type:"POST",
+    //         data:{"item":$("#control-todo-content").val()}
+    //     }).done(function (data) {
+    //         console.log(data);
+    //         handleCommands(JSON.parse(data).commands);
+    //     });
+    // });
     $(".control.append").click(function() {
         $.ajax({
             url: "/append/" , type:"POST",
@@ -165,4 +165,45 @@ $(document).ready(function () {
     setSequenceNumber(getCookie("sequenceNumber") || 0);
     initControls();
     hideItemsInTrashStackExceptLastNItems(2);
+});
+
+
+angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
+    $interpolateProvider.startSymbol('{[');
+    $interpolateProvider.endSymbol(']}');
+})
+.controller("AppController", function ($scope, $http) {
+    $scope.stack = [];
+    $scope.trash_stack = [];
+    $scope.sync = function () {
+
+    }
+
+    $scope.push = function (todo) {
+        if (todo === undefined) {
+            content = $("#control-todo-content").val();
+            $http.post("/push/", {item: content}).success(function (data) {
+                $scope.push(data);
+            });
+        } else {
+            $scope.stack.push(todo)
+        }
+    }
+
+    $scope.removeTodo = function () {
+
+    }
+
+    $scope.moveTodo = function () {
+
+    }
+
+    $scope.raisePriority = function () {
+
+    }
+})
+.filter('reverse', function() {
+      return function(items) {
+              return items.slice().reverse();
+                };
 });

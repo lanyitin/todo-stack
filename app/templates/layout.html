@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="Stacktodos">
 <head>
 <title>Stack Todos</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -41,7 +41,7 @@
         {% block body %}{% endblock %}
     </div>
 </div>
-{% assets output='js/packed.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/underscore-min.js', 'js/stacktodos.js' %}
+{% assets 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/angular.min.js', 'js/stacktodos.js' %}
 <script type="text/javascript" src="{{ ASSET_URL }}"></script>
 {% endassets %}
 <script>

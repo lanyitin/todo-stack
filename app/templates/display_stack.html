@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
-<div  class="row">
+<div class="row" ng-controller="AppController">
     <div class="stack-container">
         <div class="trash control text-center">
             <div class="btn-group">
@@ -26,7 +26,7 @@
                         </span>
                         <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content">
                         <span class="input-group-btn">
-                            <button class="btn btn-success control push">Push</button>
+                            <button class="btn btn-success control push" ng-click="push()">Push</button>
                         </span>
                     </div>
                 </div>
@@ -34,6 +34,19 @@
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
         </div>
         <div class="stack sortable">
+            <div ng-repeat="todo in stack | orderBy:'order' | reverse" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <span class="sort icon btn glyphicon glyphicon-sort pull-right"></span>
+                </div>
+                <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
+                    <span class="priority pull-left btn">{[ todo.priority ]}</span>
+                    <span class="content">{[ todo.content ]}</span>
+                    <a ng-repeat="tag in todo.tags" class="badge" href="/tag/{[ tag ]}">{[ tag ]}</a>
+                </div>
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <span class="delete icon btn glyphicon glyphicon-remove-circle pull-left"></span>
+                </div>
+            </div>
         </div>
         <div class="container">
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
@@ -42,27 +55,15 @@
         </div>
     </div>
 </div>
-<script id="todo_template" type="text/template">
-<div class="todo container" data-todo-priority="<%= todo.priority %>" data-todo-order="<%= todo.order %>" data-todo-id="<%= todo.id %>">
-    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
-        <span class="sort icon btn glyphicon glyphicon-sort pull-right"></span>
-    </div>
-    <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
-        <span class="priority pull-left btn"><%= todo.priority %></span>
-        <span class="content"><%- todo.content %></span>
-        <% _.each(todo.tags, function(tag) { %>  <a class="badge" href="/tag/<%- tag %>"><%- tag %></a> <% }); %>
-    </div>
-    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
-        <span class="delete icon btn glyphicon glyphicon-remove-circle pull-left"></span>
-    </div>
-</div>
-</script>
 {% endblock %}
 {% block extra_script %}
-    {% for todo in stack %}
-    handleCommands([{"command": "append", "data":{{ todo|todo2json|safe }} }]);
-    {% endfor %}
-    {% for todo in trash_stack %}
-    handleCommands([{"command": "append_trash", "data":{{ todo|todo2json|safe }} }]);
-    {% endfor %}
+$(function() {
+var controller = angular.element($("[ng-controller=AppController]")).scope();
+console.log(controller);
+{% for todo in stack %}
+controller.push({{ todo|todo2json|safe }});
+{% endfor %}
+
+controller.$apply();
+});
 {% endblock %}
