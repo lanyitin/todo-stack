@@ -1,4 +1,4 @@
-import os, json, base64, time, json , uuid, sqlite3, logging, hashlib, re, json
+import base64, hashlib, json, logging, os, re, sqlite3, sys, time, uuid
 from datetime import datetime
 from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response
 from flask.ext.assets import Environment
@@ -139,22 +139,23 @@ def moveToTrash(todoid):
 @app.route('/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
 @login_required
 def moveItem(fromIndex, toIndex):
-    stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False).order_by(Todo.order).all()
-    fromIndex = abs(fromIndex - len(stack) + 1)
-    toIndex = abs(toIndex - len(stack) + 1)
+    stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False).order_by(desc(Todo.order)).all()
     response = {"response": "success", "commands": []}
     begin = end = 0
     if (fromIndex > toIndex):
         begin = toIndex
         end = fromIndex
+	fromIndex -= toIndex
+	toIndex -= toIndex
     else:
         end = toIndex
         begin = fromIndex
+	toIndex -= fromIndex
+	fromIndex -= fromIndex
 
     item_slice = stack[begin:end + 1]
     order_slice = [item.order for item in item_slice]
-    order_slice.sort()
-    order_slice.reverse()
+    item_slice.insert(toIndex, item_slice.pop(fromIndex))
 
     for order, todo in zip(order_slice, item_slice):
         todo.order = order
