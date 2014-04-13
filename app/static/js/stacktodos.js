@@ -1,15 +1,3 @@
-var sequenceNumber;
-
-function getSequenceNumber() {
-    return sequenceNumber;
-}
-function setSequenceNumber(n) {
-    sequenceNumber = n;
-}
-var compiledTodoTemplate;
-if ($("#todo_template").size() > 0) {
-    compiledTodoTemplate = _.template($("#todo_template").html());
-}
 
 function hideItemsInTrashStackExceptLastNItems(num) {
     num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
@@ -25,35 +13,8 @@ function showItemsInTrashStackExceptLastNItems(num) {
     $("#trash_expand_collapse_btn").html("Collapse Trash");
 }
 
-function getCookie(c_name)
-{
-    var c_value = document.cookie;
-    var c_start = c_value.indexOf(" " + c_name + "=");
-    if (c_start == -1) {
-        c_start = c_value.indexOf(c_name + "=");
-    }
-    if (c_start == -1) {
-        c_value = null;
-    } else {
-        c_start = c_value.indexOf("=", c_start) + 1;
-        var c_end = c_value.indexOf(";", c_start);
-        if (c_end == -1) {
-            c_end = c_value.length;
-        }
-        c_value = unescape(c_value.substring(c_start,c_end));
-    }
-    return c_value;
-}
-
 
 function initControls() {
-    $(".control.pop").click(function() {
-        $.ajax({ 
-            url: "/moveToTrash/" + $(".stack:not(.trash) .todo:first").attr("data-todo-id")
-        }).done(function (data) {
-            handleCommands(JSON.parse(data).commands);
-        });
-    });
     $(".control.clean.trash").click(function() {
         $.ajax({
             url: "/clean_trash"
@@ -96,7 +57,6 @@ $(".stack").on('DOMNodeInserted DOMNodeRemoved', function () {
     }
 });
 $(document).ready(function () {
-    setSequenceNumber(getCookie("sequenceNumber") || 0);
     initControls();
     hideItemsInTrashStackExceptLastNItems(2);
 });
@@ -106,7 +66,7 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
     $interpolateProvider.startSymbol('{[');
         $interpolateProvider.endSymbol(']}');
 })
-.controller("AppController", function ($scope, $http) {
+.controller("AppController", function ($scope, $http, $filter) {
     $scope.stack = [];
     $scope.trash_stack = [];
     $scope.sync = function () {
@@ -164,17 +124,33 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
 
     $scope.removeTodo = function (id) {
         $http.get("/removeItem/" + id + "/")
-        .success(function (data) {
-            angular.forEach(data, function (todo) {
-                var target = getIndexById(todo.id);
-                if (target != undefined) {
-                    $scope.stack.splice(target, 1);
-                } else {
-                    console.log($scope.stack);
-                    console.log(id, todo, todo.id, getIndexById(id));
-                }
+            .success(function (data) {
+                angular.forEach(data, function (todo) {
+                    var target = getIndexById(todo.id);
+                    if (target != undefined) {
+                        $scope.stack.splice(target, 1);
+                    } else {
+                        console.log($scope.stack);
+                        console.log(id, todo, todo.id, getIndexById(id));
+                    }
+                });
             });
-        });
+    }
+
+    $scope.pop = function (id) {
+        target = $filter('orderBy')($scope.stack, "order", true);
+        if (target.length) {
+            target = target[0];
+            $http.get("/moveToTrash/" + target.id)
+                .success(function (data) {
+                    angular.forEach(data, function (todo) {
+                        console.log(todo);
+                        console.log(getIndexById(todo.id, 1));
+                        $scope.trash_stack.push($scope.stack.splice(getIndexById(todo.id, 1))[0]);
+                    });
+                });
+
+        }
     }
 
     $scope.moveTodo = function () {
@@ -183,11 +159,11 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
 
     $scope.raisePriority = function (id) {
         $http.get("/raisePriority/" + id + "/")
-        .success(function (data){
-            angular.forEach(data, function(item) {
-                handleItem(item);
+            .success(function (data){
+                angular.forEach(data, function(item) {
+                    handleItem(item);
+                });
             });
-        });
     }
 
     $scope.content_keypress = function ($event) {

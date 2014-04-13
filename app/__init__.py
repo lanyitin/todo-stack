@@ -133,8 +133,7 @@ def moveToTrash(todoid):
         db.session.add(top_item)
         db.session.commit()
         todo = top_item
-        command = {"command": "pop", "data": todo2dict(todo)}
-        return json.dumps({"response": "success", "commands": [command]})
+        return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
 
 @app.route('/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
 @login_required
