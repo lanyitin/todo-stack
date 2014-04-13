@@ -1,24 +1,4 @@
-function initControls() {
-    $(".sortable").sortable({
-        start: function ( event, ui ) {
-            ui.item.data("start_pos", ui.item.index());
-        },
-        update: function ( event, ui) {
-            var from = ui.item.data("start_pos");
-            var to = ui.item.index();
-            $.ajax({ 
-                url: "/moveItem/" + from + "/" + to + "/"
-            }).done(function (data) {
-                handleCommands(JSON.parse(data).commands);
-            });
-        },
-        revert: true,
-        handle: ".sort.icon",
-        axis: "y"
-    });
-}
-
-angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
+angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvider) {
     $interpolateProvider.startSymbol('{[');
         $interpolateProvider.endSymbol(']}');
 })
@@ -70,12 +50,14 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
     function newItem(action, todo) {
         if (todo === undefined) {
             content = $("#control-todo-content").val();
-            $http.post(action, {item: content}).success(function (data) {
-                $("#control-todo-content").val("");
-                angular.forEach(data, function(item) {
-                    handleItem(item);
+            if (content != "") {
+                $http.post(action, {item: content}).success(function (data) {
+                    $("#control-todo-content").val("");
+                    angular.forEach(data, function(item) {
+                        handleItem(item);
+                    });
                 });
-            });
+            }
         } else {
             handleItem(todo);
         }
@@ -113,13 +95,11 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
         if (target.length) {
             target = target[0];
             $http.get("/moveToTrash/" + target.id)
-            .success(function (data) {
-                angular.forEach(data, function (todo) {
-                    console.log(todo);
-                    console.log(getIndexById(todo.id, 1));
-                    $scope.trash_stack.push($scope.stack.splice(getIndexById(todo.id, 1))[0]);
+                .success(function (data) {
+                    angular.forEach(data, function (todo) {
+                        $scope.trash_stack.push($scope.stack.splice(getIndexById(todo.id, 1))[0]);
+                    });
                 });
-            });
         }
     }
 
@@ -149,14 +129,14 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
     $scope.clean_trash = function () {
         $http.get("/clean_trash/")
             .success(function (data) {
-            angular.forEach($scope.trash_stack, function(existTodo, idx) {
-                angular.forEach(data, function(target) {
-                    if (existTodo.id == target.id) {
-                        $scope.trash_stack.splice(idx, 1);
-                    }
+                angular.forEach($scope.trash_stack, function(existTodo, idx) {
+                    angular.forEach(data, function(target) {
+                        if (existTodo.id == target.id) {
+                            $scope.trash_stack.splice(idx, 1);
+                        }
+                    });
                 });
             });
-        });
     }
 })
 .filter('reverse', function() {
@@ -172,4 +152,21 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
             return items.slice(items.length - 2);
         }
     };
+});
+$(".sortable").sortable({
+    start: function ( event, ui ) {
+        ui.item.data("start_pos", ui.item.index());
+    },
+    update: function ( event, ui) {
+        var from = ui.item.data("start_pos");
+        var to = ui.item.index();
+        $.ajax({ 
+            url: "/moveItem/" + from + "/" + to + "/"
+        }).done(function (data) {
+            handleCommands(JSON.parse(data).commands);
+        });
+    },
+    revert: true,
+    handle: ".sort.icon",
+    axis: "y"
 });

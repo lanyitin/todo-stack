@@ -139,7 +139,7 @@ def moveToTrash(todoid):
 @login_required
 def moveItem(fromIndex, toIndex):
     stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False).order_by(desc(Todo.order)).all()
-    response = {"response": "success", "commands": []}
+    response = []
     begin = end = 0
     if (fromIndex > toIndex):
         begin = toIndex
@@ -149,8 +149,8 @@ def moveItem(fromIndex, toIndex):
     else:
         end = toIndex
         begin = fromIndex
-	toIndex -= fromIndex
-	fromIndex -= fromIndex
+        toIndex -= fromIndex
+        fromIndex -= fromIndex
 
     item_slice = stack[begin:end + 1]
     order_slice = [item.order for item in item_slice]
@@ -159,11 +159,10 @@ def moveItem(fromIndex, toIndex):
     for order, todo in zip(order_slice, item_slice):
         todo.order = order
         db.session.add(item)
-        command = {"command":"update", "data":todo2dict(todo)}
-        response["commands"].append(command)
+        response.append(todo2dict(todo))
 
     db.session.commit()
-    return json.dumps(response)
+    return Response(json.dumps(response), mimetype='application/json')
 
 @app.route('/removeItem/<int:todoid>/', methods=["GET"])
 @login_required
