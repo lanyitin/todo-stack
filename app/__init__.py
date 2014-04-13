@@ -95,29 +95,28 @@ def pushItem():
         todo.order = 0
     db.session.add(todo)
     db.session.commit()
-    return Response(json.dumps(todo2dict(todo)), mimetype='application/json')
+    return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
 
 @app.route('/append/', methods=["POST"])
 @login_required
 def appendItem():
-    todo = Todo(request.form['item'], g.user.id)
+    todo = Todo(request.json['item'], g.user.id)
 
     stack = Todo.query.filter_by(owner_user_id=g.user.id, in_trash=False).order_by(Todo.order).all()
     if len(stack) > 0 and stack[0].order > 1:
         todo.order = stack[0].order.order - 1
     else:
         todo.order = 0
-
-    response = {"response": "success", "commands": []}
+    response = []
     processed_item = todo
     db.session.add(todo)
     db.session.commit()
-    response['commands'].append({"command": "append", "data": todo2dict(todo)})
+    response.append(todo2dict(todo))
 
     for top_item in stack:
         top_item.order = processed_item.order + 1
         db.session.add(top_item)
-        response['commands'].append({"command": "update", "data": todo2dict(top_item)})
+        response.append(todo2dict(top_item))
         processed_item = top_item
 
     db.session.commit()

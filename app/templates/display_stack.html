@@ -22,7 +22,7 @@
                 <div class="form">
                     <div class="input-group input-group-lg">
                         <span class="input-group-btn">
-                            <button class="btn btn-success control append">Append</button>
+                            <button class="btn btn-success control append" ng-click="append()">Append</button>
                         </span>
                         <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content">
                         <span class="input-group-btn">
@@ -59,7 +59,6 @@
 {% block extra_script %}
 $(function() {
 var controller = angular.element($("[ng-controller=AppController]")).scope();
-console.log(controller);
 {% for todo in stack %}
 controller.push({{ todo|todo2json|safe }});
 {% endfor %}

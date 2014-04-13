@@ -96,14 +96,14 @@ function initControls() {
     //         handleCommands(JSON.parse(data).commands);
     //     });
     // });
-    $(".control.append").click(function() {
-        $.ajax({
-            url: "/append/" , type:"POST",
-            data:{"item":$("#control-todo-content").val()}
-        }).done(function (data) {
-            handleCommands(JSON.parse(data).commands);
-        });
-    });
+    // $(".control.append").click(function() {
+    //     $.ajax({
+    //         url: "/append/" , type:"POST",
+    //         data:{"item":$("#control-todo-content").val()}
+    //     }).done(function (data) {
+    //         handleCommands(JSON.parse(data).commands);
+    //     });
+    // });
     $(".control.clean.trash").click(function() {
         $.ajax({
             url: "/clean_trash"
@@ -170,7 +170,7 @@ $(document).ready(function () {
 
 angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
     $interpolateProvider.startSymbol('{[');
-    $interpolateProvider.endSymbol(']}');
+        $interpolateProvider.endSymbol(']}');
 })
 .controller("AppController", function ($scope, $http) {
     $scope.stack = [];
@@ -178,16 +178,54 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
     $scope.sync = function () {
 
     }
+    function getTodoById(id) {
+        var target = undefined;
+        angular.forEach($scope.stack, function(item) {
+            console.log(item.id == id, item.id, id);
+            if (item.id == id) {
+                target = item;
+            }
+        });
+        return target;
+    }
 
-    $scope.push = function (todo) {
+    function getIndexById(id) {
+        var target = undefined;
+        angular.forEach($scope.stack, function(item, idx) {
+            if (item.id == id) {
+                target = idx;
+            }
+        });
+        return target;
+    }
+
+    function handleItem(item) {
+        if (getTodoById(item.id) == undefined) {
+            $scope.stack.push(item);
+        } else {
+            $scope.stack[getIndexById(item.id)] = item
+        }
+    }
+
+    function newItem(action, todo) {
         if (todo === undefined) {
             content = $("#control-todo-content").val();
-            $http.post("/push/", {item: content}).success(function (data) {
-                $scope.push(data);
+            $http.post(action, {item: content}).success(function (data) {
+                angular.forEach(data, function(item) {
+                    handleItem(item);
+                });
             });
         } else {
-            $scope.stack.push(todo)
+            handleItem(todo);
         }
+    }
+
+    $scope.push = function (todo) {
+        newItem("/push/", todo);
+    }
+
+    $scope.append = function (todo) {
+        newItem("/append/", todo);
     }
 
     $scope.removeTodo = function () {
@@ -203,7 +241,7 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
     }
 })
 .filter('reverse', function() {
-      return function(items) {
-              return items.slice().reverse();
-                };
+    return function(items) {
+        return items.slice().reverse();
+    };
 });
