@@ -10,9 +10,6 @@ Werkzeug==0.9.4
 argparse==1.2.1
 behave==1.2.3
 cssmin==0.2.0
-gevent==1.0
-greenlet==0.4.1
-gunicorn==18.0
 itsdangerous==0.23
 jsmin==2.0.8
 mysql-connector-python==1.1.6
