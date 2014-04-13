@@ -33,7 +33,7 @@ def load_user(id):
     return db.session.query(User).filter_by(id=id).first()
 
 
-@app.route('/login', methods = ['GET', 'POST'])
+@app.route('/login/', methods = ['GET', 'POST'])
 def login():
     if g.user is not None and g.user.is_authenticated():
 	    return redirect(request.args.get("next") or url_for("main"))
@@ -49,7 +49,7 @@ def login():
     login_user(registered_user)
     return redirect(request.args.get("next") or url_for("main"))
 
-@app.route('/logout')
+@app.route('/logout/')
 @login_required
 def logout():
     logout_user()
@@ -63,7 +63,7 @@ def main():
     response = make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
     return response
 
-@app.route('/register', methods = ['GET', 'POST'])
+@app.route('/register/', methods = ['GET', 'POST'])
 def register():
     if request.method == 'GET':
         return render_template('register.html')
@@ -75,7 +75,7 @@ def register():
     db.session.commit();
     return redirect(url_for('login'))
 
-@app.route('/tag/<tagName>')
+@app.route('/tag/<tagName>/')
 @login_required
 def displayTag(tagName):
     stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False) \
@@ -123,7 +123,7 @@ def appendItem():
 
     return Response(json.dumps(response), mimetype='application/json')
 
-@app.route('/moveToTrash/<int:todoid>', methods=["GET"])
+@app.route('/moveToTrash/<int:todoid>/', methods=["GET"])
 @login_required
 def moveToTrash(todoid):
     top_item = Todo.query.filter_by(id=todoid).order_by(desc(Todo.order)).first()
@@ -178,26 +178,25 @@ def removeItem(todoid):
     db.session.commit()
     return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
 
-@app.route('/tag/list', methods=["GET"])
+@app.route('/tag/list/', methods=["GET"])
 @login_required
 def tagList():
     return make_response( str(Tag.query.filter_by(owner_user_id = g.user.id).all()) )
-@app.route('/clean_trash', methods=["GET"])
+@app.route('/clean_trash/', methods=["GET"])
 @login_required
 def cleanTrash():
     todos = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).all()
     commands = []
     for todo in todos:
         db.session.delete(todo)
-        command = {"command": "removeItem", "data": todo2dict(todo)}
-        commands.append(command)
+        commands.append(todo2dict(todo))
     db.session.commit()
     tags = Tag.query.filter_by(owner_user_id=g.user.id).all()
     tags = [tag for tag in tags if len(tag.todos) is 0]
     for tag in tags:
         db.session.delete(tag)
     db.session.commit()
-    return json.dumps({"response": "success", "commands": commands})
+    return Response(json.dumps(commands), mimetype='application/json')
 
 @app.route('/raisePriority/<int:todoid>/', methods=["GET"])
 @login_required

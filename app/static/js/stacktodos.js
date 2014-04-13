@@ -1,11 +1,4 @@
 function initControls() {
-    $(".control.clean.trash").click(function() {
-        $.ajax({
-            url: "/clean_trash"
-        }).done(function (data) {
-            handleCommands(JSON.parse(data).commands);
-        });
-    });
     $(".sortable").sortable({
         start: function ( event, ui ) {
             ui.item.data("start_pos", ui.item.index());
@@ -25,11 +18,6 @@ function initControls() {
     });
 }
 
-$(document).ready(function () {
-    initControls();
-});
-
-
 angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
     $interpolateProvider.startSymbol('{[');
         $interpolateProvider.endSymbol(']}');
@@ -38,6 +26,10 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
     $scope.stack = [];
     $scope.trash_stack = [];
     $scope.expandTrashStack = false;
+
+    function refreshUI() {
+        $scope.$apply();
+    }
 
     $scope.getExpandTrashText = function () {
         if ($scope.expandTrashStack) {
@@ -121,14 +113,13 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
         if (target.length) {
             target = target[0];
             $http.get("/moveToTrash/" + target.id)
-                .success(function (data) {
-                    angular.forEach(data, function (todo) {
-                        console.log(todo);
-                        console.log(getIndexById(todo.id, 1));
-                        $scope.trash_stack.push($scope.stack.splice(getIndexById(todo.id, 1))[0]);
-                    });
+            .success(function (data) {
+                angular.forEach(data, function (todo) {
+                    console.log(todo);
+                    console.log(getIndexById(todo.id, 1));
+                    $scope.trash_stack.push($scope.stack.splice(getIndexById(todo.id, 1))[0]);
                 });
-
+            });
         }
     }
 
@@ -153,6 +144,19 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
                 $scope.append();
             }
         }
+    }
+
+    $scope.clean_trash = function () {
+        $http.get("/clean_trash/")
+            .success(function (data) {
+            angular.forEach($scope.trash_stack, function(existTodo, idx) {
+                angular.forEach(data, function(target) {
+                    if (existTodo.id == target.id) {
+                        $scope.trash_stack.splice(idx, 1);
+                    }
+                });
+            });
+        });
     }
 })
 .filter('reverse', function() {
