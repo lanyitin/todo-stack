@@ -7,10 +7,6 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
     $scope.trash_stack = [];
     $scope.expandTrashStack = false;
 
-    function refreshUI() {
-        $scope.$apply();
-    }
-
     $scope.getExpandTrashText = function () {
         if ($scope.expandTrashStack) {
             return "Collapse";
@@ -78,15 +74,14 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
     $scope.removeTodo = function (id) {
         $http.get("/removeItem/" + id + "/")
             .success(function (data) {
-                angular.forEach(data, function (todo) {
-                    var target = getIndexById(todo.id);
-                    if (target != undefined) {
-                        $scope.stack.splice(target, 1);
-                    } else {
-                        console.log($scope.stack);
-                        console.log(id, todo, todo.id, getIndexById(id));
-                    }
+                var tmp_stack = [];
+                angular.forEach($scope.stack, function (todo) {
+                    tmp_stack.push(todo);
                 });
+                angular.forEach(data, function (todo) {
+                    delete tmp_stack[getIndexById(todo.id)];
+                });
+                $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined})
             });
     }
 
@@ -94,11 +89,18 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         target = $filter('orderBy')($scope.stack, "order", true);
         if (target.length) {
             target = target[0];
-            $http.get("/moveToTrash/" + target.id)
+            $http.get("/moveToTrash/" + target.id + "/")
                 .success(function (data) {
-                    angular.forEach(data, function (todo) {
-                        $scope.trash_stack.push($scope.stack.splice(getIndexById(todo.id, 1))[0]);
+                    var tmp_stack = [];
+                    angular.forEach($scope.stack, function (todo) {
+                        tmp_stack.push(todo);
                     });
+
+                    angular.forEach(data, function (todo) {
+                        $scope.trash_stack.push($scope.stack[getIndexById(todo.id)]);
+                        delete tmp_stack[getIndexById(todo.id)];
+                    });
+                    $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined})
                 });
         }
     }
@@ -129,13 +131,18 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
     $scope.clean_trash = function () {
         $http.get("/clean_trash/")
             .success(function (data) {
+                var tmp_trash = [];
                 angular.forEach($scope.trash_stack, function(existTodo, idx) {
+                    tmp_trash.push(existTodo);
+                });
+                angular.forEach(tmp_trash, function(existTodo, idx) {
                     angular.forEach(data, function(target) {
                         if (existTodo.id == target.id) {
-                            $scope.trash_stack.splice(idx, 1);
+                            delete tmp_trash[idx];
                         }
                     });
                 });
+                $scope.trash_stack = $.grep(tmp_trash, function (item) {return item != undefined});
             });
     }
 })
