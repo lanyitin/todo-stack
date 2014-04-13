@@ -177,3 +177,16 @@ $(".sortable").sortable({
     handle: ".sort.icon",
     axis: "y"
 });
+
+$(document).on("keyup", function(ev) {
+    if (ev.keyCode == 27) {
+        $("#control-todo-content").blur();
+        return;
+    }
+});
+$(document).on("keypress", function(ev) {
+    if (ev.charCode != 13 && !$("#control-todo-content").is(":focus")) {
+        $("#control-todo-content").focus();
+        $("#control-todo-content").val($("#control-todo-content").val() + String.fromCharCode(ev.keyCode));
+    }
+});
