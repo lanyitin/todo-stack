@@ -44,39 +44,6 @@ function getCookie(c_name)
     }
     return c_value;
 }
-function handleCommands(commandsTimePair) {
-    for(var i = 0; i < commandsTimePair.length; i++) {
-        var command = commandsTimePair[i];
-        if (command.command == "push") {
-            var stack = $(".stack:not(.trash)");
-            var domStr = compiledTodoTemplate({todo: command.data});
-            stack.prepend(domStr);
-            $("#control-todo-content").val("");
-        } else if (command.command == "append") {
-            var stack = $(".stack:not(.trash)");
-            var domStr = compiledTodoTemplate({todo: command.data});
-            stack.append(domStr);
-            $("#control-todo-content").val("");
-        } else if (command.command == "append_trash") {
-            var stack = $(".stack.trash");
-            var domStr = compiledTodoTemplate({todo: command.data});
-            stack.append(domStr);
-        } else if (command.command == "update") {
-            var todoDom = $(".stack .todo[data-todo-id=" + command.data.id + "]");
-            todoDom.attr("data-todo-order", command.data.order);
-            todoDom.attr("data-todo-priority", command.data.priority);
-            todoDom.children(".priority").html(command.data.priority);
-        } else if (command.command == "removeItem") {
-            $(".stack .todo[data-todo-id=" + command.data.id + "]").remove();
-        } else if (command.command == "pop") {
-            var todo = $(".stack:not(.trash) .todo:first");
-            $(".trash.stack").append(todo);
-        }
-    }
-    $(".stack:not(.trash) .todo").sort(function (a,b) {
-        return $(a).attr("data-todo-order") < $(b).attr("data-todo-order") ? 1 : -1;
-    }).appendTo(".stack:not(.trash)");
-}
 
 
 function initControls() {
@@ -87,23 +54,6 @@ function initControls() {
             handleCommands(JSON.parse(data).commands);
         });
     });
-    // $(".control.push").click(function() {
-    //     $.ajax({
-    //         url: "/push/" , type:"POST",
-    //         data:{"item":$("#control-todo-content").val()}
-    //     }).done(function (data) {
-    //         console.log(data);
-    //         handleCommands(JSON.parse(data).commands);
-    //     });
-    // });
-    // $(".control.append").click(function() {
-    //     $.ajax({
-    //         url: "/append/" , type:"POST",
-    //         data:{"item":$("#control-todo-content").val()}
-    //     }).done(function (data) {
-    //         handleCommands(JSON.parse(data).commands);
-    //     });
-    // });
     $(".control.clean.trash").click(function() {
         $.ajax({
             url: "/clean_trash"
@@ -138,22 +88,6 @@ function initControls() {
     });
 }
 
-$(document).on('click', ".todo .priority", function(e) {
-    var todoId = $(e.target).parent().attr("data-todo-id");
-    $.ajax({url: "/raisePriority/" + todoId + "/" }).done(function (data){
-        $(e.target).html((parseInt($(e.target).html()) + 1) % 5);
-        handleCommands(JSON.parse(data).commands);
-    });
-});
-
-$(document).on('click', ".todo .delete", function (e){
-    $.ajax({
-        url: "/removeItem/" + $(e.target).parent().parent().attr("data-todo-id") + "/"
-    }).done(function (data) {
-        handleCommands(JSON.parse(data).commands);
-    });
-});
-
 $(".stack").on('DOMNodeInserted DOMNodeRemoved', function () {
     if ($(".stack.trash .todo:first").is(":hidden")) {
         hideItemsInTrashStackExceptLastNItems(2);
@@ -181,7 +115,6 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
     function getTodoById(id) {
         var target = undefined;
         angular.forEach($scope.stack, function(item) {
-            console.log(item.id == id, item.id, id);
             if (item.id == id) {
                 target = item;
             }
@@ -211,6 +144,7 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
         if (todo === undefined) {
             content = $("#control-todo-content").val();
             $http.post(action, {item: content}).success(function (data) {
+                $("#control-todo-content").val("");
                 angular.forEach(data, function(item) {
                     handleItem(item);
                 });
@@ -228,16 +162,42 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
         newItem("/append/", todo);
     }
 
-    $scope.removeTodo = function () {
-
+    $scope.removeTodo = function (id) {
+        $http.get("/removeItem/" + id + "/")
+        .success(function (data) {
+            angular.forEach(data, function (todo) {
+                var target = getIndexById(todo.id);
+                if (target != undefined) {
+                    $scope.stack.splice(target, 1);
+                } else {
+                    console.log($scope.stack);
+                    console.log(id, todo, todo.id, getIndexById(id));
+                }
+            });
+        });
     }
 
     $scope.moveTodo = function () {
 
     }
 
-    $scope.raisePriority = function () {
+    $scope.raisePriority = function (id) {
+        $http.get("/raisePriority/" + id + "/")
+        .success(function (data){
+            angular.forEach(data, function(item) {
+                handleItem(item);
+            });
+        });
+    }
 
+    $scope.content_keypress = function ($event) {
+        if ($event.charCode == 13) {
+            if ($event.shiftKey) {
+                $scope.push();
+            } else {
+                $scope.append();
+            }
+        }
     }
 })
 .filter('reverse', function() {

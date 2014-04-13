@@ -24,7 +24,7 @@
                         <span class="input-group-btn">
                             <button class="btn btn-success control append" ng-click="append()">Append</button>
                         </span>
-                        <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content">
+                        <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content" ng-keypress="content_keypress($event)">
                         <span class="input-group-btn">
                             <button class="btn btn-success control push" ng-click="push()">Push</button>
                         </span>
@@ -36,15 +36,15 @@
         <div class="stack sortable">
             <div ng-repeat="todo in stack | orderBy:'order' | reverse" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
                 <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
-                    <span class="sort icon btn glyphicon glyphicon-sort pull-right"></span>
+                    <span class="sort icon glyphicon glyphicon-sort pull-right"></span>
                 </div>
                 <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
-                    <span class="priority pull-left btn">{[ todo.priority ]}</span>
+                    <span class="priority btn pull-left" ng-click="raisePriority(todo.id)">{[ todo.priority ]}</span>
                     <span class="content">{[ todo.content ]}</span>
                     <a ng-repeat="tag in todo.tags" class="badge" href="/tag/{[ tag ]}">{[ tag ]}</a>
                 </div>
                 <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
-                    <span class="delete icon btn glyphicon glyphicon-remove-circle pull-left"></span>
+                    <span class="delete icon glyphicon glyphicon-remove-circle pull-left" ng-click="removeTodo(todo.id)"></span>
                 </div>
             </div>
         </div>

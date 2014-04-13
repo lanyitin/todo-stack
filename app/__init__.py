@@ -104,7 +104,7 @@ def appendItem():
 
     stack = Todo.query.filter_by(owner_user_id=g.user.id, in_trash=False).order_by(Todo.order).all()
     if len(stack) > 0 and stack[0].order > 1:
-        todo.order = stack[0].order.order - 1
+        todo.order = stack[0].order - 1
     else:
         todo.order = 0
     response = []
@@ -120,7 +120,8 @@ def appendItem():
         processed_item = top_item
 
     db.session.commit()
-    return json.dumps(response)
+
+    return Response(json.dumps(response), mimetype='application/json')
 
 @app.route('/moveToTrash/<int:todoid>', methods=["GET"])
 @login_required
@@ -176,8 +177,7 @@ def removeItem(todoid):
     for tag in tags:
         db.session.delete(tag)
     db.session.commit()
-    command = {"command": "removeItem", "data": todo2dict(todo)}
-    return json.dumps({"response": "success", "commands": [command]})
+    return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
 
 @app.route('/tag/list', methods=["GET"])
 @login_required
@@ -210,7 +210,7 @@ def raisePriority(todoid):
     db.session.add(todo)
     db.session.commit()
     command = {"response": "success", "commands": [{"command": "update", "data": todo2dict(todo)}]}
-    return json.dumps({"response": "success", "commands": [command]})
+    return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
 
 @app.errorhandler(500)
 def page_not_found(error):
