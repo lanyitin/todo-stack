@@ -187,6 +187,5 @@ $(document).on("keyup", function(ev) {
 $(document).on("keypress", function(ev) {
     if (ev.charCode != 13 && !$("#control-todo-content").is(":focus")) {
         $("#control-todo-content").focus();
-        $("#control-todo-content").val($("#control-todo-content").val() + String.fromCharCode(ev.keyCode));
     }
 });

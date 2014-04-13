@@ -1,25 +1,33 @@
-import base64, hashlib, json, logging, os, re, sqlite3, sys, time, uuid
-from datetime import datetime
+import hashlib, json, os 
 from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
 from flask.ext.sqlalchemy import SQLAlchemy
 from core.model import db, Todo, User, Tag
+from facade import Facade
 from sqlalchemy import and_, desc
 
 login_manager = LoginManager()
+facade = Facade()
 app = Flask(__name__)
 db.init_app(app)
 assets = Environment(app)
 login_manager.init_app(app)
-login_manager.login_view = "/login"
+login_manager.login_view = "login"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'.format(os.environ['STACKTODOS_MYSQL_DB_USERNAME'], os.environ['STACKTODOS_MYSQL_DB_PASSWORD'], os.environ['STACKTODOS_MYSQL_DB_HOST'], os.environ['STACKTODOS_MYSQL_DB_PORT'])
-app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
-app.debug = True
+app.secret_key = 'e6cb00fb23790ba6d43de3826639aae2'
+
+
+def todo2dict(todo):
+    tags = list()
+    for tag in todo.tags:
+        tags.append(tag.name)
+    return {"id": todo.id, "content":todo.content, "priority": todo.priority, "order": todo.order, "tags": tags}
 
 def todo2json(todo):
     return json.dumps(todo2dict(todo))
+
 
 app.jinja_env.filters['todo2json'] = todo2json
 
@@ -28,9 +36,22 @@ app.jinja_env.filters['todo2json'] = todo2json
 def before_request():
     g.user = current_user
 
+
 @login_manager.user_loader
 def load_user(id):
     return db.session.query(User).filter_by(id=id).first()
+
+
+@app.errorhandler(500)
+def page_not_found(error):
+    return str(error)
+
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
 
 @app.route('/login/', methods = ['GET', 'POST'])
@@ -49,19 +70,13 @@ def login():
     login_user(registered_user)
     return redirect(request.args.get("next") or url_for("main"))
 
+
 @app.route('/logout/')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('main')) 
 
-@app.route('/')
-@login_required
-def main():
-    stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False).order_by(desc(Todo.order)).all()
-    trash_stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).order_by(Todo.push_date_time).all()
-    response = make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
-    return response
 
 @app.route('/register/', methods = ['GET', 'POST'])
 def register():
@@ -75,152 +90,75 @@ def register():
     db.session.commit();
     return redirect(url_for('login'))
 
-@app.route('/tag/<tagName>/')
+
+@app.route('/')
 @login_required
-def displayTag(tagName):
-    stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False) \
-        .filter(Todo.tags.any(name = tagName)).all()
-    todo_stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).all()
-    trash_stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).order_by(Todo.push_date_time).all()
+def main():
+    stack, trash_stack = facade.find_all_todos(g.user.id)
     return make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
+
 
 @app.route('/push/', methods=["POST"])
 @login_required
 def pushItem():
-    top_item = Todo.query.filter_by(owner_user_id=g.user.id, in_trash=False).order_by(desc(Todo.order)).first()
-    todo = Todo(request.json['item'], g.user.id)
-    if top_item is not None:
-        todo.order = top_item.order + 1
-    else:
-        todo.order = 0
-    db.session.add(todo)
-    db.session.commit()
+    todo = facade.push_todo(g.user.id, request.json["item"])
     return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
+
 
 @app.route('/append/', methods=["POST"])
 @login_required
 def appendItem():
-    todo = Todo(request.json['item'], g.user.id)
-
-    stack = Todo.query.filter_by(owner_user_id=g.user.id, in_trash=False).order_by(Todo.order).all()
-    if len(stack) > 0 and stack[0].order > 1:
-        todo.order = stack[0].order - 1
-    else:
-        todo.order = 0
-    response = []
-    processed_item = todo
-    db.session.add(todo)
-    db.session.commit()
-    response.append(todo2dict(todo))
-
-    for top_item in stack:
-        top_item.order = processed_item.order + 1
-        db.session.add(top_item)
-        response.append(todo2dict(top_item))
-        processed_item = top_item
-
-    db.session.commit()
-
+    response = facade.append_todo(g.user.id, request.json["item"])
+    response = map(todo2dict, response);
     return Response(json.dumps(response), mimetype='application/json')
+
 
 @app.route('/moveToTrash/<int:todoid>/', methods=["GET"])
 @login_required
 def moveToTrash(todoid):
-    top_item = Todo.query.filter_by(id=todoid).order_by(desc(Todo.order)).first()
-    if top_item is not None:
-        top_item.in_trash = True
-        top_item.push_date_time = datetime.utcnow()
-        db.session.add(top_item)
-        db.session.commit()
-        todo = top_item
+    todo = facade.move_todo_to_trash(todoid);
+    if todo is not None:
         return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
+
 
 @app.route('/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
 @login_required
 def moveItem(fromIndex, toIndex):
-    stack = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = False).order_by(desc(Todo.order)).all()
-    response = []
-    begin = end = 0
-    if (fromIndex > toIndex):
-        begin = toIndex
-        end = fromIndex
-	fromIndex -= toIndex
-	toIndex -= toIndex
-    else:
-        end = toIndex
-        begin = fromIndex
-        toIndex -= fromIndex
-        fromIndex -= fromIndex
-
-    item_slice = stack[begin:end + 1]
-    order_slice = [item.order for item in item_slice]
-    item_slice.insert(toIndex, item_slice.pop(fromIndex))
-
-    for order, todo in zip(order_slice, item_slice):
-        todo.order = order
-        db.session.add(item)
-        response.append(todo2dict(todo))
-
-    db.session.commit()
+    response = facade.move_todo(g.user.id, fromIndex, toIndex);
+    response = map(todo2dict, response);
     return Response(json.dumps(response), mimetype='application/json')
+
 
 @app.route('/removeItem/<int:todoid>/', methods=["GET"])
 @login_required
 def removeItem(todoid):
-    todo = Todo.query.filter_by(id = todoid).first()
-    db.session.delete(todo)
-    db.session.commit()
-    tags = Tag.query.filter_by(owner_user_id=g.user.id).all()
-    tags = [tag for tag in tags if len(tag.todos) is 0]
-    for tag in tags:
-        db.session.delete(tag)
-    db.session.commit()
+    todo = facade.move_todo_to_trash(todoid);
     return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
 
-@app.route('/tag/list/', methods=["GET"])
-@login_required
-def tagList():
-    return make_response( str(Tag.query.filter_by(owner_user_id = g.user.id).all()) )
+
 @app.route('/clean_trash/', methods=["GET"])
 @login_required
 def cleanTrash():
-    todos = Todo.query.filter_by(owner_user_id = g.user.id, in_trash = True).all()
-    commands = []
-    for todo in todos:
-        db.session.delete(todo)
-        commands.append(todo2dict(todo))
-    db.session.commit()
-    tags = Tag.query.filter_by(owner_user_id=g.user.id).all()
-    tags = [tag for tag in tags if len(tag.todos) is 0]
-    for tag in tags:
-        db.session.delete(tag)
-    db.session.commit()
-    return Response(json.dumps(commands), mimetype='application/json')
+    response = facade.clean_trash(g.user.id);
+    response = map(todo2dict, response);
+    return Response(json.dumps(response), mimetype='application/json')
+
 
 @app.route('/raisePriority/<int:todoid>/', methods=["GET"])
 @login_required
 def raisePriority(todoid):
-    todo = Todo.query.filter_by(id = todoid).first()
-    todo.priority += 1
-    if todo.priority >= 5:
-        todo.priority %= 5
-    db.session.add(todo)
-    db.session.commit()
-    command = {"response": "success", "commands": [{"command": "update", "data": todo2dict(todo)}]}
+    todo = facade.raise_priority(todoid)
     return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
 
-@app.errorhandler(500)
-def page_not_found(error):
-    return str(error)
 
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
+@app.route('/tag/list/', methods=["GET"])
+@login_required
+def tagList():
+    return make_response(str(facade.find_all_tag(g.user.id)))
 
-def todo2dict(todo):
-    tags = list()
-    for tag in todo.tags:
-        tags.append(tag.name)
-    return {"id": todo.id, "content":todo.content, "priority": todo.priority, "order": todo.order, "tags": tags}
+
+@app.route('/tag/<tagName>/')
+@login_required
+def displayTag(tagName):
+    stack, trash_stack = facade.find_by_tag(g.user.id, tagName)
+    return make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
