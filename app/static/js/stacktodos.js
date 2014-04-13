@@ -1,19 +1,3 @@
-
-function hideItemsInTrashStackExceptLastNItems(num) {
-    num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
-    target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
-    target.hide();
-    $("#trash_expand_collapse_btn").html("Expand Trash");
-}
-
-function showItemsInTrashStackExceptLastNItems(num) {
-    num = Math.max(0, ($(".trash.stack .todo").length - num + 1));
-    target = $(".trash.stack .todo:not(:nth-child(n+"+ num +"))");
-    target.show();
-    $("#trash_expand_collapse_btn").html("Collapse Trash");
-}
-
-
 function initControls() {
     $(".control.clean.trash").click(function() {
         $.ajax({
@@ -22,14 +6,6 @@ function initControls() {
             handleCommands(JSON.parse(data).commands);
         });
     });
-    var toggleTrashStack = function (e, thiz) {
-        if ($(".trash.stack .todo:first").is(":hidden")) {
-            showItemsInTrashStackExceptLastNItems(2);
-        } else {
-            hideItemsInTrashStackExceptLastNItems(2);
-        }
-    }
-    $("#trash_expand_collapse_btn").click(toggleTrashStack);
     $(".sortable").sortable({
         start: function ( event, ui ) {
             ui.item.data("start_pos", ui.item.index());
@@ -49,16 +25,8 @@ function initControls() {
     });
 }
 
-$(".stack").on('DOMNodeInserted DOMNodeRemoved', function () {
-    if ($(".stack.trash .todo:first").is(":hidden")) {
-        hideItemsInTrashStackExceptLastNItems(2);
-    } else {
-        showItemsInTrashStackExceptLastNItems(2);
-    }
-});
 $(document).ready(function () {
     initControls();
-    hideItemsInTrashStackExceptLastNItems(2);
 });
 
 
@@ -69,9 +37,16 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
 .controller("AppController", function ($scope, $http, $filter) {
     $scope.stack = [];
     $scope.trash_stack = [];
-    $scope.sync = function () {
+    $scope.expandTrashStack = false;
 
+    $scope.getExpandTrashText = function () {
+        if ($scope.expandTrashStack) {
+            return "Collapse";
+        } else {
+            return "Expand";
+        }
     }
+
     function getTodoById(id) {
         var target = undefined;
         angular.forEach($scope.stack, function(item) {
@@ -112,6 +87,10 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
         } else {
             handleItem(todo);
         }
+    }
+
+    $scope.toggleExpandTrash = function () {
+        $scope.expandTrashStack ^= true;
     }
 
     $scope.push = function (todo) {
@@ -179,5 +158,14 @@ angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
 .filter('reverse', function() {
     return function(items) {
         return items.slice().reverse();
+    };
+})
+.filter('expand', function() {
+    return function(items, expandTrashStack) {
+        if (expandTrashStack) {
+            return items;
+        } else {
+            return items.slice(items.length - 2);
+        }
     };
 });
