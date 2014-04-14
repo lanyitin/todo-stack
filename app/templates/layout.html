@@ -12,7 +12,7 @@
     <script src="{{ url_for('static', filename='js/html5shiv.js') }}"></script>
     <script src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
     <![endif]-->
-{% assets 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/angular.min.js', 'js/angular-ui-sortable.js', 'js/stacktodos.js' %}
+{% assets 'js/marked.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/angular.min.js', 'js/angular-ui-sortable.js', 'js/stacktodos.js' %}
 <script type="text/javascript" src="{{ ASSET_URL }}"></script>
 {% endassets %}
 </head>
@@ -32,7 +32,10 @@
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
                 <li>
-                <a href="{{ url_for("logout") }}">Log out</a>
+                    <a href="#" data-toggle="modal" data-target="#tomatoesModal">Tomatoes</a>
+                </li>
+                <li>
+                    <a href="{{ url_for("logout") }}">Log out</a>
                 </li>
             </ul>
         </div><!--/.navbar-collapse -->
