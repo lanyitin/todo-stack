@@ -105,6 +105,10 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         }
     }
 
+    $scope.moveTodo = function (todo) {
+        handleItem(todo);
+    }
+
     $scope.raisePriority = function (id) {
         $http.get("/raisePriority/" + id + "/")
             .success(function (data){
@@ -160,23 +164,6 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         }
     };
 });
-$(".sortable").sortable({
-    start: function ( event, ui ) {
-        ui.item.data("start_pos", ui.item.index());
-    },
-    update: function ( event, ui) {
-        var from = ui.item.data("start_pos");
-        var to = ui.item.index();
-        $.ajax({ 
-            url: "/moveItem/" + from + "/" + to + "/"
-        }).done(function (data) {
-            handleCommands(JSON.parse(data).commands);
-        });
-    },
-    revert: true,
-    handle: ".sort.icon",
-    axis: "y"
-});
 
 $(document).on("keyup", function(ev) {
     if (ev.keyCode == 27) {
@@ -184,8 +171,32 @@ $(document).on("keyup", function(ev) {
         return;
     }
 });
+
 $(document).on("keypress", function(ev) {
     if (ev.charCode != 13 && !$("#control-todo-content").is(":focus")) {
         $("#control-todo-content").focus();
     }
+});
+
+$(function() {
+    $(".sortable").sortable({
+        start: function ( event, ui ) {
+            ui.item.data("start_pos", ui.item.index());
+        },
+        update: function ( event, ui) {
+            var from = ui.item.data("start_pos");
+            var to = ui.item.index();
+            $.ajax({ 
+                url: "/moveItem/" + from + "/" + to + "/"
+            }).done(function (data) {
+                angular.forEach(data, function (todo) {
+                    angular.element("[ng-controller=AppController").scope().moveTodo(todo);
+                });
+            });
+        },
+        revert: true,
+        handle: ".sort.icon",
+        axis: "y"
+    });
+
 });
