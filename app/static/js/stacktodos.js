@@ -2,7 +2,7 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
     $interpolateProvider.startSymbol('{[');
         $interpolateProvider.endSymbol(']}');
 })
-.controller("AppController", function ($scope, $http, $filter) {
+.controller("AppController", function ($scope, $http, $filter, $sce) {
     $scope.stack = [];
     $scope.trash_stack = [];
     $scope.expandTrashStack = false;
@@ -105,10 +105,6 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         }
     }
 
-    $scope.moveTodo = function () {
-
-    }
-
     $scope.raisePriority = function (id) {
         $http.get("/raisePriority/" + id + "/")
             .success(function (data){
@@ -144,6 +140,10 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
                 });
                 $scope.trash_stack = $.grep(tmp_trash, function (item) {return item != undefined});
             });
+    }
+
+    $scope.marked = function (str) {
+        return $sce.trustAsHtml(marked(str));
     }
 })
 .filter('reverse', function() {

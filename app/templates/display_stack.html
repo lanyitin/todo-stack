@@ -21,7 +21,7 @@
                 </div>
                 <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
                     <span class="priority btn pull-left" ng-click="raisePriority(todo.id)">{[ todo.priority ]}</span>
-                    <span class="content">{[ todo.content ]}</span>
+                    <span class="content" ng-bind-html="marked(todo.content)"></span>
                     <a ng-repeat="tag in todo.tags" class="badge" href="/tag/{[ tag ]}">{[ tag ]}</a>
                 </div>
                 <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
@@ -53,7 +53,7 @@
                 </div>
                 <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
                     <span class="priority btn pull-left" ng-click="raisePriority(todo.id)">{[ todo.priority ]}</span>
-                    <span class="content">{[ todo.content ]}</span>
+                    <span class="content" ng-bind-html="marked(todo.content)"></span>
                     <a ng-repeat="tag in todo.tags" class="badge" href="/tag/{[ tag ]}">{[ tag ]}</a>
                 </div>
                 <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
