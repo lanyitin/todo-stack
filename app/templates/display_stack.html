@@ -68,6 +68,22 @@
         </div>
     </div>
 </div>
+<div id="tomatoesModal" class="modal fade" ng-controller="Tomatoes">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Tomatoes Clock</h4>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <div style="font-size: 12em;">{[ get_remain_time() ]}</div>
+                    <button class="btn {[ get_trigger_style() ]}" ng-click="trigger()">{[ get_trigger_text() ]}</button>
+                </div>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 {% endblock %}
 {% block extra_script %}
 $(function() {
