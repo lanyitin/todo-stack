@@ -17,7 +17,7 @@
 {% endassets %}
 </head>
 <body>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation" ng-controller="Tomatoes">
     <div class="container">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -30,6 +30,10 @@
         </div>
         {% if g.user.is_authenticated() %}
         <div class="navbar-collapse collapse">
+            <div class="navbar-form navbar-left">
+                <a style="color: white;">{[ get_remain_time() ]}</a>
+                <button class="btn {[ get_trigger_style() ]}" ng-click="trigger()">{[ get_trigger_text() ]}</button>
+            </div>
             <ul class="nav navbar-nav navbar-right">
                 <li>
                 <a href="{{ url_for("logout") }}">Log out</a>

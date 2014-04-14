@@ -2,6 +2,97 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
     $interpolateProvider.startSymbol('{[');
         $interpolateProvider.endSymbol(']}');
 })
+.controller("Tomatoes", function($scope, $interval) {
+    var breakSound = new Audio("static/sound/doorbell-1.mp3");
+    var workSound = new Audio("static/sound/doorbell-2.mp3");
+    function Countdown(num) {
+        this.number = num;
+        this.tick = function () {
+            this.number -= 1;
+        }
+    }
+
+    function TomatoesClock(noSound) {
+        if (!noSound) {
+            workSound.play();
+        }
+        this.counter = new Countdown(25 * 60);
+        this.tick = function () {
+            this.counter.tick()
+            if  (this.counter.number > 0) {
+                return this;
+            } else {
+                return new BreakClock();
+            }
+        }
+    }
+
+    function BreakClock(noSound) {
+        if (!noSound) {
+            breakSound.play();
+        }
+        this.counter = new Countdown(5 * 60);
+        this.tick = function () {
+            this.counter.tick()
+            if  (this.counter.number > 0) {
+                return this;
+            } else {
+                return new TomatoesClock();
+            }
+        }
+    }
+
+    function NullClock() {
+        this.counter = new Countdown(25 * 60);
+        this.tick = function () {
+            return this;
+        }
+    }
+
+    $scope.get_remain_time = function() {
+        var number = $scope.clock.counter.number;
+        
+        var min_str = Math.floor(number / 60);
+        if (min_str < 10) {
+            min_str = "0" + min_str.toString();
+        }
+
+        var sec_str = number % 60;
+        if (sec_str < 10) {
+            sec_str = "0" + sec_str.toString();
+        }
+        return min_str + ":" + sec_str;
+    }
+
+    $scope.get_trigger_text = function () {
+        if ($scope.clock instanceof NullClock) {
+            return "Start";
+        } else {
+            return "Stop";
+        }
+    }
+
+    $scope.get_trigger_style = function () {
+        if ($scope.clock instanceof NullClock) {
+            return "btn-default";
+        } else {
+            return "btn-danger";
+        }
+    }
+
+    $scope.trigger = function () {
+        if ($scope.clock instanceof NullClock) {
+            $scope.clock = new TomatoesClock(true);
+        } else {
+            $scope.clock = new NullClock();
+        }
+    }
+
+    $scope.clock = new NullClock();
+    $interval(function () {
+        $scope.clock = $scope.clock.tick();
+    }, 1000);
+})
 .controller("AppController", function ($scope, $http, $filter, $sce) {
     $scope.stack = [];
     $scope.trash_stack = [];
