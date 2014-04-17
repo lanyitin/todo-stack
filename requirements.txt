@@ -7,7 +7,7 @@ Jinja2==2.7.1
 MarkupSafe==0.18
 SQLAlchemy==0.9.3
 Werkzeug==0.9.4
-argparse==1.2.1
+argparse
 behave==1.2.3
 cssmin==0.2.0
 itsdangerous==0.23

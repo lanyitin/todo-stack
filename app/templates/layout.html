@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html ng-app="Stacktodos">
 <head>
-<title>Stack Todos</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>Todo Stack</title>
+<link rel="icon" href="{{ url_for('static', filename='image/favicon.png') }}" type="image/png"/>
 {% assets filters='cssmin', output='css/packed.css', 'css/bootstrap.min.css', 'css/style.css' %}
-<link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+<link href="{{ ASSET_URL }}" rel="stylesheet" media="screen" />
 {% endassets %}
 <!--[if lt IE 9]>
     <script src="{{ url_for('static', filename='js/html5shiv.js') }}"></script>
