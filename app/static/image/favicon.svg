@@ -16,8 +16,8 @@
    inkscape:version="0.48.4 r9939"
    sodipodi:docname="favicon.svg"
    inkscape:export-filename="C:\cygwin64\home\Handsome\todo-stack\app\static\image\favicon.png"
-   inkscape:export-xdpi="5.6300001"
-   inkscape:export-ydpi="5.6300001">
+   inkscape:export-xdpi="22.5"
+   inkscape:export-ydpi="22.5">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -27,9 +27,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.9101562"
-     inkscape:cx="128"
-     inkscape:cy="125.76784"
+     inkscape:zoom="3.6981141"
+     inkscape:cx="127.50788"
+     inkscape:cy="136.26851"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -96,7 +96,7 @@
        y="826.80554"
        ry="6.0120468" />
     <rect
-       style="fill:#b3b3b3;fill-opacity:1;stroke:#b3b3b3;stroke-width:1.24515176"
+       style="fill:#cccccc;fill-opacity:1;stroke:#cccccc;stroke-width:1.24515175999999990"
        id="rect3070-8"
        width="154.72963"
        height="42.08432"
