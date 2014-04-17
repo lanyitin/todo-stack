@@ -15,7 +15,7 @@
    version="1.1"
    inkscape:version="0.48.4 r9939"
    sodipodi:docname="favicon.svg"
-   inkscape:export-filename="C:\cygwin64\home\Handsome\todo-stack\app\static\image\favoicon.png"
+   inkscape:export-filename="C:\cygwin64\home\Handsome\todo-stack\app\static\image\favicon.png"
    inkscape:export-xdpi="5.6300001"
    inkscape:export-ydpi="5.6300001">
   <defs
@@ -72,28 +72,36 @@
        id="rect2993"
        inkscape:connector-curvature="0" />
     <rect
-       style="fill:#3771c8;fill-opacity:1;stroke:#3771c8;stroke-width:1.24515175999999990"
+       style="fill:#3771c8;fill-opacity:1;stroke:#3771c8;stroke-width:1.24515176"
        id="rect3070"
        width="154.72963"
        height="42.08432"
-       x="49.466263"
-       y="967.47778"
+       x="51.466351"
+       y="919.47778"
        ry="6.0120468" />
     <rect
-       style="fill:#8dd35f;fill-opacity:1;stroke:#8dd35f;stroke-width:1.24515175999999990"
+       style="fill:#8dd35f;fill-opacity:1;stroke:#8dd35f;stroke-width:1.24515176"
        id="rect3070-9"
        width="154.72963"
        height="42.08432"
-       x="48.96867"
-       y="919.17572"
+       x="50.968758"
+       y="873.17572"
        ry="6.0120468" />
     <rect
-       style="fill:#ff9955;fill-opacity:1;stroke:#ff9955;stroke-width:1.24515175999999990"
+       style="fill:#ff9955;fill-opacity:1;stroke:#ff9955;stroke-width:1.24515176"
        id="rect3070-9-4"
        width="154.72963"
        height="42.08432"
-       x="48.057487"
-       y="868.80554"
+       x="50.057575"
+       y="826.80554"
+       ry="6.0120468" />
+    <rect
+       style="fill:#b3b3b3;fill-opacity:1;stroke:#b3b3b3;stroke-width:1.24515176"
+       id="rect3070-8"
+       width="154.72963"
+       height="42.08432"
+       x="51.311989"
+       y="966.67108"
        ry="6.0120468" />
   </g>
 </svg>
