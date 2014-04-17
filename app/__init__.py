@@ -8,10 +8,15 @@ from facade import Facade
 from sqlalchemy import and_, desc
 
 login_manager = LoginManager()
+
 facade = Facade()
+
 app = Flask(__name__)
+
 db.init_app(app)
+
 assets = Environment(app)
+
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
