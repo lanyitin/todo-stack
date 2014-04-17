@@ -14,7 +14,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="favoicon.svg"
+   sodipodi:docname="favicon.svg"
    inkscape:export-filename="C:\cygwin64\home\Handsome\todo-stack\app\static\image\favoicon.png"
    inkscape:export-xdpi="5.6300001"
    inkscape:export-ydpi="5.6300001">
@@ -72,7 +72,7 @@
        id="rect2993"
        inkscape:connector-curvature="0" />
     <rect
-       style="fill:#0044aa;fill-opacity:1;stroke:#0044aa;stroke-width:1.24515176"
+       style="fill:#3771c8;fill-opacity:1;stroke:#3771c8;stroke-width:1.24515175999999990"
        id="rect3070"
        width="154.72963"
        height="42.08432"
@@ -80,7 +80,7 @@
        y="967.47778"
        ry="6.0120468" />
     <rect
-       style="fill:#37c837;fill-opacity:1;stroke:#37c837;stroke-width:1.24515176"
+       style="fill:#8dd35f;fill-opacity:1;stroke:#8dd35f;stroke-width:1.24515175999999990"
        id="rect3070-9"
        width="154.72963"
        height="42.08432"
@@ -88,7 +88,7 @@
        y="919.17572"
        ry="6.0120468" />
     <rect
-       style="fill:#d45500;fill-opacity:1;stroke:#d45500;stroke-width:1.24515176"
+       style="fill:#ff9955;fill-opacity:1;stroke:#ff9955;stroke-width:1.24515175999999990"
        id="rect3070-9-4"
        width="154.72963"
        height="42.08432"
