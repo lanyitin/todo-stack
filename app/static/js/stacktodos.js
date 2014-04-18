@@ -177,7 +177,8 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
     }
 
     $scope.pop = function (id) {
-        target = $filter('orderBy')($scope.stack, "order", true);
+        target = $filter('orderBy')($scope.stack, "order", false);
+        console.log(target);
         if (target.length) {
             target = target[0];
             $http.get("/moveToTrash/" + target.id + "/")
