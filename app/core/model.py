@@ -6,7 +6,7 @@ from datetime import datetime
 if __name__ == '__main__':
     import os
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'.format(os.environ['STACKTODOS_MYSQL_DB_USERNAME'], os.environ['STACKTODOS_MYSQL_DB_PASSWORD'], os.environ['STACKTODOS_MYSQL_DB_HOST'], os.environ['STACKTODOS_MYSQL_DB_PORT'])
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=0&charset=utf8'.format(os.environ['STACKTODOS_MYSQL_DB_USERNAME'], os.environ['STACKTODOS_MYSQL_DB_PASSWORD'], os.environ['STACKTODOS_MYSQL_DB_HOST'], os.environ['STACKTODOS_MYSQL_DB_PORT'])
     db = SQLAlchemy(app)
 else:
     db = SQLAlchemy()
@@ -47,7 +47,7 @@ tag_todo_assication = db.Table('tag_todo_association',
 class Todo(db.Model):
     __tablename__ = 'todo'
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable = False)
+    content = db.Column(db.Text(collation='utf8_general_ci'), nullable = False)
     push_date_time = db.Column(db.DateTime, nullable = False)
     order = db.Column(db.Integer, nullable = False)
     priority = db.Column(db.Integer, default = 2, nullable = False)
@@ -70,7 +70,7 @@ class Todo(db.Model):
 class Tag(db.Model):
     __tablename__ = 'tag'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True, nullable = False)
+    name = db.Column(db.String(80, collation='utf8_general_ci'), unique=True, nullable = False)
 
     owner_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     owner = db.relationship('User', backref = db.backref('tags', lazy='dynamic'))
