@@ -1,13 +1,13 @@
 """empty message
 
-Revision ID: 1384f7edbcc3
+Revision ID: 3ca2c5a7d83d
 Revises: None
-Create Date: 2014-04-18 12:54:10.671875
+Create Date: 2014-04-18 22:21:02.773255
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '1384f7edbcc3'
+revision = '3ca2c5a7d83d'
 down_revision = None
 
 from alembic import op
@@ -28,7 +28,7 @@ def upgrade():
     )
     op.create_table('tag',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(length=80), nullable=False),
+    sa.Column('name', sa.String(length=80, collation='utf8_general_ci'), nullable=False),
     sa.Column('owner_user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['owner_user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id'),
@@ -36,7 +36,7 @@ def upgrade():
     )
     op.create_table('todo',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('content', sa.Text(), nullable=False),
+    sa.Column('content', sa.Text(collation='utf8_general_ci'), nullable=False),
     sa.Column('push_date_time', sa.DateTime(), nullable=False),
     sa.Column('order', sa.Integer(), nullable=False),
     sa.Column('priority', sa.Integer(), nullable=False),
