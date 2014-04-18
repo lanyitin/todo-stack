@@ -1,4 +1,4 @@
-i# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from core.model import db, Todo, User, Tag
 from sqlalchemy import and_, desc
 from datetime import datetime
