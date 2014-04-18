@@ -7,8 +7,7 @@ You should push anything as soon as it flashed in your mind. To organize your to
 # Important
 This is an *experimental* todos management tools, which means there is no guarantee that this tool can make you life better!
 
-# We may add following features in future
-+ Disqus integration for each todo
+This application is deployed at http://todos.lanyitin.tw
 
 # License
 > Copyright (c) 2013, 2014
