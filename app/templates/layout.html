@@ -1,17 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="Stacktodos">
 <head>
-<title>Stack Todos</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>Todo Stack</title>
+<link rel="icon" href="{{ url_for('static', filename='image/favicon.png') }}" type="image/png"/>
 {% assets filters='cssmin', output='css/packed.css', 'css/bootstrap.min.css', 'css/style.css' %}
-<link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+<link href="{{ ASSET_URL }}" rel="stylesheet" media="screen" />
 {% endassets %}
 <!--[if lt IE 9]>
     <script src="{{ url_for('static', filename='js/html5shiv.js') }}"></script>
     <script src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
     <![endif]-->
+{% assets 'js/marked.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/angular.min.js', 'js/angular-ui-sortable.js', 'js/stacktodos.js' %}
+<script type="text/javascript" src="{{ ASSET_URL }}"></script>
+{% endassets %}
 </head>
 <body>
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -29,7 +32,10 @@
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
                 <li>
-                <a href="{{ url_for("logout") }}">Log out</a>
+                    <a href="#" data-toggle="modal" data-target="#tomatoesModal">Tomatoes</a>
+                </li>
+                <li>
+                    <a href="{{ url_for("logout") }}">Log out</a>
                 </li>
             </ul>
         </div><!--/.navbar-collapse -->
@@ -41,9 +47,6 @@
         {% block body %}{% endblock %}
     </div>
 </div>
-{% assets output='js/packed.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/underscore-min.js', 'js/stacktodos.js' %}
-<script type="text/javascript" src="{{ ASSET_URL }}"></script>
-{% endassets %}
 <script>
 {% block extra_script %}{% endblock %}
 </script>

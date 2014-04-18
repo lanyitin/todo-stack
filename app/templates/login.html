@@ -10,6 +10,6 @@
         <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" name="password">
     </div>
     <button type="submit" class="btn btn-default">Submit</button>
-    <button type="button" class="btn btn-default" onclick="window.location='register'">Register</button>
+    <button type="button" class="btn btn-default" onclick="window.location='{{ url_for('register') }}'">Register</button>
 </form>
 {% endblock %}
