@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask
 from datetime import datetime

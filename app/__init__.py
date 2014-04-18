@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import hashlib, json, os 
 from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response
 from flask.ext.assets import Environment
