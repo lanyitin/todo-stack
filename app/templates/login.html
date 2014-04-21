@@ -1,15 +1,87 @@
 {% extends "layout.html" %}
 {% block body %}
-<form role="form" action="{{ url_for('login') }}" method="POST">
-    <div class="form-group">
-        <label for="exampleInputUsername1">Username</label>
-        <input type="text" class="form-control" id="exampleInputUsername1" placeholder="Enter Username" name="username">
+<div class="row">
+    <div class="col-lg-6 col-lg-offset-3">
+        <h1 class="text-center">Create your account is Free</h1>
+        <ul class="list-group text-center">
+            <li class="list-group-item"><a class="btn btn-primary btn-lg" href="{{ url_for('login_facebook') }}">Sign in with Facebook</a></li>
+        </ul>
     </div>
-    <div class="form-group">
-        <label for="exampleInputPassword1">Password</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" name="password">
+</div>
+<div class="row">
+    <div class="stack-container">
+        <div class="container">
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+            <div class="stack-ui-container stack-ui-top col-lg-10 col-md-10 col-sm-10 col-xs-10"></div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+        </div>
+        <div class="stack trash sortable ui-sortable">
+            <div class="todo container" data-todo-priority="2" data-todo-order="5" data-todo-id="11">
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <span class="sort icon glyphicon glyphicon-sort pull-right"></span>
+                </div>
+                <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
+                    <span class="priority btn pull-left">2</span>
+                    <span class="content"><p>Visit todo-stack: <a href="{{ url_for('main', _external=True) }}">{{ url_for('main', _external=True) }}</a></p>
+                    </span>
+                    <span class="pull-right label label-danger">done</span>
+                    <!-- ngRepeat: tag in todo.tags -->
+                </div>
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <span class="delete icon glyphicon glyphicon-remove-circle pull-left"></span>
+                </div>
+            </div><!-- end ngRepeat: todo in trash_stack | expand: expandTrashStack -->
+        </div>
+        <div class="container">
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+            <div id="content-input" class="col-lg-10 col-md-10 col-sm-10 col-xs-10">
+                <div class="form">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-btn">
+                            <button class="btn btn-success control append">Append</button>
+                        </span>
+                        <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content">
+                        <span class="input-group-btn">
+                            <button class="btn btn-success control push">Push</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+        </div>
+        <div class="stack sortable ui-sortable">
+            <!-- ngRepeat: todo in stack|orderBy:'order':false --><div class="todo container" data-todo-priority="2" data-todo-order="2" data-todo-id="10">
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <span class="sort icon glyphicon glyphicon-sort pull-right"></span>
+                </div>
+                <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
+                    <span class="priority btn pull-left">2</span>
+                    <span class="content"><p>Create an account</p>
+                    </span>
+                    <!-- ngRepeat: tag in todo.tags -->
+                </div>
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <span class="delete icon glyphicon glyphicon-remove-circle pull-left"></span>
+                </div>
+                </div><!-- end ngRepeat: todo in stack|orderBy:'order':false --><div class="todo container" data-todo-priority="2" data-todo-order="3" data-todo-id="3">
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <span class="sort icon glyphicon glyphicon-sort pull-right"></span>
+                </div>
+                <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
+                    <span class="priority btn pull-left">2</span>
+                    <span class="content"><p>Bookmark This Page</p>
+                    </span>
+                </div>
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <span class="delete icon glyphicon glyphicon-remove-circle pull-left"></span>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+            <div class="stack-ui-container stack-ui-bottom col-lg-10 col-md-10 col-sm-10 col-xs-10"></div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+        </div>
     </div>
-    <button type="submit" class="btn btn-default">Submit</button>
-    <button type="button" class="btn btn-default" onclick="window.location='{{ url_for('register') }}'">Register</button>
-</form>
+</div>
 {% endblock %}
