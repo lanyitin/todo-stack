@@ -10,6 +10,12 @@
 </div>
 <div class="row">
     <div class="stack-container">
+        <div class="trash control text-center">
+            <div class="btn-group">
+                <button class="btn btn-danger pop control" data-toggle="modal" data-target="#myModal" onclick="$('#myModal .modal-title').html('Pop out an Todo'); $('#myModal .modal-body').html('The top todo in the blue area will be moved to trash(orange area), this is the only way to mark a todo as done!')">Pop</button>
+                <div class="btn control clean trash btn-warning" data-toggle="modal" data-target="#myModal" onclick="$('#myModal .modal-title').html('Clean the Trash'); $('#myModal .modal-body').html('Todos in the trash(orange area) will be removed permanently')">Clean Trash<span class="glyphicon glyphicon-trash"></span></div>
+            </div>
+        </div>
         <div class="container">
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
             <div class="stack-ui-container stack-ui-top col-lg-10 col-md-10 col-sm-10 col-xs-10"></div>
@@ -22,9 +28,9 @@
                 </div>
                 <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
                     <span class="priority btn pull-left">2</span>
-                    <span class="content"><p>Visit todo-stack: <a href="{{ url_for('main', _external=True) }}">{{ url_for('main', _external=True) }}</a></p>
+                    <span class="content">
+                        <p><span class="label label-danger">done</span>Visit todo-stack: <a href="{{ url_for('main', _external=True) }}">{{ url_for('main', _external=True) }}</a></p>
                     </span>
-                    <span class="pull-right label label-danger">done</span>
                     <!-- ngRepeat: tag in todo.tags -->
                 </div>
                 <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
@@ -38,11 +44,11 @@
                 <div class="form">
                     <div class="input-group input-group-lg">
                         <span class="input-group-btn">
-                            <button class="btn btn-success control append">Append</button>
+                            <button class="btn btn-success control append" data-toggle="modal" data-target="#myModal" onclick="$('#myModal .modal-title').html('Append an todo at the end of Stack'); $('#myModal .modal-body').html('The new todo will be inserted at the bottom of Stack')">Append</button>
                         </span>
                         <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content">
                         <span class="input-group-btn">
-                            <button class="btn btn-success control push">Push</button>
+                            <button class="btn btn-success control push" data-toggle="modal" data-target="#myModal" onclick="$('#myModal .modal-title').html('Push an Todo onto the Stack'); $('#myModal .modal-body').html('The new todo will be pushed onto top of Stack')">Push</button>
                         </span>
                     </div>
                 </div>
@@ -50,20 +56,7 @@
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
         </div>
         <div class="stack sortable ui-sortable">
-            <!-- ngRepeat: todo in stack|orderBy:'order':false --><div class="todo container" data-todo-priority="2" data-todo-order="2" data-todo-id="10">
-                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
-                    <span class="sort icon glyphicon glyphicon-sort pull-right"></span>
-                </div>
-                <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
-                    <span class="priority btn pull-left">2</span>
-                    <span class="content"><p>Create an account</p>
-                    </span>
-                    <!-- ngRepeat: tag in todo.tags -->
-                </div>
-                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
-                    <span class="delete icon glyphicon glyphicon-remove-circle pull-left"></span>
-                </div>
-                </div><!-- end ngRepeat: todo in stack|orderBy:'order':false --><div class="todo container" data-todo-priority="2" data-todo-order="3" data-todo-id="3">
+            <div class="todo container" data-todo-priority="2" data-todo-order="3" data-todo-id="3">
                 <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
                     <span class="sort icon glyphicon glyphicon-sort pull-right"></span>
                 </div>
@@ -76,11 +69,38 @@
                     <span class="delete icon glyphicon glyphicon-remove-circle pull-left"></span>
                 </div>
             </div>
+            <div class="todo container" data-todo-priority="2" data-todo-order="2" data-todo-id="10">
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <span class="sort icon glyphicon glyphicon-sort pull-right"></span>
+                </div>
+                <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
+                    <span class="priority btn pull-left">2</span>
+                    <span class="content"><p>Create an account</p>
+                    </span>
+                    <!-- ngRepeat: tag in todo.tags -->
+                </div>
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
+                    <span class="delete icon glyphicon glyphicon-remove-circle pull-left"></span>
+                </div>
+            </div>
         </div>
         <div class="container">
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
             <div class="stack-ui-container stack-ui-bottom col-lg-10 col-md-10 col-sm-10 col-xs-10"></div>
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+        </div>
+    </div>
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+            </div>
         </div>
     </div>
 </div>
