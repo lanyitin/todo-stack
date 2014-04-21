@@ -4,7 +4,7 @@ from flask import Flask, request, g, redirect, url_for, render_template, make_re
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
 from flask.ext.sqlalchemy import SQLAlchemy
-from core.model import db, Todo, User, Tag
+from core.model import db, Todo, User, Tag, Connection
 from facade import Facade
 from sqlalchemy import and_, desc
 
@@ -90,32 +90,53 @@ def login():
     login_user(registered_user)
     return redirect(request.args.get("next") or url_for("main"))
 
+
 @app.route('/oauth/facebook/', methods=['GET'])
 def login_facebook():
     return facebook.authorize(callback=url_for('oauth_authorized', _external = True,
         next=request.args.get('next') or request.referrer or None))
 
+
 @app.route('/oauth/facebook/authorized/')
 @facebook.authorized_handler
-def oauth_authorized(resp):
+def oauth_authorized(oauth_resp):
     next_url = request.args.get('next') or url_for('main')
-    if resp is None:
+    if oauth_resp is None:
         flash(u'You denied the request to sign in.')
         return redirect(next_url)
-    print(resp);
     session['facebook_token'] = (
-        resp['access_token'],
+        oauth_resp['access_token'],
         ''
     )
     resp = facebook.get('/me')
     if resp.status == 200:
         profile = resp.data
-        print profile
+        connection = Connection.query.filter_by(provider_id='facebook', provider_user_id=profile['id']).first()
+        if connection == None:
+            new_user = User(username='facebook_' + profile['id'], email=profile['email'], password='')
+            db.session.add(new_user)
+            db.session.commit()
+            connection = Connection()
+            connection.user_id = new_user.id
+            connection.provider_id = 'facebook'
+            connection.provider_user_id = profile['id']
+            connection.access_token = oauth_resp['access_token']
+            connection.secret = ''
+            connection.display_name = profile['name']
+            connection.profile_url = profile['link']
+            db.session.add(connection)
+            db.session.commit()
+            login_user(new_user)
+        else:
+            user = User.query.filter_by(id=connection.user_id).first()
+            login_user(user)
     return redirect(next_url)
+
 
 @facebook.tokengetter
 def get_twitter_token(token=None):
     return session.get('facebook_token')
+
 
 @app.route('/logout/')
 @login_required
