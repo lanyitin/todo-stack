@@ -39,6 +39,16 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
+class Connection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    provider_id = db.Column(db.String(255))
+    provider_user_id = db.Column(db.String(255))
+    access_token = db.Column(db.String(255))
+    secret = db.Column(db.String(255))
+    display_name = db.Column(db.String(255))
+    profile_url = db.Column(db.String(512))
+
 tag_todo_assication = db.Table('tag_todo_association',
     db.Column("todo_id", db.Integer, db.ForeignKey('todo.id'), nullable = False, primary_key=True),
     db.Column("tag_id", db.Integer, db.ForeignKey('tag.id'), nullable = False, primary_key=True)
