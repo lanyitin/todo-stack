@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 import hashlib, json, os 
-from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response
+from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response, session
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
 from flask.ext.sqlalchemy import SQLAlchemy
 from core.model import db, Todo, User, Tag
 from facade import Facade
 from sqlalchemy import and_, desc
+
+from flask_oauth import OAuth
+
+oauth = OAuth()
 
 login_manager = LoginManager()
 
@@ -23,6 +27,16 @@ login_manager.login_view = "login"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'.format(os.environ['STACKTODOS_MYSQL_DB_USERNAME'], os.environ['STACKTODOS_MYSQL_DB_PASSWORD'], os.environ['STACKTODOS_MYSQL_DB_HOST'], os.environ['STACKTODOS_MYSQL_DB_PORT'])
 app.secret_key = 'e6cb00fb23790ba6d43de3826639aae2'
+
+facebook = oauth.remote_app('facebook',
+    base_url='https://graph.facebook.com/',
+    request_token_url=None,
+    access_token_url='/oauth/access_token',
+    authorize_url='https://www.facebook.com/dialog/oauth',
+    consumer_key='296737407148464',
+    consumer_secret='f7d0abbd4b60fd25b82e68249e7662f7',
+    request_token_params={'scope': 'email'}
+)
 
 
 def todo2dict(todo):
@@ -76,6 +90,32 @@ def login():
     login_user(registered_user)
     return redirect(request.args.get("next") or url_for("main"))
 
+@app.route('/oauth/facebook/', methods=['GET'])
+def login_facebook():
+    return facebook.authorize(callback=url_for('oauth_authorized', _external = True,
+        next=request.args.get('next') or request.referrer or None))
+
+@app.route('/oauth/facebook/authorized/')
+@facebook.authorized_handler
+def oauth_authorized(resp):
+    next_url = request.args.get('next') or url_for('main')
+    if resp is None:
+        flash(u'You denied the request to sign in.')
+        return redirect(next_url)
+    print(resp);
+    session['facebook_token'] = (
+        resp['access_token'],
+        ''
+    )
+    resp = facebook.get('/me')
+    if resp.status == 200:
+        profile = resp.data
+        print profile
+    return redirect(next_url)
+
+@facebook.tokengetter
+def get_twitter_token(token=None):
+    return session.get('facebook_token')
 
 @app.route('/logout/')
 @login_required
