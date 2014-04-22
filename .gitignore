@@ -14,5 +14,3 @@ __pycache__
 packed.*
 
 app.wsgi
-
-__main__.py
