@@ -1,11 +1,16 @@
+# -*- coding: utf-8 -*-
 import hashlib, json, os 
-from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response
+from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response, session
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
 from flask.ext.sqlalchemy import SQLAlchemy
-from core.model import db, Todo, User, Tag
+from core.model import db, Todo, User, Tag, Connection
 from facade import Facade
 from sqlalchemy import and_, desc
+
+from flask_oauth import OAuth
+
+oauth = OAuth()
 
 login_manager = LoginManager()
 
@@ -22,6 +27,16 @@ login_manager.login_view = "login"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'.format(os.environ['STACKTODOS_MYSQL_DB_USERNAME'], os.environ['STACKTODOS_MYSQL_DB_PASSWORD'], os.environ['STACKTODOS_MYSQL_DB_HOST'], os.environ['STACKTODOS_MYSQL_DB_PORT'])
 app.secret_key = 'e6cb00fb23790ba6d43de3826639aae2'
+
+facebook = oauth.remote_app('facebook',
+    base_url='https://graph.facebook.com/',
+    request_token_url=None,
+    access_token_url='/oauth/access_token',
+    authorize_url='https://www.facebook.com/dialog/oauth',
+    consumer_key='296737407148464',
+    consumer_secret='f7d0abbd4b60fd25b82e68249e7662f7',
+    request_token_params={'scope': 'email'}
+)
 
 
 def todo2dict(todo):
@@ -74,6 +89,53 @@ def login():
         return redirect(url_for('login'))
     login_user(registered_user)
     return redirect(request.args.get("next") or url_for("main"))
+
+
+@app.route('/oauth/facebook/', methods=['GET'])
+def login_facebook():
+    return facebook.authorize(callback=url_for('oauth_authorized', _external = True,
+        next=request.args.get('next') or request.referrer or None))
+
+
+@app.route('/oauth/facebook/authorized/')
+@facebook.authorized_handler
+def oauth_authorized(oauth_resp):
+    next_url = request.args.get('next') or url_for('main')
+    if oauth_resp is None:
+        flash(u'You denied the request to sign in.')
+        return redirect(next_url)
+    session['facebook_token'] = (
+        oauth_resp['access_token'],
+        ''
+    )
+    resp = facebook.get('/me')
+    if resp.status == 200:
+        profile = resp.data
+        connection = Connection.query.filter_by(provider_id='facebook', provider_user_id=profile['id']).first()
+        if connection == None:
+            new_user = User(username='facebook_' + profile['id'], email=profile['email'], password='')
+            db.session.add(new_user)
+            db.session.commit()
+            connection = Connection()
+            connection.user_id = new_user.id
+            connection.provider_id = 'facebook'
+            connection.provider_user_id = profile['id']
+            connection.access_token = oauth_resp['access_token']
+            connection.secret = ''
+            connection.display_name = profile['name']
+            connection.profile_url = profile['link']
+            db.session.add(connection)
+            db.session.commit()
+            login_user(new_user)
+        else:
+            user = User.query.filter_by(id=connection.user_id).first()
+            login_user(user)
+    return redirect(next_url)
+
+
+@facebook.tokengetter
+def get_twitter_token(token=None):
+    return session.get('facebook_token')
 
 
 @app.route('/logout/')
