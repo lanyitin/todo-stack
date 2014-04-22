@@ -1,12 +1,12 @@
+# -*- coding: utf-8 -*-
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask
 from datetime import datetime
-from pyparsing import *
 
 if __name__ == '__main__':
     import os
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'.format(os.environ['STACKTODOS_MYSQL_DB_USERNAME'], os.environ['STACKTODOS_MYSQL_DB_PASSWORD'], os.environ['STACKTODOS_MYSQL_DB_HOST'], os.environ['STACKTODOS_MYSQL_DB_PORT'])
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=0&charset=utf8'.format(os.environ['STACKTODOS_MYSQL_DB_USERNAME'], os.environ['STACKTODOS_MYSQL_DB_PASSWORD'], os.environ['STACKTODOS_MYSQL_DB_HOST'], os.environ['STACKTODOS_MYSQL_DB_PORT'])
     db = SQLAlchemy(app)
 else:
     db = SQLAlchemy()
@@ -39,6 +39,16 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
+class Connection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    provider_id = db.Column(db.String(255))
+    provider_user_id = db.Column(db.String(255))
+    access_token = db.Column(db.String(255))
+    secret = db.Column(db.String(255))
+    display_name = db.Column(db.String(255))
+    profile_url = db.Column(db.String(512))
+
 tag_todo_assication = db.Table('tag_todo_association',
     db.Column("todo_id", db.Integer, db.ForeignKey('todo.id'), nullable = False, primary_key=True),
     db.Column("tag_id", db.Integer, db.ForeignKey('tag.id'), nullable = False, primary_key=True)
@@ -46,11 +56,8 @@ tag_todo_assication = db.Table('tag_todo_association',
 
 class Todo(db.Model):
     __tablename__ = 'todo'
-    emailExpr = Regex(r"(?P<user>[A-Za-z0-9._%+-]+)@(?P<hostname>[A-Za-z0-9.-]+)\.(?P<domain>[A-Za-z]{2,4})")
-    tagExpr = Regex(r"(?P<tag>@[A-Za-z0-9]+)")
-    todo_content_parser = OneOrMore((Or(CharsNotIn("@ ") | emailExpr)) + Optional(" ")) + Optional(OneOrMore(tagExpr))
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable = False)
+    content = db.Column(db.Text(collation='utf8_general_ci'), nullable = False)
     push_date_time = db.Column(db.DateTime, nullable = False)
     order = db.Column(db.Integer, nullable = False)
     priority = db.Column(db.Integer, default = 2, nullable = False)
@@ -69,35 +76,11 @@ class Todo(db.Model):
         self.owner_user_id = owner_user_id
         self.push_date_time = datetime.utcnow()
         self.content = content
-        self.parseAndAddTagsFromContent()
-    def parseAndAddTagsFromContent(self):
-        tags = list()
-        try:
-            parsed = Todo.todo_content_parser.parseString("u'" + self.content + "'")
-            print parsed
-            for elem in parsed:
-                if elem[0] == "@":
-                    tags.append(elem[1:])
-                    self.content = self.replace_last(self.content, elem, "").strip()
-        except Exception as e:
-            print e
-
-        for tagName in tags:
-            tagInstance_ = Tag.query.filter_by(owner_user_id = self.owner_user_id, name = tagName).first()
-            if tagInstance_ is None:
-                tagInstance_ = Tag()
-                tagInstance_.owner_user_id = self.owner_user_id
-                tagInstance_.name = tagName
-                db.session.add(tagInstance_)
-            self.tags.append(tagInstance_)
-    def replace_last(self, source_string, replace_what, replace_with):
-        head, sep, tail = source_string.rpartition(replace_what)
-        return head + replace_with + tail
 
 class Tag(db.Model):
     __tablename__ = 'tag'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True, nullable = False)
+    name = db.Column(db.String(80, collation='utf8_general_ci'), unique=True, nullable = False)
 
     owner_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     owner = db.relationship('User', backref = db.backref('tags', lazy='dynamic'))
