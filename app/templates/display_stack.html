@@ -37,7 +37,7 @@
                         <span class="input-group-btn">
                             <button class="btn btn-success control append" ng-click="append()">Append</button>
                         </span>
-                        <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content" ng-keypress="content_keypress($event)">
+                        <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content" ng-keypress="content_keypress($event)" ng-model="new_todo_content">
                         <span class="input-group-btn">
                             <button class="btn btn-success control push" ng-click="push()">Push</button>
                         </span>
