@@ -16,17 +16,7 @@
         </div>
         <div class="stack trash sortable">
             <div ng-repeat="todo in trash_stack | expand: expandTrashStack" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
-                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
-                    <span class="sort icon glyphicon glyphicon-sort pull-right"></span>
-                </div>
-                <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
-                    <span class="priority btn pull-left" ng-click="raisePriority(todo.id)">{[ todo.priority ]}</span>
-                    <span class="content" ng-bind-html="marked(todo.content)"></span>
-                    <a ng-repeat="tag in todo.tags" class="badge" href="/tag/{[ tag ]}">{[ tag ]}</a>
-                </div>
-                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
-                    <span class="delete icon glyphicon glyphicon-remove-circle pull-left" ng-click="removeTodo(todo.id)"></span>
-                </div>
+                <div ng-include="'{{ url_for('static', filename='html/todo_view.html') }}'"></div>
             </div>
         </div>
         <div class="container">
@@ -37,7 +27,7 @@
                         <span class="input-group-btn">
                             <button class="btn btn-success control append" ng-click="append()">Append</button>
                         </span>
-                        <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content" ng-keypress="content_keypress($event)">
+                        <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content" ng-keypress="content_keypress($event)" ng-model="new_todo_content">
                         <span class="input-group-btn">
                             <button class="btn btn-success control push" ng-click="push()">Push</button>
                         </span>
@@ -47,18 +37,8 @@
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
         </div>
         <div class="stack sortable">
-            <div ng-repeat="todo in stack|orderBy:'order':false" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
-                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
-                    <span class="sort icon glyphicon glyphicon-sort pull-right"></span>
-                </div>
-                <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 stack-ui-container">
-                    <span class="priority btn pull-left" ng-click="raisePriority(todo.id)">{[ todo.priority ]}</span>
-                    <span class="content" ng-bind-html="marked(todo.content)"></span>
-                    <a ng-repeat="tag in todo.tags" class="badge" href="/tag/{[ tag ]}">{[ tag ]}</a>
-                </div>
-                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
-                    <span class="delete icon glyphicon glyphicon-remove-circle pull-left" ng-click="removeTodo(todo.id)"></span>
-                </div>
+            <div ng-repeat="todo in stack | orderBy: 'order' : true" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
+                <div ng-include="'{{ url_for('static', filename='html/todo_view.html') }}'"></div>
             </div>
         </div>
         <div class="container">
