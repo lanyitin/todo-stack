@@ -8,7 +8,7 @@ env:
   - "STACKTODOS_MYSQL_DB_PASSWORD=stacktodos"
 services: mysql
 # command to install dependencies
-install: "pip install -r requirements.txt"
+install: "pip install --allow-external mysql-connector-python -r requirements.txt"
 # command to run tests
 before-script: python . db upgrade
 script: nosetests
