@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/lanyitin/stack-todos.svg?branch=develop)](https://travis-ci.org/lanyitin/stack-todos)
+[![Coverage Status](https://coveralls.io/repos/lanyitin/stack-todos/badge.png)](https://coveralls.io/r/lanyitin/stack-todos)
+
 # Main Idea
 Manage the todo in stack-way.
 
