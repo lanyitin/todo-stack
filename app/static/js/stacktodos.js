@@ -136,10 +136,9 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
 
     function newItem(action, todo) {
         if (todo === undefined) {
-            content = $("#control-todo-content").val();
-            if (content != "") {
-                $http.post(action, {item: content}).success(function (data) {
-                    $("#control-todo-content").val("");
+            if ($scope.new_todo_content != "") {
+                $http.post(action, {item: $scope.new_todo_content}).success(function (data) {
+                    $scope.new_todo_content = "";
                     angular.forEach(data, function(item) {
                         handleItem(item);
                     });
