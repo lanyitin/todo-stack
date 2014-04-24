@@ -4,8 +4,8 @@ python:
 env: 
   - "STACKTODOS_MYSQL_DB_HOST=localhost"
   - "STACKTODOS_MYSQL_DB_PORT=localhost"
-  - "STACKTODOS_MYSQL_DB_USERNAME=stacktodos"
-  - "STACKTODOS_MYSQL_DB_PASSWORD=stacktodos"
+  - "STACKTODOS_MYSQL_DB_USERNAME=root"
+  - "STACKTODOS_MYSQL_DB_PASSWORD="
 services: mysql
 # command to install dependencies
 install: "pip install --allow-external mysql-connector-python -r requirements.txt"
