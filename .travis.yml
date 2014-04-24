@@ -1,11 +1,21 @@
 language: python
+
 python:
-  - "2.7"
+    - 2.7
+
 env: 
-  - STACKTODOS_MYSQL_DB_HOST=localhost STACKTODOS_MYSQL_DB_PORT=3306 STACKTODOS_MYSQL_DB_USERNAME=root STACKTODOS_MYSQL_DB_PASSWORD=""
+    - STACKTODOS_MYSQL_DB_HOST=localhost STACKTODOS_MYSQL_DB_PORT=3306 STACKTODOS_MYSQL_DB_USERNAME=root STACKTODOS_MYSQL_DB_PASSWORD=""
+
 services: mysql
-# command to install dependencies
-install: "pip install --allow-external mysql-connector-python -r requirements.txt"
-# command to run tests
-before-script: "python . db upgrade"
-script: "nosetests"
+
+install:
+    - pip install --allow-external mysql-connector-python -r requirements.txt
+
+before-script:
+    - python . db upgrade
+
+script:
+    - nosetests --with-coverage --cover-package=app
+
+after_success:
+    - coveralls
