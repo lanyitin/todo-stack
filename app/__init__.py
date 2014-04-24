@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
-import hashlib, json, os 
-from flask import Flask, request, g, redirect, url_for, render_template, make_response, Response, session
+import hashlib
+import json
+import os
+from flask import Flask, request, g, redirect, url_for, \
+    render_template, make_response, Response, session
 from flask.ext.assets import Environment
-from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
+from flask.ext.login import LoginManager, login_user, \
+    logout_user, current_user, login_required
 from flask.ext.sqlalchemy import SQLAlchemy
 from core.model import db, Todo, User, Tag, Connection
 from facade import Facade
@@ -25,17 +29,25 @@ assets = Environment(app)
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'.format(os.environ['STACKTODOS_MYSQL_DB_USERNAME'], os.environ['STACKTODOS_MYSQL_DB_PASSWORD'], os.environ['STACKTODOS_MYSQL_DB_HOST'], os.environ['STACKTODOS_MYSQL_DB_PORT'])
+db_connection_str = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}' \
+    '/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'
+app.config['SQLALCHEMY_DATABASE_URI'] = db_connection_str.format(
+    os.environ['STACKTODOS_MYSQL_DB_USERNAME'],
+    os.environ['STACKTODOS_MYSQL_DB_PASSWORD'],
+    os.environ['STACKTODOS_MYSQL_DB_HOST'],
+    os.environ['STACKTODOS_MYSQL_DB_PORT'],
+)
 app.secret_key = 'e6cb00fb23790ba6d43de3826639aae2'
 
-facebook = oauth.remote_app('facebook',
+facebook = oauth.remote_app(
+    'facebook',
     base_url='https://graph.facebook.com/',
     request_token_url=None,
     access_token_url='/oauth/access_token',
     authorize_url='https://www.facebook.com/dialog/oauth',
     consumer_key='296737407148464',
     consumer_secret='f7d0abbd4b60fd25b82e68249e7662f7',
-    request_token_params={'scope': 'email'}
+    request_token_params={'scope': 'email'},
 )
 
 
@@ -43,7 +55,14 @@ def todo2dict(todo):
     tags = list()
     for tag in todo.tags:
         tags.append(tag.name)
-    return {"id": todo.id, "content":todo.content, "priority": todo.priority, "order": todo.order, "tags": tags}
+    return {
+        "id": todo.id,
+        "content": todo.content,
+        "priority": todo.priority,
+        "order": todo.order,
+        "tags": tags,
+    }
+
 
 def todo2json(todo):
     return json.dumps(todo2dict(todo))
@@ -74,17 +93,17 @@ def close_connection(exception):
         db.close()
 
 
-@app.route('/login/', methods = ['GET', 'POST'])
+@app.route('/login/', methods=['GET', 'POST'])
 def login():
     if g.user is not None and g.user.is_authenticated():
-	    return redirect(request.args.get("next") or url_for("main"))
+        return redirect(request.args.get("next") or url_for("main"))
 
     if request.method == 'GET':
         return render_template('login.html')
 
     username = request.form['username']
-    password = hashlib.md5(request.form['password']).hexdigest()
-    registered_user = User.query.filter_by(username = username, password = password).first()
+    password = request.form['password']
+    registered_user = facade.find_user_by_credential(username, password)
     if registered_user is None:
         return redirect(url_for('login'))
     login_user(registered_user)
@@ -93,8 +112,13 @@ def login():
 
 @app.route('/oauth/facebook/', methods=['GET'])
 def login_facebook():
-    return facebook.authorize(callback=url_for('oauth_authorized', _external = True,
-        next=request.args.get('next') or request.referrer or None))
+    return facebook.authorize(
+        callback=url_for(
+            'oauth_authorized',
+            _external=True,
+            next=request.args.get('next') or request.referrer or None,
+        )
+    )
 
 
 @app.route('/oauth/facebook/authorized/')
@@ -106,16 +130,21 @@ def oauth_authorized(oauth_resp):
         return redirect(next_url)
     session['facebook_token'] = (
         oauth_resp['access_token'],
-        ''
+        '',
     )
     resp = facebook.get('/me')
     if resp.status == 200:
         profile = resp.data
-        connection = Connection.query.filter_by(provider_id='facebook', provider_user_id=profile['id']).first()
-        if connection == None:
-            new_user = User(username='facebook_' + profile['id'], email=profile['email'], password='')
-            db.session.add(new_user)
-            db.session.commit()
+        connection = Connection.query.filter_by(
+            provider_id='facebook',
+            provider_user_id=profile['id']
+        ).first()
+        if connection is None:
+            new_user = facade.register(
+                'facebook_' + profile['id'],
+                '',
+                profile['email'],
+            )
             connection = Connection()
             connection.user_id = new_user.id
             connection.provider_id = 'facebook'
@@ -142,19 +171,17 @@ def get_twitter_token(token=None):
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('main')) 
+    return redirect(url_for('main'))
 
 
-@app.route('/register/', methods = ['GET', 'POST'])
+@app.route('/register/', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
         return render_template('register.html')
     username = request.form['username']
     email = request.form['email']
-    password = hashlib.md5(request.form['password']).hexdigest()
-    user = User(username = username, password = password, email = email)
-    db.session.add(user);
-    db.session.commit();
+    password = request.form['password']
+    facade.register(username, password, email)
     return redirect(url_for('login'))
 
 
@@ -162,7 +189,13 @@ def register():
 @login_required
 def main():
     stack, trash_stack = facade.find_all_todos(g.user.id)
-    return make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
+    return make_response(
+        render_template(
+            "display_stack.html",
+            stack=stack,
+            trash_stack=trash_stack,
+        )
+    )
 
 
 @app.route('/push/', methods=["POST"])
@@ -176,38 +209,41 @@ def pushItem():
 @login_required
 def appendItem():
     response = facade.append_todo(g.user.id, request.json["item"])
-    response = map(todo2dict, response);
+    response = map(todo2dict, response)
     return Response(json.dumps(response), mimetype='application/json')
 
 
 @app.route('/moveToTrash/<int:todoid>/', methods=["GET"])
 @login_required
 def moveToTrash(todoid):
-    todo = facade.move_todo_to_trash(todoid);
+    todo = facade.move_todo_to_trash(todoid)
     if todo is not None:
-        return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
+        return Response(
+            json.dumps([todo2dict(todo)]),
+            mimetype='application/json',
+        )
 
 
 @app.route('/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
 @login_required
 def moveItem(fromIndex, toIndex):
-    response = facade.move_todo(g.user.id, fromIndex, toIndex);
-    response = map(todo2dict, response);
+    response = facade.move_todo(g.user.id, fromIndex, toIndex)
+    response = map(todo2dict, response)
     return Response(json.dumps(response), mimetype='application/json')
 
 
 @app.route('/removeItem/<int:todoid>/', methods=["GET"])
 @login_required
 def removeItem(todoid):
-    todo = facade.remove_todo(g.user.id, todoid);
+    todo = facade.remove_todo(g.user.id, todoid)
     return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
 
 
 @app.route('/clean_trash/', methods=["GET"])
 @login_required
 def cleanTrash():
-    response = facade.clean_trash(g.user.id);
-    response = map(todo2dict, response);
+    response = facade.clean_trash(g.user.id)
+    response = map(todo2dict, response)
     return Response(json.dumps(response), mimetype='application/json')
 
 
@@ -228,4 +264,10 @@ def tagList():
 @login_required
 def displayTag(tagName):
     stack, trash_stack = facade.find_by_tag(g.user.id, tagName)
-    return make_response(render_template("display_stack.html", stack=stack, trash_stack=trash_stack))
+    return make_response(
+        render_template(
+            "display_stack.html",
+            stack=stack,
+            trash_stack=trash_stack,
+        )
+    )

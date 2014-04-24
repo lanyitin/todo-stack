@@ -3,21 +3,25 @@ from core.model import db, Todo, User, Tag
 from sqlalchemy import and_, desc
 from datetime import datetime
 
+
 class Facade:
     def find_all_todos(self, userid):
-        stack = Todo.query.filter_by(owner_user_id = userid, in_trash = False).order_by(desc(Todo.order)).all()
-        trash_stack = Todo.query.filter_by(owner_user_id = userid, in_trash = True).order_by(Todo.push_date_time).all()
+        stack = Todo.query.filter_by(owner_user_id=userid, in_trash=False) \
+            .order_by(desc(Todo.order)).all()
+        trash_stack = Todo.query.filter_by(owner_user_id=userid, in_trash=True) \
+            .order_by(Todo.push_date_time).all()
         return stack, trash_stack
-
 
     def find_todo_by_tag(self, userid, tagName):
-        stack = Todo.query.filter_by(owner_user_id = userid, in_trash = False).filter(Todo.tags.any(name = tagName)).all()
-        trash_stack = Todo.query.filter_by(owner_user_id = userid, in_trash = True).order_by(Todo.push_date_time).all()
+        stack = Todo.query.filter_by(owner_user_id=userid, in_trash=False) \
+            .filter(Todo.tags.any(name=tagName)).all()
+        trash_stack = Todo.query.filter_by(owner_user_id=userid, in_trash=True) \
+            .order_by(Todo.push_date_time).all()
         return stack, trash_stack
 
-
     def push_todo(self, userid, content):
-        top_item = Todo.query.filter_by(owner_user_id=userid, in_trash=False).order_by(desc(Todo.order)).first()
+        top_item = Todo.query.filter_by(owner_user_id=userid, in_trash=False) \
+            .order_by(desc(Todo.order)).first()
         todo = Todo(content, userid)
         if top_item is not None:
             todo.order = top_item.order + 1
@@ -27,10 +31,10 @@ class Facade:
         db.session.commit()
         return todo
 
-
     def append_todo(self, userid, content):
         todo = Todo(content, userid)
-        stack = Todo.query.filter_by(owner_user_id=userid, in_trash=False).order_by(Todo.order).all()
+        stack = Todo.query.filter_by(owner_user_id=userid, in_trash=False) \
+            .order_by(Todo.order).all()
         if len(stack) > 0 and stack[0].order > 1:
             todo.order = stack[0].order - 1
         else:
@@ -51,9 +55,9 @@ class Facade:
 
         return response
 
-
     def move_todo_to_trash(self, todoid):
-        top_item = Todo.query.filter_by(id=todoid).order_by(desc(Todo.order)).first()
+        top_item = Todo.query.filter_by(id=todoid) \
+            .order_by(desc(Todo.order)).first()
         if top_item is not None:
             top_item.in_trash = True
             top_item.push_date_time = datetime.utcnow()
@@ -64,9 +68,9 @@ class Facade:
         else:
             return None
 
-
     def move_todo(self, userid, fromIndex, toIndex):
-        stack = Todo.query.filter_by(owner_user_id = userid, in_trash = False).order_by(desc(Todo.order)).all()
+        stack = Todo.query.filter_by(owner_user_id=userid, in_trash=False) \
+            .order_by(desc(Todo.order)).all()
         response = []
         begin = end = 0
         if (fromIndex > toIndex):
@@ -92,9 +96,8 @@ class Facade:
         db.session.commit()
         return response
 
-
     def remove_todo(self, userid, todoid):
-        todo = Todo.query.filter_by(id = todoid).first()
+        todo = Todo.query.filter_by(id=todoid).first()
         db.session.delete(todo)
         db.session.commit()
         tags = Tag.query.filter_by(owner_user_id=userid).all()
@@ -104,13 +107,11 @@ class Facade:
         db.session.commit()
         return todo
 
-
     def find_all_tag(self, userid):
-        return Tag.query.filter_by(owner_user_id = userid).all()
-
+        return Tag.query.filter_by(owner_user_id=userid).all()
 
     def clean_trash(self, userid):
-        todos = Todo.query.filter_by(owner_user_id = userid, in_trash = True).all()
+        todos = Todo.query.filter_by(owner_user_id=userid, in_trash=True).all()
         response = []
         for todo in todos:
             db.session.delete(todo)
@@ -124,10 +125,27 @@ class Facade:
         return response
 
     def raise_priority(self, todoid):
-        todo = Todo.query.filter_by(id = todoid).first()
+        todo = Todo.query.filter_by(id=todoid).first()
         todo.priority += 1
         if todo.priority >= 5:
             todo.priority %= 5
         db.session.add(todo)
         db.session.commit()
         return todo
+
+    def register(self, username, password, email):
+        if User.query.filter_by(username=username).first() is not None:
+            return None
+        password_hex = self.__gen_password_digest__(password)
+        user = User(username=username, password=password_hex, email=email)
+        db.session.add(user)
+        db.session.commit(user)
+        return user
+
+    def find_user_by_credential(self, username, password):
+        password_hex = self.__gen_password_digest__(password)
+        return User.query.filter_by(username=username, password=password_hex) \
+            .first()
+
+    def __gen_password_digest__(self, password):
+        return hashlib.md5(password).hexdigest()
