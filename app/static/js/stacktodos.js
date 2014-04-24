@@ -31,6 +31,10 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         return target;
     }
 
+
+    $scope.$on('update', function (event, todo) {
+        handleItem(todo);
+    });
     function handleItem(item) {
         if (getTodoById(item.id) == undefined) {
             $scope.stack.push(item);
@@ -54,16 +58,16 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         }
     }
 
-    $scope.toggleExpandTrash = function () {
-        $scope.expandTrashStack ^= true;
-    }
-
     $scope.push = function (todo) {
         newItem("/push/", todo);
     }
 
     $scope.append = function (todo) {
         newItem("/append/", todo);
+    }
+
+    $scope.toggleExpandTrash = function () {
+        $scope.expandTrashStack ^= true;
     }
 
     $scope.removeTodo = function (id) {
@@ -104,13 +108,10 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         handleItem(todo);
     }
 
-    $scope.$on('raisePriority', function (event, id) {
-        $log.log("method in parent");
-        var todo = getTodoById(id);
-        todo.priority = (todo.priority + 1) % 5;
-    });
     $scope.raisePriority = function (id) {
-        $scope.$emit('raisePriority', id);
+        var todo = getTodoById(id);
+        todo.priority  = (todo.priority + 1) % 5;
+        $scope.$emit('raisePriority', todo);
     }
 
     $scope.content_keypress = function ($event) {
@@ -150,16 +151,42 @@ function CoreController($scope, $http, $filter, $sce, $log) {
 function AppController($scope, $http, $filter, $sce, $log) {
     CoreController.call(this, $scope, $http, $filter, $sce, $log);
     $scope.raisePriority = function (id) {
-        $log.log("method in child");
         $http.get("/raisePriority/" + id + "/")
             .success(function (data){
                 angular.forEach(data, function(item) {
                     if (item.id = id) {
-                        $scope.$emit('raisePriority', id);
+                        $scope.$emit('update', id);
                     }
                 });
             });
     }
+
+    $scope.push = function (todo) {
+        if (todo === undefined) {
+            $http.post("/push/", {item: $scope.new_todo_content}).success(function (data) {
+                $scope.new_todo_content = "";
+                angular.forEach(data, function(item) {
+                    $scope.$emit("update", item);
+                });
+            });
+        } else {
+            $scope.$emit("update", todo);
+        }
+    }
+
+    $scope.append = function (todo) {
+        if (todo === undefined) {
+            $http.post("/append/", {item: $scope.new_todo_content}).success(function (data) {
+                $scope.new_todo_content = "";
+                angular.forEach(data, function(item) {
+                    $scope.$emit("update", item);
+                });
+            });
+        } else {
+            $scope.$emit("update", todo);
+        }
+    }
+
 }
 AppController.prototype = Object.create(CoreController.prototype)
 
