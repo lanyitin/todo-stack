@@ -1,3 +1,169 @@
+function CoreController($scope, $http, $filter, $sce, $log) {
+    $scope.stack = [];
+    $scope.trash_stack = [];
+    $scope.expandTrashStack = false;
+
+    $scope.getExpandTrashText = function () {
+        if ($scope.expandTrashStack) {
+            return "Collapse";
+        } else {
+            return "Expand";
+        }
+    }
+
+    function getTodoById(id) {
+        var target = undefined;
+        angular.forEach($scope.stack, function(item) {
+            if (item.id == id) {
+                target = item;
+            }
+        });
+        return target;
+    }
+
+    function getIndexById(id) {
+        var target = undefined;
+        angular.forEach($scope.stack, function(item, idx) {
+            if (item.id == id) {
+                target = idx;
+            }
+        });
+        return target;
+    }
+
+    function handleItem(item) {
+        if (getTodoById(item.id) == undefined) {
+            $scope.stack.push(item);
+        } else {
+            $scope.stack[getIndexById(item.id)] = item
+        }
+    }
+
+    function newItem(action, todo) {
+        if (todo === undefined) {
+            if ($scope.new_todo_content != "") {
+                $http.post(action, {item: $scope.new_todo_content}).success(function (data) {
+                    $scope.new_todo_content = "";
+                    angular.forEach(data, function(item) {
+                        handleItem(item);
+                    });
+                });
+            }
+        } else {
+            handleItem(todo);
+        }
+    }
+
+    $scope.toggleExpandTrash = function () {
+        $scope.expandTrashStack ^= true;
+    }
+
+    $scope.push = function (todo) {
+        newItem("/push/", todo);
+    }
+
+    $scope.append = function (todo) {
+        newItem("/append/", todo);
+    }
+
+    $scope.removeTodo = function (id) {
+        $http.get("/removeItem/" + id + "/")
+            .success(function (data) {
+                var tmp_stack = [];
+                angular.forEach($scope.stack, function (todo) {
+                    tmp_stack.push(todo);
+                });
+                angular.forEach(data, function (todo) {
+                    delete tmp_stack[getIndexById(todo.id)];
+                });
+                $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined})
+            });
+    }
+
+    $scope.pop = function (id) {
+        target = $filter('orderBy')($scope.stack, "order", false);
+        if (target.length) {
+            target = target[0];
+            $http.get("/moveToTrash/" + target.id + "/")
+                .success(function (data) {
+                    var tmp_stack = [];
+                    angular.forEach($scope.stack, function (todo) {
+                        tmp_stack.push(todo);
+                    });
+
+                    angular.forEach(data, function (todo) {
+                        $scope.trash_stack.push($scope.stack[getIndexById(todo.id)]);
+                        delete tmp_stack[getIndexById(todo.id)];
+                    });
+                    $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined})
+                });
+        }
+    }
+
+    $scope.moveTodo = function (todo) {
+        handleItem(todo);
+    }
+
+    $scope.$on('raisePriority', function (event, id) {
+        $log.log("method in parent");
+        var todo = getTodoById(id);
+        todo.priority = (todo.priority + 1) % 5;
+    });
+    $scope.raisePriority = function (id) {
+        $scope.$emit('raisePriority', id);
+    }
+
+    $scope.content_keypress = function ($event) {
+        if ($event.charCode == 13) {
+            if ($event.shiftKey) {
+                $scope.push();
+            } else {
+                $scope.append();
+            }
+        }
+    }
+
+    $scope.clean_trash = function () {
+        $http.get("/clean_trash/")
+            .success(function (data) {
+                var tmp_trash = [];
+                angular.forEach($scope.trash_stack, function(existTodo, idx) {
+                    tmp_trash.push(existTodo);
+                });
+                angular.forEach(tmp_trash, function(existTodo, idx) {
+                    angular.forEach(data, function(target) {
+                        if (existTodo.id == target.id) {
+                            delete tmp_trash[idx];
+                        }
+                    });
+                });
+                $scope.trash_stack = $.grep(tmp_trash, function (item) {return item != undefined});
+            });
+    }
+
+    $scope.marked = function (str) {
+        return $sce.trustAsHtml(marked(str));
+    }
+
+}
+
+function AppController($scope, $http, $filter, $sce, $log) {
+    CoreController.call(this, $scope, $http, $filter, $sce, $log);
+    $scope.raisePriority = function (id) {
+        $log.log("method in child");
+        $http.get("/raisePriority/" + id + "/")
+            .success(function (data){
+                angular.forEach(data, function(item) {
+                    if (item.id = id) {
+                        $scope.$emit('raisePriority', id);
+                    }
+                });
+            });
+    }
+}
+AppController.prototype = Object.create(CoreController.prototype)
+
+
 angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvider) {
     $interpolateProvider.startSymbol('{[');
         $interpolateProvider.endSymbol(']}');
@@ -93,154 +259,7 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         $scope.clock = $scope.clock.tick();
     }, 1000);
 })
-.controller("AppController", function ($scope, $http, $filter, $sce) {
-    $scope.stack = [];
-    $scope.trash_stack = [];
-    $scope.expandTrashStack = false;
-
-    $scope.getExpandTrashText = function () {
-        if ($scope.expandTrashStack) {
-            return "Collapse";
-        } else {
-            return "Expand";
-        }
-    }
-
-    function getTodoById(id) {
-        var target = undefined;
-        angular.forEach($scope.stack, function(item) {
-            if (item.id == id) {
-                target = item;
-            }
-        });
-        return target;
-    }
-
-    function getIndexById(id) {
-        var target = undefined;
-        angular.forEach($scope.stack, function(item, idx) {
-            if (item.id == id) {
-                target = idx;
-            }
-        });
-        return target;
-    }
-
-    function handleItem(item) {
-        if (getTodoById(item.id) == undefined) {
-            $scope.stack.push(item);
-        } else {
-            $scope.stack[getIndexById(item.id)] = item
-        }
-    }
-
-    function newItem(action, todo) {
-        if (todo === undefined) {
-            if ($scope.new_todo_content != "") {
-                $http.post(action, {item: $scope.new_todo_content}).success(function (data) {
-                    $scope.new_todo_content = "";
-                    angular.forEach(data, function(item) {
-                        handleItem(item);
-                    });
-                });
-            }
-        } else {
-            handleItem(todo);
-        }
-    }
-
-    $scope.toggleExpandTrash = function () {
-        $scope.expandTrashStack ^= true;
-    }
-
-    $scope.push = function (todo) {
-        newItem("/push/", todo);
-    }
-
-    $scope.append = function (todo) {
-        newItem("/append/", todo);
-    }
-
-    $scope.removeTodo = function (id) {
-        $http.get("/removeItem/" + id + "/")
-            .success(function (data) {
-                var tmp_stack = [];
-                angular.forEach($scope.stack, function (todo) {
-                    tmp_stack.push(todo);
-                });
-                angular.forEach(data, function (todo) {
-                    delete tmp_stack[getIndexById(todo.id)];
-                });
-                $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined})
-            });
-    }
-
-    $scope.pop = function (id) {
-        target = $filter('orderBy')($scope.stack, "order", false);
-        console.log(target);
-        if (target.length) {
-            target = target[0];
-            $http.get("/moveToTrash/" + target.id + "/")
-                .success(function (data) {
-                    var tmp_stack = [];
-                    angular.forEach($scope.stack, function (todo) {
-                        tmp_stack.push(todo);
-                    });
-
-                    angular.forEach(data, function (todo) {
-                        $scope.trash_stack.push($scope.stack[getIndexById(todo.id)]);
-                        delete tmp_stack[getIndexById(todo.id)];
-                    });
-                    $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined})
-                });
-        }
-    }
-
-    $scope.moveTodo = function (todo) {
-        handleItem(todo);
-    }
-
-    $scope.raisePriority = function (id) {
-        $http.get("/raisePriority/" + id + "/")
-            .success(function (data){
-                angular.forEach(data, function(item) {
-                    handleItem(item);
-                });
-            });
-    }
-
-    $scope.content_keypress = function ($event) {
-        if ($event.charCode == 13) {
-            if ($event.shiftKey) {
-                $scope.push();
-            } else {
-                $scope.append();
-            }
-        }
-    }
-
-    $scope.clean_trash = function () {
-        $http.get("/clean_trash/")
-            .success(function (data) {
-                var tmp_trash = [];
-                angular.forEach($scope.trash_stack, function(existTodo, idx) {
-                    tmp_trash.push(existTodo);
-                });
-                angular.forEach(tmp_trash, function(existTodo, idx) {
-                    angular.forEach(data, function(target) {
-                        if (existTodo.id == target.id) {
-                            delete tmp_trash[idx];
-                        }
-                    });
-                });
-                $scope.trash_stack = $.grep(tmp_trash, function (item) {return item != undefined});
-            });
-    }
-
-    $scope.marked = function (str) {
-        return $sce.trustAsHtml(marked(str));
-    }
-})
+.controller("AppController", AppController)
 .filter('reverse', function() {
     return function(items) {
         return items.slice().reverse();
