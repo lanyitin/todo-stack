@@ -65,7 +65,6 @@ function CoreController($scope, $http, $filter, $sce, $log) {
             order_list = $scope.stack.map(function (todo) {
                 return todo.order;
             });
-            $log.log(order_list);
             todo = {content:$scope.new_todo_content, priority:2, tags:[], id:undefined, order:(Math.max.apply(-1, order_list) + 1)}
             todo.id = Date.now();
             if (todo.order === -Infinity) {
@@ -99,7 +98,6 @@ function CoreController($scope, $http, $filter, $sce, $log) {
                 delete tmp_stack[idx];
             }
         });
-        $log.log(tmp_stack);
         $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined})
     });
     $scope.removeTodo = function (id) {
@@ -116,7 +114,7 @@ function CoreController($scope, $http, $filter, $sce, $log) {
             target = tmp_stack[0];
             delete tmp_stack[0];
             $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined})
-            $scope.trash_stack.push(target);
+        $scope.trash_stack.push(target);
         }
     });
     $scope.pop = function () {
@@ -162,6 +160,38 @@ function CoreController($scope, $http, $filter, $sce, $log) {
     $scope.marked = function (str) {
         return $sce.trustAsHtml(marked(str));
     }
+}
+
+function DemoController($scope, $http, $filter, $sce, $log, $interval, $timeout) {
+    CoreController.call(this, $scope, $http, $filter, $sce, $log);
+
+    function typeText(txt, callback) {
+        var txtLen = txt.length;
+        var char = 0;
+        $scope.new_todo_content = "|";
+        var humanize = Math.round(Math.random() * 200 - 30) + 30;
+        var timeOut = $interval(function() {
+            char++;
+            var type = txt.substring(0, char);
+            $scope.new_todo_content = type + '|';
+
+            if (char == txtLen) {
+                $scope.new_todo_content = $scope.new_todo_content.slice(0, -1); // remove the '|'
+                $scope.append();
+                $interval.cancel(timeOut);
+                callback();
+            }
+        }, humanize);
+    }
+
+    typeText("visist [todo-stack](http://todos.lanyitin.tw)", function() {
+        $timeout(function () {
+            $scope.pop();
+            typeText("create an account", function () {
+                typeText("bookmark this page", function () {});
+            });
+        }, 200);
+    });
 }
 
 function AppController($scope, $http, $filter, $sce, $log) {
@@ -257,7 +287,8 @@ function AppController($scope, $http, $filter, $sce, $log) {
     }
 
 }
-AppController.prototype = Object.create(CoreController.prototype)
+AppController.prototype = Object.create(CoreController.prototype);
+DemoController.prototype = Object.create(CoreController.prototype);
 
 
 angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvider) {
@@ -281,11 +312,11 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         this.counter = new Countdown(25 * 60);
         this.tick = function () {
             this.counter.tick()
-            if  (this.counter.number > 0) {
-                return this;
-            } else {
-                return new BreakClock();
-            }
+    if  (this.counter.number > 0) {
+        return this;
+    } else {
+        return new BreakClock();
+    }
         }
     }
 
@@ -296,11 +327,11 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         this.counter = new Countdown(5 * 60);
         this.tick = function () {
             this.counter.tick()
-            if  (this.counter.number > 0) {
-                return this;
-            } else {
-                return new TomatoesClock();
-            }
+                if  (this.counter.number > 0) {
+                    return this;
+                } else {
+                    return new TomatoesClock();
+                }
         }
     }
 
@@ -313,7 +344,7 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
 
     $scope.get_remain_time = function() {
         var number = $scope.clock.counter.number;
-        
+
         var min_str = Math.floor(number / 60);
         if (min_str < 10) {
             min_str = "0" + min_str.toString();
