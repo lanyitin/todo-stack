@@ -199,7 +199,7 @@ def moveItem(fromIndex, toIndex):
 @app.route('/removeItem/<int:todoid>/', methods=["GET"])
 @login_required
 def removeItem(todoid):
-    todo = facade.move_todo_to_trash(todoid);
+    todo = facade.remove_todo(g.user.id, todoid);
     return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
 
 
