@@ -11,7 +11,6 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from core.model import db, Todo, User, Tag, Connection
 from facade import Facade
 from sqlalchemy import and_, desc
-
 from flask_oauth import OAuth
 
 oauth = OAuth()
@@ -22,6 +21,11 @@ facade = Facade()
 
 app = Flask(__name__)
 
+if 'STACKTODOS_DEVELOPMENT_ENVIRONMENT' in os.environ:
+    app.config.from_object('app.config.DevelopConfig')
+else:
+    app.config.from_object('app.config.ProductionConfig')
+
 db.init_app(app)
 
 assets = Environment(app)
@@ -29,24 +33,14 @@ assets = Environment(app)
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
-db_connection_str = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}' \
-    '/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'
-app.config['SQLALCHEMY_DATABASE_URI'] = db_connection_str.format(
-    os.environ['STACKTODOS_MYSQL_DB_USERNAME'],
-    os.environ['STACKTODOS_MYSQL_DB_PASSWORD'],
-    os.environ['STACKTODOS_MYSQL_DB_HOST'],
-    os.environ['STACKTODOS_MYSQL_DB_PORT'],
-)
-app.secret_key = 'e6cb00fb23790ba6d43de3826639aae2'
-
 facebook = oauth.remote_app(
     'facebook',
     base_url='https://graph.facebook.com/',
     request_token_url=None,
     access_token_url='/oauth/access_token',
     authorize_url='https://www.facebook.com/dialog/oauth',
-    consumer_key='296737407148464',
-    consumer_secret='f7d0abbd4b60fd25b82e68249e7662f7',
+    consumer_key=app.config['SOCIAL_FACEBOOK_KEY'],
+    consumer_secret=app.config['SOCIAL_FACEBOOK_SECRET'],
     request_token_params={'scope': 'email'},
 )
 
