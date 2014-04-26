@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from sqlalchemy import *
+import hashlib
+from sqlalchemy import Column 
+from sqlalchemy import String, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
@@ -10,7 +12,20 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String(80), unique=True, nullable = False)
     email = Column(String(120), unique=True, nullable = False)
-    password = Column(String(120), unique=True, nullable = False)
+    __password__ = Column('password', String(120), nullable = False)
+
+    @property
+    def password(self):
+        '''
+        the password encryption should be done in model
+        so the attribute **__password__** mapped to colume **password**
+
+        and the attribute **password** is a public interface to deal with password encryption
+        '''
+        return self.__password__
+    @password.setter
+    def password(self, password):
+        self.__password__ = hashlib.md5(password).hexdigest()
 
     def __init__(self, **argus):
         if 'id' in argus:
@@ -19,17 +34,20 @@ class User(Base):
         self.password = argus['password']
         self.email = argus['email']
 
-    # used by flask-login
     def is_authenticated(self):
+        ''' used by flask-login '''
         return True
 
     def is_active(self):
+        ''' used by flask-login '''
         return True
 
     def is_anonymous(self):
+        ''' used by flask-login '''
         return False
 
     def get_id(self):
+        ''' used by flask-login '''
         return self.id
 
 # class Connection(Base):
