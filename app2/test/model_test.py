@@ -4,9 +4,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from nose.tools import raises
 
-from app2.libs.model import User, Base
+from app2.libs.model import User, Todo, Base
 
-class user_model_test(unittest.TestCase):
+class DatabaseTestCase(unittest.TestCase):
     '''
     although sqlalchemy support::
         Session = sessionmaker(bind=engine)
@@ -21,11 +21,17 @@ class user_model_test(unittest.TestCase):
         session -> engine <- metadata
     '''
     def setUp(self):
-        self.engine = create_engine('sqlite:///:memory:', echo=True)
+        self.engine = create_engine('mysql+mysqlconnector://stacktodos:stacktodos@localhost/stacktodos_test', echo=True)
         Session = sessionmaker()
         Session.configure(bind=self.engine)  # once engine is available
         self.session = Session()
         Base.metadata.create_all(self.engine)
+
+    def tearDown(self):
+        self.session.close()
+        Base.metadata.drop_all(self.engine)
+
+class user_model_test(DatabaseTestCase):
 
     def test_constructor(self):
         user = User(username="username", password="password", email="username@domain.name")
@@ -63,3 +69,33 @@ class user_model_test(unittest.TestCase):
     def test_password_should_be_encryped_once_it_assign_to_model(self):
         user = User(username="username", password="password", email="username@domain.name")
         self.assertTrue(user.password != "password")
+
+class tag_test(DatabaseTestCase):
+    def setUp(self):
+        super(tag_test, self).setUp()
+        user = User(username="username", password="password", email="username@domain.name")
+        self.session.add(user)
+        self.session.commit()
+        self.user = self.session.query(User).first()
+
+    def test_constructor(self):
+        tag = Todo(content="Hello World", owner=self.user, order=0)
+        self.session.add(tag)
+        self.session.commit()
+        tag = self.session.query(Todo).filter_by(owner=self.user).first()
+        self.assertTrue(tag is not None)
+        self.assertTrue(tag.content == "Hello World")
+
+    @raises(IntegrityError)
+    def test_content_cannot_be_empty_string(self):
+        tag = Todo(content="", owner=self.user, order=0)
+        self.session.add(tag)
+        self.session.commit()
+
+    @raises(IntegrityError)
+    def test_a_user_cannot_have_two_todos_that_have_same_order(self):
+        tag = Todo(content="123", owner=self.user, order=0)
+        self.session.add(tag)
+        tag = Todo(content="321", owner=self.user, order=0)
+        self.session.add(tag)
+        self.session.commit()

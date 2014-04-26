@@ -50,14 +50,30 @@
   <h1>Source code for app2.libs.model</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span> 
-<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">UniqueConstraint</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">String</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">Boolean</span><span class="p">,</span> <span class="n">Integer</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">backref</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
 <span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
 
 <div class="viewcode-block" id="User"><a class="viewcode-back" href="../../../app2.libs.html#app2.libs.model.User">[docs]</a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        id (num): unique identifier number, only assigned by database</span>
+
+<span class="sd">        username (str): the username, which is **unique** among all users, of this user.</span>
+
+<span class="sd">        email (str): the email, which is **unique** as well among all users, of this user.</span>
+
+<span class="sd">        __password__ (str): encrypted password that is stored in database.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            do not directly access this property</span>
+
+<span class="sd">        password (str): getter/setter of __password__, we perform encryption in this function.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;user&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">username</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">80</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
@@ -67,10 +83,8 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">password</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        the password encryption should be done in model</span>
-<span class="sd">        so the attribute **__password__** mapped to colume **password**</span>
-
-<span class="sd">        and the attribute **password** is a public interface to deal with password encryption</span>
+<span class="sd">        Parameters:</span>
+<span class="sd">            password(str): plain text of password</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__password__</span>
     <span class="nd">@password.setter</span>
@@ -115,29 +129,32 @@
 <span class="c">#     Column(&quot;todo_id&quot;, Integer, ForeignKey(&#39;todo.id&#39;), nullable = False, primary_key=True),</span>
 <span class="c">#     Column(&quot;tag_id&quot;, Integer, ForeignKey(&#39;tag.id&#39;), nullable = False, primary_key=True)</span>
 <span class="c"># )</span>
-<span class="c"># </span>
-<span class="c"># class Todo(Base):</span>
-<span class="c">#     __tablename__ = &#39;todo&#39;</span>
-<span class="c">#     id = Column(Integer, primary_key=True)</span>
-<span class="c">#     content = Column(Text(collation=&#39;utf8_general_ci&#39;), nullable = False)</span>
-<span class="c">#     push_date_time = Column(DateTime, nullable = False)</span>
-<span class="c">#     order = Column(Integer, nullable = False)</span>
-<span class="c">#     priority = Column(Integer, default = 2, nullable = False)</span>
-<span class="c">#     in_trash = Column(Boolean, default=False, nullable = False)</span>
-<span class="c"># </span>
-<span class="c">#     owner_user_id = Column(Integer, ForeignKey(&#39;user.id&#39;), nullable = False)</span>
-<span class="c">#     owner = relationship(&#39;User&#39;, backref = backref(&#39;todos&#39;, lazy=&#39;subquery&#39;))</span>
-<span class="c"># </span>
-<span class="c">#     tags = relationship(&quot;Tag&quot;, secondary=tag_todo_assication, backref=&quot;todos&quot;)</span>
-<span class="c"># </span>
-<span class="c">#     def __str__(self):</span>
-<span class="c">#         return str({&quot;id&quot;:self.id, &quot;content&quot;:self.content, &quot;order&quot;:self.order, &quot;owner_user_id&quot;:self.owner_user_id, &quot;priority&quot;:self.priority, &quot;tags&quot;: self.tags})</span>
-<span class="c">#     def __repr__(self):</span>
-<span class="c">#         return self.__str__()</span>
-<span class="c">#     def __init__(self, content, owner_user_id):</span>
-<span class="c">#         self.owner_user_id = owner_user_id</span>
-<span class="c">#         self.push_date_time = datetime.utcnow()</span>
-<span class="c">#         self.content = content</span>
+<span class="c"># </span></div></div>
+<div class="viewcode-block" id="Todo"><a class="viewcode-back" href="../../../app2.libs.html#app2.libs.model.Todo">[docs]</a><span class="k">class</span> <span class="nc">Todo</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;todo&#39;</span>
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span> <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s">&#39;owner_user_id&#39;</span><span class="p">,</span> <span class="s">&#39;order&#39;</span><span class="p">),)</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">(</span><span class="n">collation</span><span class="o">=</span><span class="s">&#39;utf8_general_ci&#39;</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">push_date_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">priority</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">in_trash</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">owner_user_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;user.id&#39;</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">owner</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&#39;User&#39;</span><span class="p">,</span> <span class="n">backref</span> <span class="o">=</span> <span class="n">backref</span><span class="p">(</span><span class="s">&#39;todos&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s">&#39;subquery&#39;</span><span class="p">))</span>
+
+    <span class="c"># tags = relationship(&quot;Tag&quot;, secondary=tag_todo_assication, backref=&quot;todos&quot;)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">({</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s">&quot;content&quot;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s">&quot;order&quot;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">,</span> <span class="s">&quot;owner_user_id&quot;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">owner_user_id</span><span class="p">,</span> <span class="s">&quot;priority&quot;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span> <span class="s">&quot;tags&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">})</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__str__</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">owner</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">push_date_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="n">order</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">content</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">content</span>
 <span class="c"># </span>
 <span class="c"># class Tag(Base):</span>
 <span class="c">#     __tablename__ = &#39;tag&#39;</span>
@@ -150,7 +167,7 @@
 <span class="c">#     def __str__(self):</span>
 <span class="c">#         return str({&quot;id&quot;:self.id, &quot;name&quot;:self.name})</span>
 <span class="c">#     def __repr__(self):</span>
-<span class="c">#         return self.__str__()</span></div></div>
+<span class="c">#         return self.__str__()</span></div>
 </pre></div>
 
           </div>

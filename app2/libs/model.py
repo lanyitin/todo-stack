@@ -1,13 +1,29 @@
 # -*- coding: utf-8 -*-
 import hashlib
-from sqlalchemy import Column 
-from sqlalchemy import String, Integer
+from sqlalchemy import Column, ForeignKey, UniqueConstraint
+from sqlalchemy import String, Text, DateTime, Boolean, Integer
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
 Base = declarative_base()
 
 class User(Base):
+    '''
+    Attributes:
+        id (num): unique identifier number, only assigned by database
+
+        username (str): the username, which is **unique** among all users, of this user.
+
+        email (str): the email, which is **unique** as well among all users, of this user.
+
+        __password__ (str): encrypted password that is stored in database.
+
+        .. warning::
+            do not directly access this property
+
+        password (str): getter/setter of __password__, we perform encryption in this function.
+    '''
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     username = Column(String(80), unique=True, nullable = False)
@@ -17,10 +33,8 @@ class User(Base):
     @property
     def password(self):
         '''
-        the password encryption should be done in model
-        so the attribute **__password__** mapped to colume **password**
-
-        and the attribute **password** is a public interface to deal with password encryption
+        Parameters:
+            password(str): plain text of password
         '''
         return self.__password__
     @password.setter
@@ -66,28 +80,37 @@ class User(Base):
 #     Column("tag_id", Integer, ForeignKey('tag.id'), nullable = False, primary_key=True)
 # )
 # 
-# class Todo(Base):
-#     __tablename__ = 'todo'
-#     id = Column(Integer, primary_key=True)
-#     content = Column(Text(collation='utf8_general_ci'), nullable = False)
-#     push_date_time = Column(DateTime, nullable = False)
-#     order = Column(Integer, nullable = False)
-#     priority = Column(Integer, default = 2, nullable = False)
-#     in_trash = Column(Boolean, default=False, nullable = False)
-# 
-#     owner_user_id = Column(Integer, ForeignKey('user.id'), nullable = False)
-#     owner = relationship('User', backref = backref('todos', lazy='subquery'))
-# 
-#     tags = relationship("Tag", secondary=tag_todo_assication, backref="todos")
-# 
-#     def __str__(self):
-#         return str({"id":self.id, "content":self.content, "order":self.order, "owner_user_id":self.owner_user_id, "priority":self.priority, "tags": self.tags})
-#     def __repr__(self):
-#         return self.__str__()
-#     def __init__(self, content, owner_user_id):
-#         self.owner_user_id = owner_user_id
-#         self.push_date_time = datetime.utcnow()
-#         self.content = content
+class Todo(Base):
+    __tablename__ = 'todo'
+    __table_args__ = ( UniqueConstraint('owner_user_id', 'order', 'in_trash'),)
+    id = Column(Integer, primary_key=True)
+    content = Column(Text(collation='utf8_general_ci'), nullable = False)
+    push_date_time = Column(DateTime, nullable = False)
+    '''
+    an user cannot have two or more todos that have same order
+
+    .. code::
+        __table_args__ = ( UniqueConstraint('owner_user_id', 'order', 'in_trash'),)
+    '''
+    order = Column(Integer, nullable = False)
+    priority = Column(Integer, default = 2, nullable = False)
+    in_trash = Column(Boolean, default=False, nullable = False)
+    owner_user_id = Column(Integer, ForeignKey('user.id'), nullable = False)
+    owner = relationship('User', backref = backref('todos', lazy='subquery'))
+
+    # tags = relationship("Tag", secondary=tag_todo_assication, backref="todos")
+
+    def __str__(self):
+        return str({"id":self.id, "content":self.content, "order":self.order, "owner_user_id":self.owner_user_id, "priority":self.priority, "tags": self.tags})
+    def __repr__(self):
+        return self.__str__()
+    def __init__(self, content, order, owner):
+        self.owner = owner
+        self.push_date_time = datetime.utcnow()
+        self.order = order
+        if len(str(content)) == 0:
+            content = None
+        self.content = content
 # 
 # class Tag(Base):
 #     __tablename__ = 'tag'
