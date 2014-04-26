@@ -21,7 +21,7 @@ class DatabaseTestCase(unittest.TestCase):
         session -> engine <- metadata
     '''
     def setUp(self):
-        self.engine = create_engine('mysql+mysqlconnector://stacktodos:stacktodos@localhost/stacktodos_test', echo=True)
+        self.engine = create_engine('mysql+mysqlconnector://stacktodos:stacktodos@localhost/stacktodos_test', echo=False)
         Session = sessionmaker()
         Session.configure(bind=self.engine)  # once engine is available
         self.session = Session()
@@ -79,7 +79,7 @@ class tag_test(DatabaseTestCase):
         self.user = self.session.query(User).first()
 
     def test_constructor(self):
-        tag = Todo(content="Hello World", owner=self.user, order=0)
+        tag = Todo(content="Hello World", owner=self.user)
         self.session.add(tag)
         self.session.commit()
         tag = self.session.query(Todo).filter_by(owner=self.user).first()
@@ -88,14 +88,26 @@ class tag_test(DatabaseTestCase):
 
     @raises(IntegrityError)
     def test_content_cannot_be_empty_string(self):
-        tag = Todo(content="", owner=self.user, order=0)
+        tag = Todo(content="", owner=self.user)
         self.session.add(tag)
         self.session.commit()
 
     @raises(IntegrityError)
     def test_a_user_cannot_have_two_todos_that_have_same_order(self):
-        tag = Todo(content="123", owner=self.user, order=0)
-        self.session.add(tag)
-        tag = Todo(content="321", owner=self.user, order=0)
-        self.session.add(tag)
+        todo = Todo(content="123", owner=self.user)
+        self.session.add(todo)
+        todo = Todo(content="321", owner=self.user)
+        self.session.add(todo)
+        self.session.commit()
+
+    @raises(IntegrityError)
+    def test_a_user_cannot_have_two_todos_that_have_same_order_even_in_trash(self):
+        todo = Todo(content="123", owner=self.user)
+        todo.in_trash = True
+        self.session.add(todo)
+        todo = Todo(content="321", owner=self.user)
+        self.session.add(todo)
+        self.session.commit()
+        todo.in_trash = True
+        self.session.add(todo)
         self.session.commit()

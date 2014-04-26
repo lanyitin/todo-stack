@@ -101,13 +101,13 @@ class Todo(Base):
     # tags = relationship("Tag", secondary=tag_todo_assication, backref="todos")
 
     def __str__(self):
-        return str({"id":self.id, "content":self.content, "order":self.order, "owner_user_id":self.owner_user_id, "priority":self.priority, "tags": self.tags})
+        return str({"id":self.id, "content":self.content, "order":self.order, "owner_user_id":self.owner_user_id, "priority":self.priority})
     def __repr__(self):
         return self.__str__()
-    def __init__(self, content, order, owner):
+    def __init__(self, content, owner):
+        self.order = -1
         self.owner = owner
         self.push_date_time = datetime.utcnow()
-        self.order = order
         if len(str(content)) == 0:
             content = None
         self.content = content
