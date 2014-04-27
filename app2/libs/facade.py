@@ -114,3 +114,12 @@ class Facade:
         target_todo.order = toOrder 
         self.session.add(target_todo)
         self.session.commit()
+
+    def clean_trash(self, user):
+        self.session.query(Todo).filter_by(owner=user, in_trash=True).delete()
+        self.session.commit()
+
+    def remove_todo(self, user, todo):
+        self.session.delete(todo)
+        self.session.commit()
+        return [todo]

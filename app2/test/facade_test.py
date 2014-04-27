@@ -45,7 +45,7 @@ class facade_test(DatabaseTestCase):
                 username="username1",
                 password="password1",
                 email="username@domain.name",
-            )
+        )
         self.session.add(user)
         todo = Todo(content="Hello2", owner=user)
         self.session.add(todo)
@@ -146,3 +146,40 @@ class facade_test(DatabaseTestCase):
         self.assertEquals("8", query_todos[7].content)
         self.assertEquals("9", query_todos[8].content)
         self.assertEquals("1", query_todos[9].content)
+
+    def test_clean_trash(self):
+        user = self.facade.register("username1", \
+            "password1", "username@domain.name")
+        for i in range(10):
+            todo = Todo(content=str(i), owner=user)
+            if i % 2 == 0:
+                todo.in_trash = True
+            self.facade.push_todo(user, todo)
+        todos = self.facade.find_todos_by_owner(user)
+        in_trash_todos = [todo for todo in todos if todo.in_trash == True]
+        self.assertEquals(5, len(in_trash_todos))
+        self.facade.clean_trash(user)
+        todos = self.facade.find_todos_by_owner(user)
+        in_trash_todos = [todo for todo in todos if todo.in_trash == True]
+        self.assertEquals(0, len(in_trash_todos))
+
+    def test_remove_todo(self):
+        user = self.facade.register("username1", \
+            "password1", "username@domain.name")
+        for i in range(10):
+            todo = Todo(content=str(i), owner=user)
+            self.facade.push_todo(user, todo)
+        todos = sorted(self.facade.find_todos_by_owner(user), key=lambda todo: todo.order)
+        return_by_move = self.facade.remove_todo(user=user, todo=todos[0])
+
+        query_todos = sorted(self.facade.find_todos_by_owner(user), key=lambda todo: todo.order)
+        self.assertEquals(9, len(query_todos))
+        self.assertEquals("1", query_todos[0].content)
+        self.assertEquals("2", query_todos[1].content)
+        self.assertEquals("3", query_todos[2].content)
+        self.assertEquals("4", query_todos[3].content)
+        self.assertEquals("5", query_todos[4].content)
+        self.assertEquals("6", query_todos[5].content)
+        self.assertEquals("7", query_todos[6].content)
+        self.assertEquals("8", query_todos[7].content)
+        self.assertEquals("9", query_todos[8].content)
