@@ -13,6 +13,7 @@ install:
     - pip install coveralls
 
 before-script:
+    - mysql -u root 'create database stacktodos'
     - alembic -c migrations/alembic.ini upgrade head
 
 script:

@@ -7,6 +7,7 @@ Flask-Login==0.2.9
 Flask-Script==0.6.6
 
 SQLAlchemy==0.9.3
+alembic==0.6.4
 mysql-connector-python==1.1.6
 
 cssmin==0.2.0
