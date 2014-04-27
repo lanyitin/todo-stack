@@ -96,6 +96,7 @@ class Facade:
     def __move_todo_template__(self, todos, order_offset_op, order_cmp_op1, order_cmp_op2, toOrder, fromOrder):
         ''' spent too much time in iterate through list '''
         todos = [todo for todo in todos]
+        changed_todos = []
         target_todo = None
         for todo in todos:
             if todo.order == fromOrder:
@@ -110,10 +111,13 @@ class Facade:
                 todo.order = order_offset_op(todo.order, 1)
                 self.session.add(todo)
                 self.session.commit()
+                changed_todos.append(todo)
 
         target_todo.order = toOrder 
         self.session.add(target_todo)
         self.session.commit()
+        changed_todos.append(target_todo)
+        return changed_todos
 
     def clean_trash(self, user):
         todos = self.session.query(Todo).filter_by(owner=user, in_trash=True).all()
@@ -126,3 +130,10 @@ class Facade:
         self.session.delete(todo)
         self.session.commit()
         return [todo]
+
+    def raise_priority(self, user, todo):
+        todo.priority += 1
+        todo.priority %= 5
+        self.session.add(todo)
+        self.session.commit()
+        return todo

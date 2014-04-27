@@ -186,3 +186,20 @@ class facade_test(DatabaseTestCase):
         self.assertEquals("7", query_todos[6].content)
         self.assertEquals("8", query_todos[7].content)
         self.assertEquals("9", query_todos[8].content)
+
+    def test_raise_priority(self):
+        user = self.facade.register("username1", \
+            "password1", "username@domain.name")
+        todo = Todo(content=str(0), owner=user)
+        self.facade.push_todo(user, todo)
+        self.assertEquals(2, todo.priority)
+        self.facade.raise_priority(user, todo)
+        self.assertEquals(3, todo.priority)
+        self.facade.raise_priority(user, todo)
+        self.assertEquals(4, todo.priority)
+        self.facade.raise_priority(user, todo)
+        self.assertEquals(0, todo.priority)
+        self.facade.raise_priority(user, todo)
+        self.assertEquals(1, todo.priority)
+        self.facade.raise_priority(user, todo)
+        self.assertEquals(2, todo.priority)
