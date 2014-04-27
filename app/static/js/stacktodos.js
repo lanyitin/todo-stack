@@ -151,7 +151,7 @@ function CoreController($scope, $http, $filter, $sce, $log) {
                 delete tmp_stack[idx];
             }
         });
-        $scope.stack = tmp_stack;
+        $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined});
     });
     $scope.clean_trash = function () {
         $scope.$emit('cleanTrash');
