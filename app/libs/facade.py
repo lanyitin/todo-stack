@@ -47,8 +47,16 @@ class Facade:
         return [todo]
 
     def append_todo(self, user, todo):
-        self.engine.execute("update `todo` set `order`=`order`+1 where `owner_user_id`=" + str(user.id) + " and `in_trash`=false")
-
+        exists_todos = sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)
+        exists_todos = filter(lambda todo: todo.in_trash == False, exists_todos)
+                
+        for exists_todo in reversed(exists_todos):
+            '''
+                the reason that I use **reversed** is avoiding IntegrityError
+            '''
+            exists_todo.order += 1
+            self.session.add(exists_todo)
+            self.session.commit()
         todo.order = 0
         self.session.add(todo)
         self.session.commit()

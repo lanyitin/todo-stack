@@ -6,8 +6,6 @@ Flask-Login==0.2.9
 
 Flask-Script==0.6.6
 
-Flask-SQLAlchemy==1.0
-Flask-Migrate==1.2.0
 SQLAlchemy==0.9.3
 mysql-connector-python==1.1.6
 
