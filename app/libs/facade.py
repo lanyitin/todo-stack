@@ -135,7 +135,7 @@ class Facade:
         todo.raise_priority()
         self.session.add(todo)
         self.session.commit()
-        return todo
+        return [todo]
 
     def find_user_by_credential(self, username, password):
         user = self.session.query(User).filter_by(username=username).first()

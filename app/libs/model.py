@@ -68,17 +68,17 @@ class User(Base):
         ''' used by flask-login '''
         return self.id
 
-# class Connection(Base):
-#     __tablename__ = 'connection'
-#     id = Column(Integer, primary_key=True)
-#     user_id = Column(Integer, ForeignKey('user.id'))
-#     provider_id = Column(String(255))
-#     provider_user_id = Column(String(255))
-#     access_token = Column(String(255))
-#     secret = Column(String(255))
-#     display_name = Column(String(255))
-#     profile_url = Column(String(512))
-# 
+class Connection(Base):
+    __tablename__ = 'connection'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    provider_id = Column(String(255))
+    provider_user_id = Column(String(255))
+    access_token = Column(String(255))
+    secret = Column(String(255))
+    display_name = Column(String(255))
+    profile_url = Column(String(512))
+
 # tag_todo_assication = Table('tag_todo_association',
 #     Column("todo_id", Integer, ForeignKey('todo.id'), nullable = False, primary_key=True),
 #     Column("tag_id", Integer, ForeignKey('tag.id'), nullable = False, primary_key=True)

@@ -2,22 +2,22 @@
 import hashlib
 import json
 import os
+
+from sqlalchemy import create_engine, and_, desc
+from sqlalchemy.orm import sessionmaker
+
 from flask import Flask, request, g, redirect, url_for, \
     render_template, make_response, Response, session
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user, \
     logout_user, current_user, login_required
-from flask.ext.sqlalchemy import SQLAlchemy
-from core.model import db, Todo, User, Tag, Connection
-from facade import Facade
-from sqlalchemy import and_, desc
+from libs.model import Base, Todo, User, Connection
+from libs.facade import Facade
 from flask_oauth import OAuth
 
 oauth = OAuth()
 
 login_manager = LoginManager()
-
-facade = Facade()
 
 app = Flask(__name__)
 
@@ -26,7 +26,9 @@ if 'STACKTODOS_DEVELOPMENT_ENVIRONMENT' in os.environ:
 else:
     app.config.from_object('app.config.ProductionConfig')
 
-db.init_app(app)
+engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
+Session = sessionmaker()
+Session.configure(bind=engine)  # once engine is available
 
 assets = Environment(app)
 
@@ -46,15 +48,12 @@ facebook = oauth.remote_app(
 
 
 def todo2dict(todo):
-    tags = list()
-    for tag in todo.tags:
-        tags.append(tag.name)
     return {
         "id": todo.id,
         "content": todo.content,
         "priority": todo.priority,
         "order": todo.order,
-        "tags": tags,
+        "in_trash": todo.in_trash,
     }
 
 
@@ -67,24 +66,26 @@ app.jinja_env.filters['todo2json'] = todo2json
 
 @app.before_request
 def before_request():
+    g.db_session = Session()
+    g.facade = Facade(session=g.db_session, engine=engine)
     g.user = current_user
+
+@app.after_request
+def after_request(response):
+    g.db_session.close()
+    g.db_session = None
+    g.facade = None
+    return response
 
 
 @login_manager.user_loader
 def load_user(id):
-    return db.session.query(User).filter_by(id=id).first()
+    return g.db_session.query(User).filter_by(id=id).first()
 
 
 @app.errorhandler(500)
 def page_not_found(error):
     return str(error)
-
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
 
 
 @app.route('/login/', methods=['GET', 'POST'])
@@ -97,7 +98,7 @@ def login():
 
     username = request.form['username']
     password = request.form['password']
-    registered_user = facade.find_user_by_credential(username, password)
+    registered_user = g.facade.find_user_by_credential(username, password)
     if registered_user is None:
         return redirect(url_for('login'))
     login_user(registered_user)
@@ -129,12 +130,12 @@ def oauth_authorized(oauth_resp):
     resp = facebook.get('/me')
     if resp.status == 200:
         profile = resp.data
-        connection = Connection.query.filter_by(
+        connection = g.db_session.query(Connection).filter_by(
             provider_id='facebook',
             provider_user_id=profile['id']
         ).first()
         if connection is None:
-            new_user = facade.register(
+            new_user = g.facade.register(
                 'facebook_' + profile['id'],
                 '',
                 profile['email'],
@@ -147,11 +148,11 @@ def oauth_authorized(oauth_resp):
             connection.secret = ''
             connection.display_name = profile['name']
             connection.profile_url = profile['link']
-            db.session.add(connection)
-            db.session.commit()
+            g.db_session.add(connection)
+            g.db_session.commit()
             login_user(new_user)
         else:
-            user = User.query.filter_by(id=connection.user_id).first()
+            user = g.db_session.query(User).filter_by(id=connection.user_id).first()
             login_user(user)
     return redirect(next_url)
 
@@ -175,19 +176,18 @@ def register():
     username = request.form['username']
     email = request.form['email']
     password = request.form['password']
-    facade.register(username, password, email)
+    g.facade.register(username, password, email)
     return redirect(url_for('login'))
 
 
 @app.route('/')
 @login_required
 def main():
-    stack, trash_stack = facade.find_all_todos(g.user.id)
+    todos = g.facade.find_todos_by_owner(g.user)
     return make_response(
         render_template(
             "display_stack.html",
-            stack=stack,
-            trash_stack=trash_stack,
+            stack=todos,
         )
     )
 
@@ -195,14 +195,14 @@ def main():
 @app.route('/push/', methods=["POST"])
 @login_required
 def pushItem():
-    todo = facade.push_todo(g.user.id, request.json["item"])
-    return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
+    todos = g.facade.push_todo(g.user, Todo(content=request.json["item"], owner=g.user))
+    return Response(json.dumps([todo2dict(todos[0])]), mimetype='application/json')
 
 
 @app.route('/append/', methods=["POST"])
 @login_required
 def appendItem():
-    response = facade.append_todo(g.user.id, request.json["item"])
+    response = g.facade.append_todo(g.user, Todo(content=request.json["item"], owner=g.user))
     response = map(todo2dict, response)
     return Response(json.dumps(response), mimetype='application/json')
 
@@ -210,10 +210,10 @@ def appendItem():
 @app.route('/moveToTrash/<int:todoid>/', methods=["GET"])
 @login_required
 def moveToTrash(todoid):
-    todo = facade.move_todo_to_trash(todoid)
-    if todo is not None:
+    todos = g.facade.move_todo_to_trash(g.user, g.facade.find_todo_by_id(todoid))
+    if todos is not None:
         return Response(
-            json.dumps([todo2dict(todo)]),
+            json.dumps([todo2dict(todos[0])]),
             mimetype='application/json',
         )
 
@@ -221,7 +221,7 @@ def moveToTrash(todoid):
 @app.route('/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
 @login_required
 def moveItem(fromIndex, toIndex):
-    response = facade.move_todo(g.user.id, fromIndex, toIndex)
+    response = g.facade.move_todo(g.user, fromIndex, toIndex)
     response = map(todo2dict, response)
     return Response(json.dumps(response), mimetype='application/json')
 
@@ -229,14 +229,14 @@ def moveItem(fromIndex, toIndex):
 @app.route('/removeItem/<int:todoid>/', methods=["GET"])
 @login_required
 def removeItem(todoid):
-    todo = facade.remove_todo(g.user.id, todoid)
-    return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
+    todos = g.facade.remove_todo(g.user, g.facade.find_todo_by_id(todoid))
+    return Response(json.dumps([todo2dict(todos[0])]), mimetype='application/json')
 
 
 @app.route('/clean_trash/', methods=["GET"])
 @login_required
 def cleanTrash():
-    response = facade.clean_trash(g.user.id)
+    response = g.facade.clean_trash(g.user)
     response = map(todo2dict, response)
     return Response(json.dumps(response), mimetype='application/json')
 
@@ -244,24 +244,5 @@ def cleanTrash():
 @app.route('/raisePriority/<int:todoid>/', methods=["GET"])
 @login_required
 def raisePriority(todoid):
-    todo = facade.raise_priority(todoid)
-    return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
-
-
-@app.route('/tag/list/', methods=["GET"])
-@login_required
-def tagList():
-    return make_response(str(facade.find_all_tag(g.user.id)))
-
-
-@app.route('/tag/<tagName>/')
-@login_required
-def displayTag(tagName):
-    stack, trash_stack = facade.find_by_tag(g.user.id, tagName)
-    return make_response(
-        render_template(
-            "display_stack.html",
-            stack=stack,
-            trash_stack=trash_stack,
-        )
-    )
+    todos = g.facade.raise_priority(g.user, g.facade.find_todo_by_id(todoid))
+    return Response(json.dumps([todo2dict(todos[0])]), mimetype='application/json')
