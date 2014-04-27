@@ -1,5 +1,5 @@
 from sqlalchemy.exc import IntegrityError
-from app2.libs.model import User, Todo
+from app.libs.model import User, Todo
 import operator
 
 class Facade:

@@ -1,8 +1,8 @@
 import unittest
 from nose.tools import raises
-from app2.libs.facade import Facade, UserNotFoundError, PasswordNotCorrectError
-from app2.libs.model import Base, User, Todo
-from app2.test.model_test import DatabaseTestCase
+from app.libs.facade import Facade, UserNotFoundError, PasswordNotCorrectError
+from app.libs.model import Base, User, Todo
+from app.test.model_test import DatabaseTestCase
 
 class facade_test(DatabaseTestCase):
     def setUp(self):
