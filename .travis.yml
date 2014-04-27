@@ -13,7 +13,7 @@ install:
     - pip install coveralls
 
 before-script:
-    - python . db upgrade
+    - alembic -c migrations/alembic.ini upgrade head
 
 script:
     - nosetests --with-coverage --cover-package=app
