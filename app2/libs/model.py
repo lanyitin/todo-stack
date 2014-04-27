@@ -82,7 +82,7 @@ class User(Base):
 # 
 class Todo(Base):
     __tablename__ = 'todo'
-    __table_args__ = ( UniqueConstraint('owner_user_id', 'order', 'in_trash'),)
+    __table_args__ = ( UniqueConstraint('owner_user_id', 'order', 'in_trash', name="owner_order_trash"),)
     id = Column(Integer, primary_key=True)
     content = Column(Text(collation='utf8_general_ci'), nullable = False)
     push_date_time = Column(DateTime, nullable = False)

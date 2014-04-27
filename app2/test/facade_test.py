@@ -82,3 +82,67 @@ class facade_test(DatabaseTestCase):
         for i in range(11):
             self.assertEquals(str(i), todos[i].content)
             self.assertEquals(i, todos[i].order)
+
+    def test_move_todo_to_trash(self):
+        user = self.facade.register("username1", \
+            "password1", "username@domain.name")
+        for i in range(1, 9):
+            todo = Todo(content=str(i), owner=user)
+            self.facade.push_todo(user, todo)
+        todo = Todo(content=str(0), owner=user)
+        todos = sorted(self.facade.append_todo(user, todo), key=lambda todo: todo.order)
+        todos = filter(lambda todo: todo.in_trash == False, todos)
+        self.assertEquals("4", todos[4].content)
+        self.facade.move_todo_to_trash(todo=todos[4], user=user)
+        todos_after_move_one_to_trash = filter(lambda todo: todo.in_trash == False, self.facade.find_todos_by_owner(user))
+        self.assertTrue(9, len(todos_after_move_one_to_trash))
+        for i in range(len(todos_after_move_one_to_trash)):
+            print todos_after_move_one_to_trash[i].content, i
+            self.assertNotEquals("4", todos_after_move_one_to_trash[i].content)
+
+    def test_move_todo_while_nothing_to_mvoe(self):
+        user = self.facade.register("username1", \
+            "password1", "username@domain.name")
+        self.assertEquals(None, self.facade.move_todo(user=user, fromOrder=1, toOrder=2))
+
+    def test_move_todo_from_high_to_low(self):
+        user = self.facade.register("username1", \
+            "password1", "username@domain.name")
+        for i in range(10):
+            todo = Todo(content=str(i), owner=user)
+            self.facade.push_todo(user, todo)
+        return_by_move = self.facade.move_todo(user=user, fromOrder=9, toOrder=1)
+
+        query_todos = sorted(self.facade.find_todos_by_owner(user), key=lambda todo: todo.order)
+        self.assertEquals(10, len(query_todos))
+        self.assertEquals("0", query_todos[0].content)
+        self.assertEquals("9", query_todos[1].content)
+        self.assertEquals("1", query_todos[2].content)
+        self.assertEquals("2", query_todos[3].content)
+        self.assertEquals("3", query_todos[4].content)
+        self.assertEquals("4", query_todos[5].content)
+        self.assertEquals("5", query_todos[6].content)
+        self.assertEquals("6", query_todos[7].content)
+        self.assertEquals("7", query_todos[8].content)
+        self.assertEquals("8", query_todos[9].content)
+
+    def test_move_todo_from_low_to_high(self):
+        user = self.facade.register("username1", \
+            "password1", "username@domain.name")
+        for i in range(10):
+            todo = Todo(content=str(i), owner=user)
+            self.facade.push_todo(user, todo)
+        return_by_move = self.facade.move_todo(user=user, fromOrder=1, toOrder=9)
+
+        query_todos = sorted(self.facade.find_todos_by_owner(user), key=lambda todo: todo.order)
+        self.assertEquals(10, len(query_todos))
+        self.assertEquals("0", query_todos[0].content)
+        self.assertEquals("2", query_todos[1].content)
+        self.assertEquals("3", query_todos[2].content)
+        self.assertEquals("4", query_todos[3].content)
+        self.assertEquals("5", query_todos[4].content)
+        self.assertEquals("6", query_todos[5].content)
+        self.assertEquals("7", query_todos[6].content)
+        self.assertEquals("8", query_todos[7].content)
+        self.assertEquals("9", query_todos[8].content)
+        self.assertEquals("1", query_todos[9].content)

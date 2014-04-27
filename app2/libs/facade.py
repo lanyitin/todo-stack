@@ -1,5 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 from app2.libs.model import User, Todo
+import operator
 
 class Facade:
     '''
@@ -46,7 +47,10 @@ class Facade:
         return [todo]
 
     def append_todo(self, user, todo):
-        for exists_todo in reversed(sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)):
+        exists_todos = sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)
+        exists_todos = filter(lambda todo: todo.in_trash == False, exists_todos)
+                
+        for exists_todo in reversed(exists_todos):
             '''
                 the reason that I use **reversed** is avoiding IntegrityError
             '''
@@ -58,3 +62,55 @@ class Facade:
         self.session.add(todo)
         self.session.commit()
         return self.find_todos_by_owner(user)
+
+    def move_todo_to_trash(self, user, todo):
+        todo.in_trash = True
+        self.session.add(todo)
+        self.session.commit()
+        return [todo]
+
+    def move_todo(self, user, fromOrder, toOrder):
+        exists_todos = sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)
+        exists_todos = filter(lambda todo: todo.in_trash == False, exists_todos)
+        if fromOrder not in range(len(exists_todos)) or toOrder not in range(len(exists_todos)):
+            return None
+        if fromOrder > toOrder:
+            self.__move_todo_template__(
+                todos=reversed(sorted([todo for todo in exists_todos], key=lambda todo: todo.order)),
+                order_cmp_op1=operator.le,
+                order_cmp_op2=operator.lt,
+                order_offset_op=operator.iadd,
+                toOrder=toOrder,
+                fromOrder=fromOrder,
+            )
+        elif fromOrder < toOrder:
+            self.__move_todo_template__(
+                todos=sorted([todo for todo in exists_todos], key=lambda todo: todo.order),
+                order_cmp_op1=operator.ge,
+                order_cmp_op2=operator.gt,
+                order_offset_op=operator.isub,
+                toOrder=toOrder,
+                fromOrder=fromOrder,
+            )
+
+    def __move_todo_template__(self, todos, order_offset_op, order_cmp_op1, order_cmp_op2, toOrder, fromOrder):
+        ''' spent too much time in iterate through list '''
+        todos = [todo for todo in todos]
+        target_todo = None
+        for todo in todos:
+            if todo.order == fromOrder:
+                target_todo = todo
+
+        target_todo.order = -1
+        self.session.add(target_todo)
+        self.session.commit()
+
+        for todo in todos:
+            if order_cmp_op1(toOrder, todo.order) and order_cmp_op2(todo.order, fromOrder):
+                todo.order = order_offset_op(todo.order, 1)
+                self.session.add(todo)
+                self.session.commit()
+
+        target_todo.order = toOrder 
+        self.session.add(target_todo)
+        self.session.commit()
