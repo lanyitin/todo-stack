@@ -12,8 +12,8 @@ install:
     - pip install --allow-external mysql-connector-python -r requirements.txt
     - pip install coveralls
 
-before-script:
-    - mysql -u root 'create database stacktodos'
+before_script:
+    - mysql -u root -e 'create database stacktodos'
     - alembic -c migrations/alembic.ini upgrade head
 
 script:
