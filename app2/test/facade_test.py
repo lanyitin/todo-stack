@@ -158,7 +158,10 @@ class facade_test(DatabaseTestCase):
         todos = self.facade.find_todos_by_owner(user)
         in_trash_todos = [todo for todo in todos if todo.in_trash == True]
         self.assertEquals(5, len(in_trash_todos))
-        self.facade.clean_trash(user)
+        todos = self.facade.clean_trash(user)
+        self.assertEquals(5, len(todos))
+        for todo in todos:
+            self.assertTrue(todo.order % 2 == 0)
         todos = self.facade.find_todos_by_owner(user)
         in_trash_todos = [todo for todo in todos if todo.in_trash == True]
         self.assertEquals(0, len(in_trash_todos))

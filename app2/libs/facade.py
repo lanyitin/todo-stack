@@ -116,8 +116,11 @@ class Facade:
         self.session.commit()
 
     def clean_trash(self, user):
-        self.session.query(Todo).filter_by(owner=user, in_trash=True).delete()
+        todos = self.session.query(Todo).filter_by(owner=user, in_trash=True).all()
+        for todo in todos:
+            self.session.delete(todo)
         self.session.commit()
+        return todos
 
     def remove_todo(self, user, todo):
         self.session.delete(todo)
