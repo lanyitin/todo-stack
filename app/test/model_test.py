@@ -1,4 +1,5 @@
 import unittest
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
@@ -21,7 +22,15 @@ class DatabaseTestCase(unittest.TestCase):
         session -> engine <- metadata
     '''
     def setUp(self):
-        self.engine = create_engine('mysql+mysqlconnector://stacktodos:stacktodos@localhost/stacktodos_test', echo=False)
+        db_connection_str = 'mysql+mysqlconnector://{0}:{1}@{2}:{3}' \
+            '/stacktodos?collation=utf8_general_ci&use_unicode=true&charset=utf8'
+        SQLALCHEMY_DATABASE_URI = db_connection_str.format(
+            os.environ['STACKTODOS_MYSQL_DB_USERNAME'],
+            os.environ['STACKTODOS_MYSQL_DB_PASSWORD'],
+            os.environ['STACKTODOS_MYSQL_DB_HOST'],
+            os.environ['STACKTODOS_MYSQL_DB_PORT'],
+        )
+        self.engine = create_engine(SQLALCHEMY_DATABASE_URI, echo=False)
         Session = sessionmaker()
         Session.configure(bind=self.engine)  # once engine is available
         self.session = Session()
