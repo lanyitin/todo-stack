@@ -427,8 +427,8 @@ $(function() {
             ui.item.data("start_pos", ui.item.index());
         },
         update: function ( event, ui) {
-            var from = ui.item.data("start_pos");
-            var to = ui.item.index();
+            var from = Math.abs(ui.item.data("start_pos") - ($(".stack:not(.trash) .todo").size() - 1));
+            var to = Math.abs(ui.item.index() - ($(".stack:not(.trash) .todo").size() - 1));
             $.ajax({ 
                 url: "/moveItem/" + from + "/" + to + "/"
             }).done(function (data) {

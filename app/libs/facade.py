@@ -75,7 +75,7 @@ class Facade:
         if fromOrder not in range(len(exists_todos)) or toOrder not in range(len(exists_todos)):
             return None
         if fromOrder > toOrder:
-            self.__move_todo_template__(
+            return self.__move_todo_template__(
                 todos=reversed(sorted([todo for todo in exists_todos], key=lambda todo: todo.order)),
                 order_cmp_op1=operator.le,
                 order_cmp_op2=operator.lt,
@@ -84,7 +84,7 @@ class Facade:
                 fromOrder=fromOrder,
             )
         elif fromOrder < toOrder:
-            self.__move_todo_template__(
+            return self.__move_todo_template__(
                 todos=sorted([todo for todo in exists_todos], key=lambda todo: todo.order),
                 order_cmp_op1=operator.ge,
                 order_cmp_op2=operator.gt,

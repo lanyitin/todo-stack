@@ -221,7 +221,7 @@ def moveToTrash(todoid):
 @app.route('/moveItem/<int:fromIndex>/<int:toIndex>/', methods=["GET"])
 @login_required
 def moveItem(fromIndex, toIndex):
-    response = g.facade.move_todo(g.user, fromIndex, toIndex)
+    response = g.facade.move_todo(g.user, fromOrder=fromIndex, toOrder=toIndex)
     response = map(todo2dict, response)
     return Response(json.dumps(response), mimetype='application/json')
 
