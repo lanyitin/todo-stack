@@ -132,8 +132,21 @@ class Facade:
         return [todo]
 
     def raise_priority(self, user, todo):
-        todo.priority += 1
-        todo.priority %= 5
+        todo.raise_priority()
         self.session.add(todo)
         self.session.commit()
         return todo
+
+    def find_user_by_credential(self, username, password):
+        user = self.session.query(User).filter_by(username=username).first()
+        if user is None:
+            raise UserNotFoundError()
+        if user.password != User.generate_password_hash(password):
+            raise PasswordNotCorrectError()
+        return user
+
+
+class UserNotFoundError(Exception):
+    pass
+class PasswordNotCorrectError(Exception):
+    pass

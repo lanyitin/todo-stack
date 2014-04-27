@@ -1,5 +1,6 @@
 import unittest
-from app2.libs.facade import Facade
+from nose.tools import raises
+from app2.libs.facade import Facade, UserNotFoundError, PasswordNotCorrectError
 from app2.libs.model import Base, User, Todo
 from app2.test.model_test import DatabaseTestCase
 
@@ -203,3 +204,19 @@ class facade_test(DatabaseTestCase):
         self.assertEquals(1, todo.priority)
         self.facade.raise_priority(user, todo)
         self.assertEquals(2, todo.priority)
+
+    @raises(UserNotFoundError)
+    def test_find_user_by_credential_while_no_users(self):
+        self.facade.find_user_by_credential("username1", "password")
+
+    @raises(PasswordNotCorrectError)
+    def test_find_user_by_credential_while_password_not_correct(self):
+        user = self.facade.register("username1", \
+            "password1", "username@domain.name")
+        self.facade.find_user_by_credential("username1", "123")
+
+    def test_find_user_by_credential_normal(self):
+        user = self.facade.register("username1", \
+            "password1", "username@domain.name")
+        find_user = self.facade.find_user_by_credential("username1", "password1")
+        self.assertEquals(user.id, find_user.id)

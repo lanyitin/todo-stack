@@ -30,6 +30,10 @@ class User(Base):
     email = Column(String(120), unique=True, nullable = False)
     __password__ = Column('password', String(120), nullable = False)
 
+    @classmethod
+    def generate_password_hash(clazz, password):
+        return hashlib.md5(password).hexdigest()
+
     @property
     def password(self):
         '''
@@ -39,7 +43,7 @@ class User(Base):
         return self.__password__
     @password.setter
     def password(self, password):
-        self.__password__ = hashlib.md5(password).hexdigest()
+        self.__password__ = User.generate_password_hash(password)
 
     def __init__(self, **argus):
         if 'id' in argus:
@@ -99,7 +103,9 @@ class Todo(Base):
     owner = relationship('User', backref = backref('todos', lazy='subquery'))
 
     # tags = relationship("Tag", secondary=tag_todo_assication, backref="todos")
-
+    def raise_priority(self):
+        self.priority += 1
+        self.priority %= 5
     def __str__(self):
         return str({"id":self.id, "content":self.content, "order":self.order, "owner_user_id":self.owner_user_id, "priority":self.priority})
     def __repr__(self):
