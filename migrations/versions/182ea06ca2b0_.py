@@ -19,7 +19,8 @@ def upgrade():
     op.drop_table('tag_todo_association')
     op.drop_table('tag')
     op.create_unique_constraint('owner_order_trash', 'todo', ['owner_user_id', 'order', 'in_trash'])
-    op.drop_constraint(u'password', 'user')
+    # op.drop_constraint(u'password', 'user')
+    print "we need to drop password's unique constraint manually"
     ### end Alembic commands ###
 
 
