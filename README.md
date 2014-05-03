@@ -1,5 +1,8 @@
-[![Build Status](https://travis-ci.org/lanyitin/stack-todos.svg?branch=master)](https://travis-ci.org/lanyitin/stack-todos)
-[![Coverage Status](https://coveralls.io/repos/lanyitin/stack-todos/badge.png)](https://coveralls.io/r/lanyitin/stack-todos)
+Master: [![Master Build Status](https://travis-ci.org/lanyitin/todo-stack.svg?branch=master)](https://travis-ci.org/lanyitin/todo-stack)
+
+Develop:[![Develop Build Status](https://travis-ci.org/lanyitin/todo-stack.svg?branch=develop)](https://travis-ci.org/lanyitin/todo-stack)
+
+Civerage: [![Coverage Status](https://coveralls.io/repos/lanyitin/stack-todos/badge.png)](https://coveralls.io/r/lanyitin/stack-todos)
 
 # Main Idea
 Manage the todo in stack-way.
