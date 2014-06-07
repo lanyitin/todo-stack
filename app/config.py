@@ -18,6 +18,7 @@ class Config:
 
 
 class DevelopConfig(Config):
+    DEBUG = True
     SOCIAL_FACEBOOK_KEY = '1594660774091682'
     SOCIAL_FACEBOOK_SECRET = 'd18dd1548690f65b8b2fbb17becaf93b'
 

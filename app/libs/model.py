@@ -86,17 +86,17 @@ class Connection(Base):
 # 
 class Todo(Base):
     __tablename__ = 'todo'
-    __table_args__ = ( UniqueConstraint('owner_user_id', 'order', 'in_trash', name="owner_order_trash"),)
+    __table_args__ = (UniqueConstraint('owner_user_id', 'order', 'in_trash', name="owner_order_trash"),)
     id = Column(Integer, primary_key=True)
-    content = Column(Text(collation='utf8_general_ci'), nullable = False)
-    push_date_time = Column(DateTime, nullable = False)
+    content = Column(Text(collation='utf8_general_ci'), nullable=False)
+    push_date_time = Column(DateTime, nullable=False)
     '''
     an user cannot have two or more todos that have same order
 
     .. code::
         __table_args__ = ( UniqueConstraint('owner_user_id', 'order', 'in_trash'),)
     '''
-    order = Column(Integer, nullable = False)
+    order = Column(Integer, nullable=False)
     priority = Column(Integer, default = 2, nullable = False)
     in_trash = Column(Boolean, default=False, nullable = False)
     owner_user_id = Column(Integer, ForeignKey('user.id'), nullable = False)
@@ -107,14 +107,14 @@ class Todo(Base):
         self.priority += 1
         self.priority %= 5
     def __str__(self):
-        return str({"id":self.id, "content":self.content, "order":self.order, "owner_user_id":self.owner_user_id, "priority":self.priority})
+        return unicode({"id":self.id, "content":self.content, "order":self.order, "owner_user_id":self.owner_user_id, "priority":self.priority})
     def __repr__(self):
         return self.__str__()
     def __init__(self, content, owner):
         self.order = -1
         self.owner = owner
         self.push_date_time = datetime.utcnow()
-        if len(str(content)) == 0:
+        if len(unicode(content)) == 0:
             content = None
         self.content = content
 # 

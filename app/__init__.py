@@ -22,6 +22,7 @@ login_manager = LoginManager()
 app = Flask(__name__)
 
 if 'STACKTODOS_DEVELOPMENT_ENVIRONMENT' in os.environ:
+    print "develop environment"
     app.config.from_object('app.config.DevelopConfig')
 else:
     app.config.from_object('app.config.ProductionConfig')
@@ -82,10 +83,6 @@ def after_request(response):
 def load_user(id):
     return g.db_session.query(User).filter_by(id=id).first()
 
-
-@app.errorhandler(500)
-def page_not_found(error):
-    return str(error)
 
 
 @app.route('/login/', methods=['GET', 'POST'])
