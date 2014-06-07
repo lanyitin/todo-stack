@@ -12,13 +12,6 @@ class Facade:
             .order_by(Todo.push_date_time).all()
         return stack, trash_stack
 
-    def find_todo_by_tag(self, userid, tagName):
-        stack = Todo.query.filter_by(owner_user_id=userid, in_trash=False) \
-            .filter(Todo.tags.any(name=tagName)).all()
-        trash_stack = Todo.query.filter_by(owner_user_id=userid, in_trash=True) \
-            .order_by(Todo.push_date_time).all()
-        return stack, trash_stack
-
     def push_todo(self, userid, content):
         top_item = Todo.query.filter_by(owner_user_id=userid, in_trash=False) \
             .order_by(desc(Todo.order)).first()
@@ -106,9 +99,6 @@ class Facade:
             db.session.delete(tag)
         db.session.commit()
         return todo
-
-    def find_all_tag(self, userid):
-        return Tag.query.filter_by(owner_user_id=userid).all()
 
     def clean_trash(self, userid):
         todos = Todo.query.filter_by(owner_user_id=userid, in_trash=True).all()

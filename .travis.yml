@@ -12,8 +12,9 @@ install:
     - pip install --allow-external mysql-connector-python -r requirements.txt
     - pip install coveralls
 
-before-script:
-    - python . db upgrade
+before_script:
+    - mysql -u root -e 'create database stacktodos'
+    - alembic -c migrations/alembic.ini upgrade head
 
 script:
     - nosetests --with-coverage --cover-package=app

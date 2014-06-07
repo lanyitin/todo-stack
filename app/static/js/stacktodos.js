@@ -1,6 +1,5 @@
 function CoreController($scope, $http, $filter, $sce, $log) {
     $scope.stack = [];
-    $scope.trash_stack = [];
     $scope.expandTrashStack = false;
 
     $scope.getExpandTrashText = function () {
@@ -65,7 +64,7 @@ function CoreController($scope, $http, $filter, $sce, $log) {
             order_list = $scope.stack.map(function (todo) {
                 return todo.order;
             });
-            todo = {content:$scope.new_todo_content, priority:2, tags:[], id:undefined, order:(Math.max.apply(-1, order_list) + 1)}
+            todo = {content:$scope.new_todo_content, priority:2, tags:[], id:undefined, order:(Math.max.apply(-1, order_list) + 1), in_trash: false}
             todo.id = Date.now();
             if (todo.order === -Infinity) {
                 todo.order = 0;
@@ -77,7 +76,7 @@ function CoreController($scope, $http, $filter, $sce, $log) {
 
     $scope.append = function (todo) {
         if (todo === undefined) {
-            todo = {content:$scope.new_todo_content, priority:2, tags:[], id:undefined, order:0}
+            todo = {content:$scope.new_todo_content, priority:2, tags:[], id:undefined, order:0, in_trash: false}
             todo.id = Date.now();
             $scope.new_todo_content = "";
         }
@@ -107,14 +106,12 @@ function CoreController($scope, $http, $filter, $sce, $log) {
 
     $scope.$on('pop', function (event) {
         tmp_stack = [];
-        angular.forEach($filter('orderBy')($scope.stack, "order", true), function (todo) {
+        angular.forEach($filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false), function (todo) {
             tmp_stack.push(todo);
         });
         if (tmp_stack.length > 0) {
             target = tmp_stack[0];
-            delete tmp_stack[0];
-            $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined})
-        $scope.trash_stack.push(target);
+            target.in_trash = true
         }
     });
     $scope.pop = function () {
@@ -145,7 +142,16 @@ function CoreController($scope, $http, $filter, $sce, $log) {
     }
 
     $scope.$on('cleanTrash', function (event) {
-        $scope.trash_stack = [];
+        var tmp_stack = [];
+        angular.forEach($scope.stack, function(existTodo, idx) {
+            tmp_stack.push(existTodo);
+        });
+        angular.forEach(tmp_stack, function(existTodo, idx) {
+            if (existTodo.in_trash == true) {
+                delete tmp_stack[idx];
+            }
+        });
+        $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined});
     });
     $scope.clean_trash = function () {
         $scope.$emit('cleanTrash');
@@ -202,7 +208,7 @@ function AppController($scope, $http, $filter, $sce, $log) {
                 if (status == 200) {
                     angular.forEach(data, function(item) {
                         if (item.id = id) {
-                            $scope.$emit('update', id);
+                            $scope.$emit('update', item);
                         }
                     });
                 }
@@ -253,7 +259,7 @@ function AppController($scope, $http, $filter, $sce, $log) {
 
 
     $scope.pop = function () {
-        target = $filter('orderBy')($scope.stack, "order", true);
+        target = $filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false);
         if (target.length) {
             target = target[0];
             $http.get("/moveToTrash/" + target.id + "/")
@@ -270,18 +276,7 @@ function AppController($scope, $http, $filter, $sce, $log) {
         $http.get("/clean_trash/")
             .success(function (data, status) {
                 if (status == 200) {
-                    var tmp_trash = [];
-                    angular.forEach($scope.trash_stack, function(existTodo, idx) {
-                        tmp_trash.push(existTodo);
-                    });
-                    angular.forEach(tmp_trash, function(existTodo, idx) {
-                        angular.forEach(data, function(target) {
-                            if (existTodo.id == target.id) {
-                                delete tmp_trash[idx];
-                            }
-                        });
-                    });
-                    $scope.trash_stack = $.grep(tmp_trash, function (item) {return item != undefined});
+                    $scope.$emit("cleanTrash");
                 }
             });
     }
@@ -400,6 +395,17 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
             return items.slice(items.length - 2);
         }
     };
+})
+.filter('is_in_trash', function () {
+    return function (items, in_trash) {
+        ary = [];
+        angular.forEach(items, function (todo) {
+            if (todo.in_trash == in_trash) {
+                ary.push(todo);
+            }
+        });
+        return ary;
+    }
 });
 
 $(document).on("keyup", function(ev) {
@@ -421,8 +427,8 @@ $(function() {
             ui.item.data("start_pos", ui.item.index());
         },
         update: function ( event, ui) {
-            var from = ui.item.data("start_pos");
-            var to = ui.item.index();
+            var from = Math.abs(ui.item.data("start_pos") - ($(".stack:not(.trash) .todo").size() - 1));
+            var to = Math.abs(ui.item.index() - ($(".stack:not(.trash) .todo").size() - 1));
             $.ajax({ 
                 url: "/moveItem/" + from + "/" + to + "/"
             }).done(function (data) {

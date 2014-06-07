@@ -6,7 +6,7 @@
             <div class="btn-group">
                 <div id="trash_expand_collapse_btn" class="btn btn-success" ng-click="toggleExpandTrash()">{[ getExpandTrashText() ]}</div>
                 <button class="btn btn-danger pop control" ng-click="pop()">Pop</button>
-                <div class="btn control clean trash btn-warning" ng-click="clean_trash()">Clean Trash<span class="glyphicon glyphicon-trash"></span></div>
+                <div class="btn control clean trash btn-warning" ng-click="clean_trash()">Clean Trash</span></div>
             </div>
         </div>
         <div class="container">
@@ -15,7 +15,7 @@
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
         </div>
         <div class="stack trash sortable">
-            <div ng-repeat="todo in trash_stack | expand: expandTrashStack" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
+            <div ng-repeat="todo in stack | is_in_trash : true | expand: expandTrashStack" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
                 <div ng-include="'{{ url_for('static', filename='html/todo_view.html') }}'"></div>
             </div>
         </div>
@@ -37,7 +37,7 @@
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
         </div>
         <div class="stack sortable">
-            <div ng-repeat="todo in stack | orderBy: 'order' : true" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
+            <div ng-repeat="todo in stack | is_in_trash: false | orderBy: 'order' | reverse :true" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
                 <div ng-include="'{{ url_for('static', filename='html/todo_view.html') }}'"></div>
             </div>
         </div>
@@ -70,9 +70,6 @@ $(function() {
 var controller = angular.element($("[ng-controller=AppController]")).scope();
 {% for todo in stack %}
 controller.push({{ todo|todo2json|safe }});
-{% endfor %}
-{% for todo in trash_stack %}
-controller.trash_stack.push({{ todo|todo2json|safe }});
 {% endfor %}
 controller.$apply();
 });

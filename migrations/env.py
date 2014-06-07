@@ -15,9 +15,14 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from flask import current_app
+# from flask import current_app
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../"))
+print sys.path[0]
+from app import app as current_app
+from app.libs.model import Base
 config.set_main_option('sqlalchemy.url', current_app.config.get('SQLALCHEMY_DATABASE_URI'))
-target_metadata = current_app.extensions['migrate'].db.metadata
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
