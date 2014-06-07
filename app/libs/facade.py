@@ -48,7 +48,7 @@ class Facade:
 
     def append_todo(self, user, todo):
         exists_todos = sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)
-        exists_todos = filter(lambda todo: todo.in_trash == False, exists_todos)
+        exists_todos = filter(lambda todo: todo.in_trash is False, exists_todos)
                 
         for exists_todo in reversed(exists_todos):
             '''
@@ -63,7 +63,10 @@ class Facade:
         return self.find_todos_by_owner(user)
 
     def move_todo_to_trash(self, user, todo):
+        exists_todos = sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)
+        exists_todos = filter(lambda todo: todo.in_trash is True, exists_todos)
         todo.in_trash = True
+        todo.order = len(exists_todos)
         self.session.add(todo)
         self.session.commit()
         return [todo]

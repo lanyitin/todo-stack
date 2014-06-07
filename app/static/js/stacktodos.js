@@ -130,10 +130,9 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         $scope.$emit('update', todo);
     }
 
-
-    $scope.content_keypress = function ($event) {
-        if ($event.charCode == 13) {
-            if ($event.shiftKey) {
+    $scope.content_keypress = function (event) {
+        if (event.keyCode == 13) {
+            if (event.shiftKey) {
                 $scope.push();
             } else {
                 $scope.append();
@@ -279,6 +278,16 @@ function AppController($scope, $http, $filter, $sce, $log) {
                     $scope.$emit("cleanTrash");
                 }
             });
+    }
+
+    $scope.content_keypress = function (event) {
+        if (event.keyCode == 13) {
+            if (event.shiftKey) {
+                $scope.push();
+            } else {
+                $scope.append();
+            }
+        }
     }
 
 }
