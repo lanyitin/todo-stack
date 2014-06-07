@@ -20,7 +20,8 @@ def upgrade():
     op.drop_table('tag')
     op.create_unique_constraint('owner_order_trash', 'todo', ['owner_user_id', 'order', 'in_trash'])
     # op.drop_constraint(u'password', 'user')
-    print "we need to drop password's unique constraint manually"
+    alterTableSql = "alter table user drop index password";
+    op.execute(alterTableSql);
     ### end Alembic commands ###
 
 
