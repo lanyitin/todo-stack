@@ -433,7 +433,7 @@ $(function() {
                 url: "/moveItem/" + from + "/" + to + "/"
             }).done(function (data) {
                 angular.forEach(data, function (todo) {
-                    angular.element("[ng-controller=AppController").scope().moveTodo(todo);
+                    angular.element("[ng-controller=AppController]").scope().moveTodo(todo);
                 });
             });
         },
