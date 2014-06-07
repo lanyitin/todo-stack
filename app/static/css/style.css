@@ -57,4 +57,9 @@ body {
 }
 #content-input {
   border-color: #999C8C;
+  border-style: solid;
+  border-left-width: 3px;
+  border-right-width: 3px;
+  border-top-width: 0px;
+  border-bottom-width: 0px;
 }
