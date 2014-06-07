@@ -1,54 +1,61 @@
 <!DOCTYPE html>
 <html ng-app="Stacktodos">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Todo Stack</title>
-<link rel="icon" href="{{ url_for('static', filename='image/favicon.png') }}" type="image/png"/>
-{% assets filters='cssmin', output='css/packed.css', 'css/bootstrap.min.css', 'css/style.css' %}
-<link href="{{ ASSET_URL }}" rel="stylesheet" media="screen" />
-{% endassets %}
-<!--[if lt IE 9]>
-    <script src="{{ url_for('static', filename='js/html5shiv.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
-    <![endif]-->
-{% assets 'js/marked.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/angular.min.js', 'js/angular-ui-sortable.js', 'js/stacktodos.js' %}
-<script type="text/javascript" src="{{ ASSET_URL }}"></script>
-{% endassets %}
-</head>
-<body>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <span class="navbar-brand">Stack Todos</span>
+    <head>
+        <meta property="og:site_name" content="Todo Stack" />
+        <meta property="og:title" content="Todo Stack" />
+        <meta property="og:content" content="An experimental todo management tool" />
+        <meta property="og:url" content="http://todos.lanyitin.tw/" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Todo Stack</title>
+        <link rel="icon" href="{{ url_for('static', filename='image/favicon.png') }}" type="image/png"/>
+        {% assets filters='cssmin', output='css/packed.css', 'css/bootstrap.min.css', 'css/style.css' %}
+        <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen" />
+        {% endassets %}
+        <!--[if lt IE 9]>
+        <script src="{{ url_for('static', filename='js/html5shiv.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
+        <![endif]-->
+        {% assets 'js/marked.js', 'js/jquery.min.js', 'js/jquery-ui.min.js', 'js/bootstrap.min.js', 'js/angular.min.js', 'js/angular-ui-sortable.js', 'js/stacktodos.js' %}
+        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+        {% endassets %}
+    </head>
+    <body>
+        <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <span class="navbar-brand">Stack Todos</span>
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                        <a href="https://github.com/lanyitin/todo-stack" target="_blank"><strong>Github</strong></a>
+                        </li>
+                        {% if g.user.is_authenticated() %}
+                        <li>
+                        <a href="#" data-toggle="modal" data-target="#tomatoesModal">Tomatoes</a>
+                        </li>
+                        <li>
+                        <a href="{{ url_for("logout") }}">Log out</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div><!--/.navbar-collapse -->
+            </div>
         </div>
-        {% if g.user.is_authenticated() %}
-        <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav navbar-right">
-                <li>
-                    <a href="#" data-toggle="modal" data-target="#tomatoesModal">Tomatoes</a>
-                </li>
-                <li>
-                    <a href="{{ url_for("logout") }}">Log out</a>
-                </li>
-            </ul>
-        </div><!--/.navbar-collapse -->
-        {% endif %}
-    </div>
-</div>
-<div class="container">
-    <div class="row">
-        {% block body %}{% endblock %}
-    </div>
-</div>
-<script>
-{% block extra_script %}{% endblock %}
-</script>
-</body>
+        <div class="container">
+            <div class="row">
+                {% block body %}{% endblock %}
+            </div>
+        </div>
+        <script>
+            {% block extra_script %}{% endblock %}
+        </script>
+    </body>
 </html>
