@@ -70,11 +70,11 @@ class Facade:
 
     def move_todo(self, user, fromOrder, toOrder):
         exists_todos = sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)
-        exists_todos = filter(lambda todo: todo.in_trash == False, exists_todos)
+        exists_todos = filter(lambda todo: todo.in_trash is False, exists_todos)
         if fromOrder not in range(len(exists_todos)) or toOrder not in range(len(exists_todos)):
             return None
         if fromOrder > toOrder:
-            return self.__move_todo_template__(
+            self.__move_todo_template__(
                 todos=reversed(sorted([todo for todo in exists_todos], key=lambda todo: todo.order)),
                 order_cmp_op1=operator.le,
                 order_cmp_op2=operator.lt,
@@ -83,7 +83,7 @@ class Facade:
                 fromOrder=fromOrder,
             )
         elif fromOrder < toOrder:
-            return self.__move_todo_template__(
+            self.__move_todo_template__(
                 todos=sorted([todo for todo in exists_todos], key=lambda todo: todo.order),
                 order_cmp_op1=operator.ge,
                 order_cmp_op2=operator.gt,
@@ -95,7 +95,6 @@ class Facade:
     def __move_todo_template__(self, todos, order_offset_op, order_cmp_op1, order_cmp_op2, toOrder, fromOrder):
         ''' spent too much time in iterate through list '''
         todos = [todo for todo in todos]
-        changed_todos = []
         target_todo = None
         for todo in todos:
             if todo.order == fromOrder:
@@ -110,13 +109,10 @@ class Facade:
                 todo.order = order_offset_op(todo.order, 1)
                 self.session.add(todo)
                 self.session.commit()
-                changed_todos.append(todo)
 
-        target_todo.order = toOrder 
+        target_todo.order = toOrder
         self.session.add(target_todo)
         self.session.commit()
-        changed_todos.append(target_todo)
-        return changed_todos
 
     def clean_trash(self, user):
         todos = self.session.query(Todo).filter_by(owner=user, in_trash=True).all()

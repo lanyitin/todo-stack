@@ -4,6 +4,7 @@ from app.libs.facade import Facade, UserNotFoundError, PasswordNotCorrectError
 from app.libs.model import Base, User, Todo
 from app.test.model_test import DatabaseTestCase
 
+
 class facade_test(DatabaseTestCase):
     def setUp(self):
         super(facade_test, self).setUp()
@@ -41,6 +42,7 @@ class facade_test(DatabaseTestCase):
         self.session.add(todo)
         self.session.commit()
         self.assertTrue(self.facade.find_todo_by_id(todo.id) is not None)
+
     def test_find_todo_by_id_should_return_none_if_todo_not_exists(self):
         user = User(
                 username="username1",
@@ -112,7 +114,7 @@ class facade_test(DatabaseTestCase):
         for i in range(10):
             todo = Todo(content=str(i), owner=user)
             self.facade.push_todo(user, todo)
-        return_by_move = self.facade.move_todo(user=user, fromOrder=9, toOrder=1)
+        self.facade.move_todo(user=user, fromOrder=9, toOrder=1)
 
         query_todos = sorted(self.facade.find_todos_by_owner(user), key=lambda todo: todo.order)
         self.assertEquals(10, len(query_todos))
@@ -128,14 +130,19 @@ class facade_test(DatabaseTestCase):
         self.assertEquals("8", query_todos[9].content)
 
     def test_move_todo_from_low_to_high(self):
-        user = self.facade.register("username1", \
-            "password1", "username@domain.name")
+        user = self.facade.register(
+            "username1",
+            "password1",
+            "username@domain.name")
         for i in range(10):
             todo = Todo(content=str(i), owner=user)
             self.facade.push_todo(user, todo)
-        return_by_move = self.facade.move_todo(user=user, fromOrder=1, toOrder=9)
+        self.facade.move_todo(user=user, fromOrder=1, toOrder=9)
 
-        query_todos = sorted(self.facade.find_todos_by_owner(user), key=lambda todo: todo.order)
+        query_todos = sorted(
+            self.facade.find_todos_by_owner(user),
+            key=lambda todo: todo.order
+        )
         self.assertEquals(10, len(query_todos))
         self.assertEquals("0", query_todos[0].content)
         self.assertEquals("2", query_todos[1].content)
