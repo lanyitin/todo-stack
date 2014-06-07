@@ -32,18 +32,21 @@
                     </button>
                     <span class="navbar-brand">Stack Todos</span>
                 </div>
-                {% if g.user.is_authenticated() %}
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav navbar-right">
+                        <li>
+                        <a href="https://github.com/lanyitin/todo-stack" target="_blank"><strong>Github</strong></a>
+                        </li>
+                        {% if g.user.is_authenticated() %}
                         <li>
                         <a href="#" data-toggle="modal" data-target="#tomatoesModal">Tomatoes</a>
                         </li>
                         <li>
                         <a href="{{ url_for("logout") }}">Log out</a>
                         </li>
+                        {% endif %}
                     </ul>
                 </div><!--/.navbar-collapse -->
-                {% endif %}
             </div>
         </div>
         <div class="container">
