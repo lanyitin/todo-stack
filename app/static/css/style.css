@@ -56,8 +56,5 @@ body {
   border-color: #428bca;
 }
 #content-input {
-  -webkit-border-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f0ad4e), to(#428bca)) 1 100%;
-  -webkit-border-image: -webkit-linear-gradient(#f0ad4e, #428bca) 1 100%;
-  -o-border-image: -o-linear-gradient(#f0ad4e, #428bca) 1 100%;
-  -moz-border-image: -moz-linear-gradient(#f0ad4e, #428bca) 1 100%;
+  border-color: #999C8C;
 }
