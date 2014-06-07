@@ -15,7 +15,7 @@
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
         </div>
         <div class="stack trash sortable">
-            <div ng-repeat="todo in stack | is_in_trash : true | orderBy: 'order' | expand: expandTrashStack" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
+            <div ng-repeat="todo in stack | is_in_trash : true | orderBy: 'order': false | expand: expandTrashStack" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
                 <div ng-include="'{{ url_for('static', filename='html/todo_view.html') }}'"></div>
             </div>
         </div>

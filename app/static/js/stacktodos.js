@@ -111,7 +111,7 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         });
         if (tmp_stack.length > 0) {
             target = tmp_stack[0];
-            target.in_trash = true
+            target.in_trash = true;
         }
     });
     $scope.pop = function () {
@@ -264,6 +264,7 @@ function AppController($scope, $http, $filter, $sce, $log) {
             $http.get("/moveToTrash/" + target.id + "/")
                 .success(function (data, status) {
                     if (status == 200 && data[0].id == target.id) {
+                        target.order = data[0].order;
                         $scope.$emit('pop');
                     }
                 });
