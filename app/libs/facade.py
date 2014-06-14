@@ -26,7 +26,7 @@ class Facade:
     def find_todos_by_owner(self, owner):
         if owner.id is None:
             return None
-        return self.session.query(Todo).filter_by(owner=owner).all()
+        return self.session.query(Todo).filter_by(owner=owner).with_lockmode('update').all()
 
     def find_todo_by_id(self, id):
         return self.session.query(Todo).filter_by(id=id).first()
@@ -49,17 +49,19 @@ class Facade:
     def append_todo(self, user, todo):
         exists_todos = sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)
         exists_todos = filter(lambda todo: todo.in_trash is False, exists_todos)
-                
-        for exists_todo in reversed(exists_todos):
-            '''
-                the reason that I use **reversed** is avoiding IntegrityError
-            '''
-            exists_todo.order += 1
-            self.session.add(exists_todo)
+        try:
+            for exists_todo in reversed(exists_todos):
+                '''
+                    the reason that I use **reversed** is avoiding IntegrityError
+                '''
+                exists_todo.order += 1
+                self.session.add(exists_todo)
+            todo.order = 0
+            self.session.add(todo)
             self.session.commit()
-        todo.order = 0
-        self.session.add(todo)
-        self.session.commit()
+        except Exception as e:
+            self.session.rollback()
+            raise e
         return self.find_todos_by_owner(user)
 
     def move_todo_to_trash(self, user, todo):
@@ -103,22 +105,21 @@ class Facade:
             if todo.order is fromOrder:
                 target_todo = todo
                 break
+        try:
+            target_todo.order = -1
+            self.session.add(target_todo)
 
-        target_todo.order = -1
-        self.session.add(target_todo)
-        self.session.commit()
+            for todo in todos:
+                if order_cmp_op1(toOrder, todo.order) and order_cmp_op2(todo.order, fromOrder):
+                    todo.order = order_offset_op(todo.order, 1)
+                    self.session.add(todo)
 
-        for todo in todos:
-            if order_cmp_op1(toOrder, todo.order) and order_cmp_op2(todo.order, fromOrder):
-                todo.order = order_offset_op(todo.order, 1)
-                print(todo.order)
-                self.session.add(todo)
-                self.session.commit()
-
-        target_todo.order = toOrder
-        print(target_todo.order)
-        self.session.add(target_todo)
-        self.session.commit()
+            target_todo.order = toOrder
+            self.session.add(target_todo)
+            self.session.commit()
+        except Exception as e:
+            self.session.rollback()
+            raise e
 
     def clean_trash(self, user):
         todos = self.session.query(Todo).filter_by(owner=user, in_trash=True).all()

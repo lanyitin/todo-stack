@@ -271,6 +271,7 @@ function AppController($scope, $http, $filter, $sce, $log) {
         target = $filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false);
         if (target.length) {
             target = target[0];
+            target.in_trash = true;
             $http.get("/moveToTrash/" + target.id + "/")
                 .success(function (data, status) {
                     data = data[0];
