@@ -17,6 +17,9 @@ from flask_oauth import OAuth
 
 from .config import DevelopConfig, ProductionConfig
 
+import smtplib
+from email.mime.text import MIMEText
+
 oauth = OAuth()
 
 login_manager = LoginManager()
@@ -247,3 +250,26 @@ def cleanTrash():
 def raisePriority(todoid):
     todos = g.facade.raise_priority(g.user, g.facade.find_todo_by_id(todoid))
     return Response(json.dumps([todo2dict(todos[0])]), mimetype='application/json')
+
+
+@app.errorhandler(Exception)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+
+    msg = MIMEText(json.dumps(response))
+    fp.close()
+
+    # me == the sender's email address
+    # you == the recipient's email address
+    msg['Subject'] = 'Urgent an exception occured'
+    msg['From'] = 'todo-bot@lanyitin.tw'
+    msg['To'] = 'lanyitin@gmail.com'
+
+    # Send the message via our own SMTP server, but don't include the
+    # envelope header.
+    s = smtplib.SMTP('localhost')
+    s.sendmail(msg['From'], [msg['To']], msg.as_string())
+    s.quit()
+
+    return response
