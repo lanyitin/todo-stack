@@ -8,6 +8,7 @@ class Facade:
     '''
     def __init__(self, session, engine):
         self.session = session
+        self.session.autoFlush = False
         self.engine = engine
 
     def register(self, username, password, email):
@@ -26,10 +27,14 @@ class Facade:
     def find_todos_by_owner(self, owner):
         if owner.id is None:
             return None
-        return self.session.query(Todo).filter_by(owner=owner).all()
+        todos = self.session.query(Todo).filter_by(owner=owner).all()
+        self.session.flush()
+        return todos
 
     def find_todo_by_id(self, id):
-        return self.session.query(Todo).filter_by(id=id).first()
+        todos = self.session.query(Todo).filter_by(id=id).first()
+        self.session.flush()
+        return todos
     
     def push_todo(self, user, todo):
         ''' in order to avoiding coupling with SQLAlchemy
@@ -56,7 +61,7 @@ class Facade:
                 '''
                 exists_todo.order += 1
                 self.session.add(exists_todo)
-                self.session.commit()
+                self.session.flush()
             todo.order = 0
             self.session.add(todo)
             self.session.commit()
@@ -109,17 +114,21 @@ class Facade:
         try:
             target_todo.order = -1
             self.session.add(target_todo)
+            self.session.flush()
 
             for todo in todos:
                 if order_cmp_op1(toOrder, todo.order) and order_cmp_op2(todo.order, fromOrder):
                     todo.order = order_offset_op(todo.order, 1)
                     self.session.add(todo)
-                    self.session.commit()
+                    self.session.flush()
 
             target_todo.order = toOrder
             self.session.add(target_todo)
             self.session.commit()
         except Exception as e:
+            for todo in todos:
+                print(todo.id, todo.order)
+            print(target.id, targer.order)
             self.session.rollback()
             raise e
 
