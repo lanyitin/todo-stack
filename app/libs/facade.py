@@ -26,7 +26,7 @@ class Facade:
     def find_todos_by_owner(self, owner):
         if owner.id is None:
             return None
-        return self.session.query(Todo).filter_by(owner=owner).with_lockmode('update').all()
+        return self.session.query(Todo).filter_by(owner=owner).all()
 
     def find_todo_by_id(self, id):
         return self.session.query(Todo).filter_by(id=id).first()
@@ -56,6 +56,7 @@ class Facade:
                 '''
                 exists_todo.order += 1
                 self.session.add(exists_todo)
+                self.session.commit()
             todo.order = 0
             self.session.add(todo)
             self.session.commit()
@@ -113,6 +114,7 @@ class Facade:
                 if order_cmp_op1(toOrder, todo.order) and order_cmp_op2(todo.order, fromOrder):
                     todo.order = order_offset_op(todo.order, 1)
                     self.session.add(todo)
+                    self.session.commit()
 
             target_todo.order = toOrder
             self.session.add(target_todo)
