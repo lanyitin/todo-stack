@@ -8,7 +8,6 @@ class Facade:
     '''
     def __init__(self, session, engine):
         self.session = session
-        self.session.autoFlush = False
         self.engine = engine
 
     def register(self, username, password, email):
@@ -27,12 +26,12 @@ class Facade:
     def find_todos_by_owner(self, owner):
         if owner.id is None:
             return None
-        todos = self.session.query(Todo).filter_by(owner=owner).all()
+        todos = self.session.query(Todo).filter_by(owner=owner).with_lockmode('update').all()
         self.session.flush()
         return todos
 
     def find_todo_by_id(self, id):
-        todos = self.session.query(Todo).filter_by(id=id).first()
+        todos = self.session.query(Todo).filter_by(id=id).with_lockmode('update').first()
         self.session.flush()
         return todos
     
@@ -41,30 +40,32 @@ class Facade:
         I prefer not to use **sqlalchemy.sql.expression.func.max**
         '''
         todos = self.find_todos_by_owner(user)
-        if len(todos) == 0:
-            todo.order = 0
-        else:
-            order_list = [todo.order for todo in todos]
-            max_order = max(order_list)
-            todo.order = max_order + 1
-        self.session.add(todo)
-        self.session.commit()
+        with self.session.no_autoflush:
+            if len(todos) == 0:
+                todo.order = 0
+            else:
+                order_list = [todo.order for todo in todos]
+                max_order = max(order_list)
+                todo.order = max_order + 1
+            self.session.add(todo)
+            self.session.commit()
         return [todo]
 
     def append_todo(self, user, todo):
         exists_todos = sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)
         exists_todos = filter(lambda todo: todo.in_trash is False, exists_todos)
         try:
-            for exists_todo in reversed(exists_todos):
-                '''
-                    the reason that I use **reversed** is avoiding IntegrityError
-                '''
-                exists_todo.order += 1
-                self.session.add(exists_todo)
-                self.session.flush()
-            todo.order = 0
-            self.session.add(todo)
-            self.session.commit()
+            with self.session.no_autoflush:
+                for exists_todo in reversed(exists_todos):
+                    '''
+                        the reason that I use **reversed** is avoiding IntegrityError
+                    '''
+                    exists_todo.order += 1
+                    self.session.add(exists_todo)
+                    self.session.flush()
+                todo.order = 0
+                self.session.add(todo)
+                self.session.commit()
         except Exception as e:
             self.session.rollback()
             raise e
@@ -82,26 +83,27 @@ class Facade:
     def move_todo(self, user, fromOrder, toOrder):
         exists_todos = sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)
         exists_todos = filter(lambda todo: todo.in_trash is False, exists_todos)
-        if fromOrder not in range(len(exists_todos)) or toOrder not in range(len(exists_todos)):
-            return None
-        if fromOrder > toOrder:
-            self.__move_todo_template__(
-                todos=reversed(sorted([todo for todo in exists_todos], key=lambda todo: todo.order)),
-                order_cmp_op1=operator.le,
-                order_cmp_op2=operator.lt,
-                order_offset_op=operator.iadd,
-                toOrder=toOrder,
-                fromOrder=fromOrder,
-            )
-        elif fromOrder < toOrder:
-            self.__move_todo_template__(
-                todos=sorted([todo for todo in exists_todos], key=lambda todo: todo.order),
-                order_cmp_op1=operator.ge,
-                order_cmp_op2=operator.gt,
-                order_offset_op=operator.isub,
-                toOrder=toOrder,
-                fromOrder=fromOrder,
-            )
+        with self.session.no_autoflush:
+            if fromOrder not in range(len(exists_todos)) or toOrder not in range(len(exists_todos)):
+                return None
+            if fromOrder > toOrder:
+                self.__move_todo_template__(
+                    todos=reversed(sorted([todo for todo in exists_todos], key=lambda todo: todo.order)),
+                    order_cmp_op1=operator.le,
+                    order_cmp_op2=operator.lt,
+                    order_offset_op=operator.iadd,
+                    toOrder=toOrder,
+                    fromOrder=fromOrder,
+                )
+            elif fromOrder < toOrder:
+                self.__move_todo_template__(
+                    todos=sorted([todo for todo in exists_todos], key=lambda todo: todo.order),
+                    order_cmp_op1=operator.ge,
+                    order_cmp_op2=operator.gt,
+                    order_offset_op=operator.isub,
+                    toOrder=toOrder,
+                    fromOrder=fromOrder,
+                )
 
     def __move_todo_template__(self, todos, order_offset_op, order_cmp_op1, order_cmp_op2, toOrder, fromOrder):
         ''' spent too much time in iterate through list '''
