@@ -1,5 +1,5 @@
 from sqlalchemy.exc import IntegrityError
-from app.libs.model import User, Todo
+from .model import User, Todo
 import operator
 
 class Facade:
@@ -100,8 +100,9 @@ class Facade:
         todos = [todo for todo in todos]
         target_todo = None
         for todo in todos:
-            if todo.order == fromOrder:
+            if todo.order is fromOrder:
                 target_todo = todo
+                break
 
         target_todo.order = -1
         self.session.add(target_todo)
@@ -110,10 +111,12 @@ class Facade:
         for todo in todos:
             if order_cmp_op1(toOrder, todo.order) and order_cmp_op2(todo.order, fromOrder):
                 todo.order = order_offset_op(todo.order, 1)
+                print(todo.order)
                 self.session.add(todo)
                 self.session.commit()
 
         target_todo.order = toOrder
+        print(target_todo.order)
         self.session.add(target_todo)
         self.session.commit()
 

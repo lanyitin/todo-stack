@@ -11,9 +11,11 @@ from flask import Flask, request, g, redirect, url_for, \
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user, \
     logout_user, current_user, login_required
-from libs.model import Base, Todo, User, Connection
-from libs.facade import Facade
+from .libs.model import Base, Todo, User, Connection
+from .libs.facade import Facade
 from flask_oauth import OAuth
+
+from .config import DevelopConfig, ProductionConfig
 
 oauth = OAuth()
 
@@ -21,11 +23,12 @@ login_manager = LoginManager()
 
 app = Flask(__name__)
 
+
 if 'STACKTODOS_DEVELOPMENT_ENVIRONMENT' in os.environ:
     print "develop environment"
-    app.config.from_object('app.config.DevelopConfig')
+    app.config.from_object(DevelopConfig)
 else:
-    app.config.from_object('app.config.ProductionConfig')
+    app.config.from_object(ProductionConfig)
 
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
 Session = sessionmaker()

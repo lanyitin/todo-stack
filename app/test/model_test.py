@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from nose.tools import raises
 
-from app.libs.model import User, Todo, Base
+from ..libs.model import User, Todo, Base
 
 class DatabaseTestCase(unittest.TestCase):
     '''

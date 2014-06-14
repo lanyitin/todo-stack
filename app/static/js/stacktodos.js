@@ -104,16 +104,26 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         $scope.$emit("removeItem", todo);
     }
 
-    $scope.$on('pop', function (event) {
+    $scope.$on('pop', function (event, target) {
         tmp_stack = [];
-        angular.forEach($filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false), function (todo) {
-            tmp_stack.push(todo);
-        });
-        if (tmp_stack.length > 0) {
-            target = tmp_stack[0];
-            target.in_trash = true;
+        if (target == undefined) {
+            angular.forEach($filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false), function (todo) {
+                tmp_stack.push(todo);
+            });
+            if (tmp_stack.length > 0) {
+                target = tmp_stack[0];
+                target.in_trash = true;
+            }
+        } else {
+            angular.forEach($scope.stack, function (todo) {
+                if (todo.id == target.id) {
+                    todo.in_trash = target.in_trash;
+                    todo.order = target.order;
+                }
+            });
         }
     });
+
     $scope.pop = function () {
         $scope.$emit('pop');
     }
@@ -263,9 +273,10 @@ function AppController($scope, $http, $filter, $sce, $log) {
             target = target[0];
             $http.get("/moveToTrash/" + target.id + "/")
                 .success(function (data, status) {
-                    if (status == 200 && data[0].id == target.id) {
-                        target.order = data[0].order;
-                        $scope.$emit('pop');
+                    data = data[0];
+                    if (status == 200 && data.id == target.id) {
+                        target.order = data.order;
+                        $scope.$emit('pop', data);
                     }
                 });
         }
