@@ -42,22 +42,6 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         }
     }
 
-    function newItem(action, todo) {
-        if (todo === undefined) {
-            if ($scope.new_todo_content != "") {
-                $http.post(action, {item: $scope.new_todo_content}).success(function (data, status) {
-                    if (status == 200) {
-                        $scope.new_todo_content = "";
-                        angular.forEach(data, function(item) {
-                            $scope.$emit('update', item);
-                        });
-                    }
-                });
-            }
-        } else {
-            handleItem(todo);
-        }
-    }
 
     $scope.push = function (todo) {
         if (todo === undefined) {
@@ -227,12 +211,18 @@ function AppController($scope, $http, $filter, $sce, $log) {
 
     $scope.push = function (todo) {
         if (todo === undefined) {
-            $http.post("/push/", {item: $scope.new_todo_content}).success(function (data, status) {
+            if ($scope.new_todo_content.trim() == "") {
+                return;
+            }
+            var tmp_content = $scope.new_todo_content;
+            $scope.new_todo_content = "";
+            $http.post("/push/", {item: tmp_content }).success(function (data, status) {
                 if (status == 200) {
-                    $scope.new_todo_content = "";
                     angular.forEach(data, function(item) {
                         $scope.$emit("update", item);
                     });
+                } else {
+                    $scope.new_todo_content = tmp_content;
                 }
             });
         } else {
@@ -243,12 +233,19 @@ function AppController($scope, $http, $filter, $sce, $log) {
 
     $scope.append = function (todo) {
         if (todo === undefined) {
-            $http.post("/append/", {item: $scope.new_todo_content}).success(function (data, status) {
+            if ($scope.new_todo_content.trim() == "") {
+                return;
+            }
+            var tmp_content = $scope.new_todo_content;
+            $scope.new_todo_content = "";
+            $http.post("/append/", {item: tmp_content}).success(function (data, status) {
                 if (status == 200) {
                     $scope.new_todo_content = "";
                     angular.forEach(data, function(item) {
                         $scope.$emit("update", item);
                     });
+                } else {
+                    $scope.new_todo_content = tmp_content;
                 }
             });
         } else {
