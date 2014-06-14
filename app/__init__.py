@@ -7,7 +7,8 @@ from sqlalchemy import create_engine, and_, desc
 from sqlalchemy.orm import sessionmaker
 
 from flask import Flask, request, g, redirect, url_for, \
-    render_template, make_response, Response, session
+    render_template, make_response, Response, session, \
+    jsonify
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user, \
     logout_user, current_user, login_required
@@ -254,11 +255,10 @@ def raisePriority(todoid):
 
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
-    response = jsonify(error.to_dict())
-    response.status_code = error.status_code
+    response = Response(unicode(error), mimetype='application/json')
+    response.status_code = 500
 
-    msg = MIMEText(json.dumps(response))
-    fp.close()
+    msg = MIMEText(unicode(error))
 
     # me == the sender's email address
     # you == the recipient's email address
