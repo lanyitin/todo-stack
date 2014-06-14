@@ -255,7 +255,7 @@ def raisePriority(todoid):
 
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
-    response = Response(unicode(error), mimetype='application/json')
+    response = Response(jsonify({'message': error.message, 'args': list(error.args)}), mimetype='application/json')
     response.status_code = 500
 
     msg = MIMEText(unicode(error))
