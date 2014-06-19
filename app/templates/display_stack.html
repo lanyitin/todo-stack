@@ -26,9 +26,11 @@
                     <div class="input-group input-group-lg">
                         <span class="input-group-btn">
                             <button class="btn btn-success control push" ng-click="push()">Push</button>
+                            <button class="btn btn-default" ng-click="update_input_priority()"</span>{[ input_priority ]}</button>
                         </span>
                         <input type="text" placeholder="Todo descirption" name="item" class="form-control" id="control-todo-content" ng-keypress="content_keypress($event)" ng-model="new_todo_content">
                         <span class="input-group-btn">
+                            <button class="btn btn-default" ng-click="update_input_required_clock()"</span>{[ input_required_clock ]}</button>
                             <button class="btn btn-success control append" ng-click="append()">Append</button>
                         </span>
                     </div>
@@ -37,7 +39,7 @@
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
         </div>
         <div class="stack sortable">
-            <div ng-repeat="todo in stack | is_in_trash: false | orderBy: 'order' | reverse :true" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}">
+            <div ng-repeat="todo in stack | is_in_trash: false | orderBy: 'order' | reverse :true" class="todo container" data-todo-priority="{[ todo.priority ]}" data-todo-order="{[ todo.order ]}" data-todo-id="{[ todo.id ]}" data-todo-required-clock="{[ todo.required_clock ]}" data-todo-extended-clock="{[ todo.extended_clock ]}" data-todo-consumed-colck="{[ todo.consumed_clock ]}">
                 <div ng-include="'{{ url_for('static', filename='html/todo_view.html') }}'"></div>
             </div>
         </div>

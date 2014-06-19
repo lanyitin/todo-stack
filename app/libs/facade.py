@@ -2,6 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from .model import User, Todo
 import operator
 
+
 class Facade:
     '''
         all todo-manipulate method should return a list of effected(changed) todos
@@ -26,30 +27,30 @@ class Facade:
     def find_todos_by_owner(self, owner):
         if owner.id is None:
             return None
-        todos = self.session.query(Todo).filter_by(owner=owner).with_lockmode('update').all()
+        todos = self.session.query(Todo).filter_by(owner=owner).all()
         self.session.flush()
         return todos
 
-    def find_todo_by_id(self, id):
-        todos = self.session.query(Todo).filter_by(id=id).with_lockmode('update').first()
+    def find_todo_by_id(self, userid):
+        todos = self.session.query(Todo).filter_by(id=userid).first()
         self.session.flush()
         return todos
-    
-    def push_todo(self, user, todo):
+
+    def push_todo(self, user, target_todo):
         ''' in order to avoiding coupling with SQLAlchemy
         I prefer not to use **sqlalchemy.sql.expression.func.max**
         '''
         todos = self.find_todos_by_owner(user)
         with self.session.no_autoflush:
             if len(todos) == 0:
-                todo.order = 0
+                target_todo.order = 0
             else:
                 order_list = [todo.order for todo in todos]
                 max_order = max(order_list)
-                todo.order = max_order + 1
-            self.session.add(todo)
+                target_todo.order = max_order + 1
+            self.session.add(target_todo)
             self.session.commit()
-        return [todo]
+        return [target_todo]
 
     def append_todo(self, user, todo):
         exists_todos = sorted(self.find_todos_by_owner(user), key=lambda exists_todo: exists_todo.order)
@@ -130,7 +131,7 @@ class Facade:
         except Exception as e:
             for todo in todos:
                 print(todo.id, todo.order)
-            print(target.id, targer.order)
+            print(target_todo.id, target_todo.order)
             self.session.rollback()
             raise e
 
@@ -160,8 +161,21 @@ class Facade:
             raise PasswordNotCorrectError()
         return user
 
+    def increase_consumed_clock(self, todo):
+        todo.consumed_clock += 1
+        todo.consumed_clock = max(0, todo.consumed_clock)
+        self.session.add(todo)
+        self.session.commit()
+
+    def set_extended_clock(self, todo, extended_clock):
+        todo.extended_clock = max(extended_clock, 0)
+        self.session.add(todo)
+        self.session.commit()
+
 
 class UserNotFoundError(Exception):
     pass
+
+
 class PasswordNotCorrectError(Exception):
     pass

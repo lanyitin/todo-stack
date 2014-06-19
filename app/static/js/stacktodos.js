@@ -1,6 +1,8 @@
 function CoreController($scope, $http, $filter, $sce, $log) {
     $scope.stack = [];
     $scope.expandTrashStack = false;
+    $scope.input_priority = 2;
+    $scope.input_required_clock = 1;
 
     $scope.getExpandTrashText = function () {
         if ($scope.expandTrashStack) {
@@ -8,6 +10,14 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         } else {
             return "Expand";
         }
+    }
+
+    $scope.update_input_priority = function () {
+        $scope.input_priority = ($scope.input_priority + 1) % 5;
+    }
+
+    $scope.update_input_required_clock = function () {
+        $scope.input_required_clock = ($scope.input_required_clock) % 3 + 1;
     }
 
     function getTodoById(id) {
@@ -216,7 +226,9 @@ function AppController($scope, $http, $filter, $sce, $log) {
             }
             var tmp_content = $scope.new_todo_content;
             $scope.new_todo_content = "";
-            $http.post("/push/", {item: tmp_content }).success(function (data, status) {
+            var parameters = {"item": tmp_content, "priority": $scope.input_priority, "required_clock": $scope.input_required_clock};
+            $log.log(parameters);
+            $http.post("/push/", parameters).success(function (data, status) {
                 if (status == 200) {
                     angular.forEach(data, function(item) {
                         $scope.$emit("update", item);
@@ -238,7 +250,9 @@ function AppController($scope, $http, $filter, $sce, $log) {
             }
             var tmp_content = $scope.new_todo_content;
             $scope.new_todo_content = "";
-            $http.post("/append/", {item: tmp_content}).success(function (data, status) {
+            var parameters = {"item": tmp_content, "priority": $scope.input_priority, "required_clock": $scope.input_required_clock};
+            $log.log(parameters);
+            $http.post("/append/", parameters).success(function (data, status) {
                 if (status == 200) {
                     $scope.new_todo_content = "";
                     angular.forEach(data, function(item) {

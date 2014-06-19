@@ -5,6 +5,9 @@
                     <span class="priority btn pull-left" ng-click="raisePriority(todo.id)">{[ todo.priority ]}</span>
                     <span class="content" ng-bind-html="marked(todo.content)"></span>
                     <a ng-repeat="tag in todo.tags" class="badge" href="/tag/{[ tag ]}">{[ tag ]}</a>
+                    <span class="content" style="float: right;">
+                        {[ todo.required_clock + todo.extended_clock - todo.consumed_clock ]}
+                    </span>
                 </div>
                 <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">
                     <span class="delete icon glyphicon glyphicon-remove-circle pull-left" ng-click="removeTodo(todo.id)"></span>

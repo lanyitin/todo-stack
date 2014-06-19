@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-import hashlib
 import json
 import os
+import traceback
 
-from sqlalchemy import create_engine, and_, desc
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from flask import Flask, request, g, redirect, url_for, \
     render_template, make_response, Response, session, \
-    jsonify
+    jsonify, flash
 from flask.ext.assets import Environment
 from flask.ext.login import LoginManager, login_user, \
     logout_user, current_user, login_required
-from .libs.model import Base, Todo, User, Connection
+from .libs.model import Todo, User, Connection
 from .libs.facade import Facade
 from flask_oauth import OAuth
 
@@ -62,6 +62,9 @@ def todo2dict(todo):
         "priority": todo.priority,
         "order": todo.order,
         "in_trash": todo.in_trash,
+        "required_clock": todo.required_clock,
+        "extended_clock": todo.extended_clock,
+        "consumed_clock": todo.consumed_clock
     }
 
 
@@ -78,6 +81,7 @@ def before_request():
     g.facade = Facade(session=g.db_session, engine=engine)
     g.user = current_user
 
+
 @app.after_request
 def after_request(response):
     g.db_session.close()
@@ -89,7 +93,6 @@ def after_request(response):
 @login_manager.user_loader
 def load_user(id):
     return g.db_session.query(User).filter_by(id=id).first()
-
 
 
 @app.route('/login/', methods=['GET', 'POST'])
@@ -199,14 +202,30 @@ def main():
 @app.route('/push/', methods=["POST"])
 @login_required
 def pushItem():
-    todos = g.facade.push_todo(g.user, Todo(content=request.json["item"], owner=g.user))
+    todos = g.facade.push_todo(
+        g.user,
+        Todo(
+            content=request.json["item"],
+            owner=g.user,
+            required_clock=request.json["required_clock"],
+            priority=request.json["priority"]
+        )
+    )
     return Response(json.dumps([todo2dict(todos[0])]), mimetype='application/json')
 
 
 @app.route('/append/', methods=["POST"])
 @login_required
 def appendItem():
-    response = g.facade.append_todo(g.user, Todo(content=request.json["item"], owner=g.user))
+    response = g.facade.push_todo(
+        g.user,
+        Todo(
+            content=request.json["item"],
+            owner=g.user,
+            required_clock=request.json["required_clock"],
+            priority=request.json["priority"]
+        )
+    )
     response = map(todo2dict, response)
     return Response(json.dumps(response), mimetype='application/json')
 
@@ -255,6 +274,7 @@ def raisePriority(todoid):
 
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
+    traceback.print_exc()
     response = Response(json.dumps({'message': error.message, 'args': list(error.args)}), mimetype='application/json')
     response.status_code = 500
 

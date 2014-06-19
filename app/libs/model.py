@@ -8,6 +8,7 @@ from datetime import datetime
 
 Base = declarative_base()
 
+
 class User(Base):
     '''
     Attributes:
@@ -26,9 +27,9 @@ class User(Base):
     '''
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
-    username = Column(String(80), unique=True, nullable = False)
-    email = Column(String(120), unique=True, nullable = False)
-    __password__ = Column('password', String(120), nullable = False)
+    username = Column(String(80), unique=True, nullable=False)
+    email = Column(String(120), unique=True, nullable=False)
+    __password__ = Column('password', String(120), nullable=False)
 
     @classmethod
     def generate_password_hash(clazz, password):
@@ -41,6 +42,7 @@ class User(Base):
             password(str): plain text of password
         '''
         return self.__password__
+
     @password.setter
     def password(self, password):
         self.__password__ = User.generate_password_hash(password)
@@ -68,6 +70,7 @@ class User(Base):
         ''' used by flask-login '''
         return self.id
 
+
 class Connection(Base):
     __tablename__ = 'connection'
     id = Column(Integer, primary_key=True)
@@ -84,6 +87,8 @@ class Connection(Base):
 #     Column("tag_id", Integer, ForeignKey('tag.id'), nullable = False, primary_key=True)
 # )
 # 
+
+
 class Todo(Base):
     __tablename__ = 'todo'
     __table_args__ = (UniqueConstraint('owner_user_id', 'order', 'in_trash', name="owner_order_trash"),)
@@ -97,36 +102,58 @@ class Todo(Base):
         __table_args__ = ( UniqueConstraint('owner_user_id', 'order', 'in_trash'),)
     '''
     order = Column(Integer, nullable=False)
-    priority = Column(Integer, default = 2, nullable = False)
-    in_trash = Column(Boolean, default=False, nullable = False)
-    owner_user_id = Column(Integer, ForeignKey('user.id'), nullable = False)
-    owner = relationship('User', backref = backref('todos', lazy='subquery'))
+    priority = Column(Integer, nullable=False)
+    in_trash = Column(Boolean, default=False, nullable=False)
+    owner_user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    owner = relationship('User', backref=backref('todos', lazy='subquery'))
+
+    required_clock = Column(Integer, nullable=False)
+    consumed_clock = Column(Integer, nullable=False)
+    extended_clock = Column(Integer, nullable=False)
 
     # tags = relationship("Tag", secondary=tag_todo_assication, backref="todos")
     def raise_priority(self):
         self.priority += 1
         self.priority %= 5
+
     def __str__(self):
-        return unicode({"id":self.id, "content":self.content, "order":self.order, "owner_user_id":self.owner_user_id, "priority":self.priority})
+        return unicode({
+            "id": self.id,
+            "content": self.content,
+            "order": self.order,
+            "owner_user_id": self.owner_user_id,
+            "priority": self.priority
+        })
+
     def __repr__(self):
         return self.__str__()
-    def __init__(self, content, owner):
+
+    def __init__(self, content, owner, required_clock, priority=2):
+        if required_clock < 0:
+            raise InvalidateRequiredCloclException()
         self.order = -1
         self.owner = owner
         self.push_date_time = datetime.utcnow()
+        self.priority = priority
+        self.required_clock = required_clock
+        self.consumed_clock = 0
+        self.extended_clock = 0
         if len(unicode(content)) == 0:
             content = None
         self.content = content
-# 
+#
 # class Tag(Base):
 #     __tablename__ = 'tag'
 #     id = Column(Integer, primary_key=True)
 #     name = Column(String(80, collation='utf8_general_ci'), unique=True, nullable = False)
-# 
+#
 #     owner_user_id = Column(Integer, ForeignKey('user.id'), nullable = False)
 #     owner = relationship('User', backref = backref('tags', lazy='dynamic'))
-# 
+#
 #     def __str__(self):
 #         return str({"id":self.id, "name":self.name})
 #     def __repr__(self):
 #         return self.__str__()
+
+class InvalidateRequiredCloclException(Exception):
+    pass
