@@ -5,12 +5,13 @@ import traceback
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import QueuePool
 
 from flask import Flask, request, g, redirect, url_for, \
     render_template, make_response, Response, session, \
-    jsonify, flash
-from flask.ext.assets import Environment
-from flask.ext.login import LoginManager, login_user, \
+    flash
+from flask_assets import Environment
+from flask_login import LoginManager, login_user, \
     logout_user, current_user, login_required
 from .libs.model import Todo, User, Connection
 from .libs.facade import Facade
@@ -34,7 +35,7 @@ if 'STACKTODOS_DEVELOPMENT_ENVIRONMENT' in os.environ:
 else:
     app.config.from_object(ProductionConfig)
 
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
+engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=True, poolclass=QueuePool, pool_size=20, max_overflow=0)
 Session = sessionmaker()
 Session.configure(bind=engine)  # once engine is available
 
