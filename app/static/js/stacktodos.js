@@ -50,6 +50,16 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         } else {
             $scope.stack[getIndexById(item.id)] = item
         }
+
+        var top_todo = $filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false);
+        if (top_todo.length > 0) {
+            top_todo = top_todo[0];
+            if (top_todo.required_clock + top_todo.extended_clock - top_todo.consumed_clock <= 0) {
+                if (confirm("do you want to pop out the top task")) {
+                    $scope.pop();
+                }
+            }
+        }
     }
 
 
@@ -203,7 +213,7 @@ function DemoController($scope, $http, $filter, $sce, $log, $interval, $timeout)
     });
 }
 
-function AppController($scope, $http, $filter, $sce, $log) {
+function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
     CoreController.call(this, $scope, $http, $filter, $sce, $log);
     $scope.raisePriority = function (id) {
         $http.get("/raisePriority/" + id + "/")
@@ -218,6 +228,21 @@ function AppController($scope, $http, $filter, $sce, $log) {
             });
     }
 
+    $rootScope.$on("TomatoeConsumed", function (evt) {
+        target = $filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false);
+        if (target.length) {
+            target = target[0];
+            $http.get("/consume/" + target.id + "/")
+                .success(function (data, status){
+                    if (status == 200) {
+                        angular.forEach(data, function(item) {
+                            $scope.$emit('update', item);
+                        });
+                    }
+                });
+        }
+    });
+
 
     $scope.push = function (todo) {
         if (todo === undefined) {
@@ -227,7 +252,6 @@ function AppController($scope, $http, $filter, $sce, $log) {
             var tmp_content = $scope.new_todo_content;
             $scope.new_todo_content = "";
             var parameters = {"item": tmp_content, "priority": $scope.input_priority, "required_clock": $scope.input_required_clock};
-            $log.log(parameters);
             $http.post("/push/", parameters).success(function (data, status) {
                 if (status == 200) {
                     angular.forEach(data, function(item) {
@@ -251,7 +275,6 @@ function AppController($scope, $http, $filter, $sce, $log) {
             var tmp_content = $scope.new_todo_content;
             $scope.new_todo_content = "";
             var parameters = {"item": tmp_content, "priority": $scope.input_priority, "required_clock": $scope.input_required_clock};
-            $log.log(parameters);
             $http.post("/append/", parameters).success(function (data, status) {
                 if (status == 200) {
                     $scope.new_todo_content = "";
@@ -323,7 +346,7 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
     $interpolateProvider.startSymbol('{[');
         $interpolateProvider.endSymbol(']}');
 })
-.controller("Tomatoes", function($scope, $interval) {
+.controller("Tomatoes", function($scope, $rootScope, $interval) {
     var breakSound = new Audio("static/sound/doorbell-1.mp3");
     var workSound = new Audio("static/sound/doorbell-2.mp3");
     function Countdown(num) {
@@ -340,11 +363,12 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         this.counter = new Countdown(25 * 60);
         this.tick = function () {
             this.counter.tick()
-    if  (this.counter.number > 0) {
-        return this;
-    } else {
-        return new BreakClock();
-    }
+            if  (this.counter.number > 0) {
+                return this;
+            } else {
+                $rootScope.$emit("TomatoeConsumed");
+                return new BreakClock();
+            }
         }
     }
 

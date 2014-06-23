@@ -163,9 +163,10 @@ class Facade:
 
     def increase_consumed_clock(self, todo):
         todo.consumed_clock += 1
-        todo.consumed_clock = max(0, todo.consumed_clock)
+        todo.consumed_clock = min(todo.required_clock + todo.extended_clock, todo.consumed_clock)
         self.session.add(todo)
         self.session.commit()
+        return todo
 
     def set_extended_clock(self, todo, extended_clock):
         todo.extended_clock = max(extended_clock, 0)

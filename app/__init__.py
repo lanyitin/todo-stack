@@ -273,6 +273,13 @@ def raisePriority(todoid):
     return Response(json.dumps([todo2dict(todos[0])]), mimetype='application/json')
 
 
+@app.route('/consume/<int:todoid>/', methods=["GET"])
+@login_required
+def increased_consumed_clock(todoid):
+    todo = g.facade.increase_consumed_clock(g.facade.find_todo_by_id(todoid))
+    return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
+
+
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
     traceback.print_exc()
