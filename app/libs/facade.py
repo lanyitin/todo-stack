@@ -166,12 +166,14 @@ class Facade:
         todo.consumed_clock = min(todo.required_clock + todo.extended_clock, todo.consumed_clock)
         self.session.add(todo)
         self.session.commit()
-        return todo
+        return [todo]
 
-    def set_extended_clock(self, todo, extended_clock):
-        todo.extended_clock = max(extended_clock, 0)
+
+    def add_extended_clock(self, todo, extended_clock):
+        todo.extended_clock = max(todo.extended_clock + extended_clock, 0)
         self.session.add(todo)
         self.session.commit()
+        return [todo]
 
 
 class UserNotFoundError(Exception):

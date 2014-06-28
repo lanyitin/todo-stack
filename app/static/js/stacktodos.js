@@ -41,10 +41,10 @@ function CoreController($scope, $http, $filter, $sce, $log) {
     }
 
 
-    $scope.$on('update', function (event, todo) {
-        handleItem(todo);
+    $scope.$on('update', function (event, todo, notAlarm) {
+        handleItem(todo, notAlarm);
     });
-    function handleItem(item) {
+    function handleItem(item, notAlarm) {
         if (getTodoById(item.id) == undefined) {
             $scope.stack.push(item);
         } else {
@@ -52,13 +52,20 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         }
 
         var top_todo = $filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false);
-        if (top_todo.length > 0) {
-            top_todo = top_todo[0];
-            if (top_todo.required_clock + top_todo.extended_clock - top_todo.consumed_clock <= 0) {
-                if (confirm("do you want to pop out the top task")) {
-                    $scope.pop();
-                }
-            }
+        if (top_todo.length === 0) {
+            return;
+        }
+        top_todo = top_todo[0];
+        if (top_todo.required_clock + top_todo.extended_clock - top_todo.consumed_clock > 0) {
+            return;
+        }
+        if (notAlarm) {
+            $scope.pop();
+        } else {
+            $("#todoManipulateModal").modal({
+                show: true,
+                backdrop: 'static'
+            });
         }
     }
 
@@ -215,6 +222,8 @@ function DemoController($scope, $http, $filter, $sce, $log, $interval, $timeout)
 
 function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
     CoreController.call(this, $scope, $http, $filter, $sce, $log);
+
+
     $scope.raisePriority = function (id) {
         $http.get("/raisePriority/" + id + "/")
             .success(function (data, status){
@@ -236,7 +245,7 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
                 .success(function (data, status){
                     if (status == 200) {
                         angular.forEach(data, function(item) {
-                            $scope.$emit('update', item);
+                            $scope.$emit('update', item, false);
                         });
                     }
                 });
@@ -334,6 +343,22 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
             } else {
                 $scope.append();
             }
+        }
+    }
+
+    $scope.addClock = function (event) {
+        target = $filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false);
+        if (target.length) {
+            target = target[0];
+            target.in_trash = true;
+            $http.get("/add_extended_clock/" + target.id + "/" + 1 + "/")
+                .success(function (data, status) {
+                    data = data[0];
+                    if (status == 200 && data.id == target.id) {
+                        target.order = data.order;
+                        $scope.$emit('update', data);
+                    }
+                });
         }
     }
 

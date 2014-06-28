@@ -277,8 +277,13 @@ def raisePriority(todoid):
 @login_required
 def increased_consumed_clock(todoid):
     todo = g.facade.increase_consumed_clock(g.facade.find_todo_by_id(todoid))
-    return Response(json.dumps([todo2dict(todo)]), mimetype='application/json')
+    return Response(json.dumps([todo2dict(todo[0])]), mimetype='application/json')
 
+@app.route('/add_extended_clock/<int:todoid>/<int:number>/', methods=["GET"])
+@login_required
+def add_extended_clock(todoid, number):
+    todo = g.facade.add_extended_clock(g.facade.find_todo_by_id(todoid), number)
+    return Response(json.dumps([todo2dict(todo[0])]), mimetype='application/json')
 
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
