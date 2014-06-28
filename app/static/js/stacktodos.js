@@ -361,6 +361,12 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
                 });
         }
     }
+    $(document).on('hidden.bs.modal', '#todoManipulateModal', function (event) {
+        $rootScope.$emit("resume_clock");
+    });
+    $(document).on('show.bs.modal', '#todoManipulateModal', function (event) {
+        $rootScope.$emit("pause_clock");
+    });
 
 }
 AppController.prototype = Object.create(CoreController.prototype);
@@ -374,6 +380,9 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
 .controller("Tomatoes", function($scope, $rootScope, $interval) {
     var breakSound = new Audio("static/sound/doorbell-1.mp3");
     var workSound = new Audio("static/sound/doorbell-2.mp3");
+
+    var paused_clock = null;
+
     function Countdown(num) {
         this.number = num;
         this.tick = function () {
@@ -412,8 +421,8 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         }
     }
 
-    function NullClock() {
-        this.counter = new Countdown(25 * 60);
+    function NullClock(seconds) {
+        this.counter = new Countdown(seconds);
         this.tick = function () {
             return this;
         }
@@ -454,14 +463,29 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         if ($scope.clock instanceof NullClock) {
             $scope.clock = new TomatoesClock(true);
         } else {
-            $scope.clock = new NullClock();
+            $scope.clock = new NullClock(25 * 60);
         }
     }
 
-    $scope.clock = new NullClock();
+    $scope.pause_clock = function () {
+        paused_clock = $scope.clock;
+        $scope.clock = new NullClock($scope.clock.counter.number);
+
+    }
+    $rootScope.$on("pause_clock", $scope.pause_clock);
+
+    $scope.resume_clock = function () {
+        if (paused_clock != null) {
+            $scope.clock = paused_clock;
+        }
+    }
+    $rootScope.$on("resume_clock", $scope.resume_clock);
+
+    $scope.clock = new NullClock(25 * 60);
     $interval(function () {
         $scope.clock = $scope.clock.tick();
     }, 1000);
+
 })
 .controller("AppController", AppController)
 .filter('reverse', function() {
@@ -523,5 +547,4 @@ $(function() {
         handle: ".sort.icon",
         axis: "y"
     });
-
 });
