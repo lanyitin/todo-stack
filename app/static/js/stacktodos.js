@@ -373,7 +373,7 @@ AppController.prototype = Object.create(CoreController.prototype);
 DemoController.prototype = Object.create(CoreController.prototype);
 
 
-angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvider) {
+angular.module("Stacktodos", ["ng"], function($interpolateProvider) {
     $interpolateProvider.startSymbol('{[');
         $interpolateProvider.endSymbol(']}');
 })
