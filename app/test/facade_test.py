@@ -321,5 +321,5 @@ class facade_test(DatabaseTestCase):
         self.assertEquals(3, todo.required_clock)
         self.assertEquals(1, todo.consumed_clock)
         self.assertEquals(0, todo.extended_clock)
-        self.facade.set_extended_clock(todo, 3)
+        self.facade.add_extended_clock(todo, 3)
         self.assertEquals(3, todo.extended_clock)

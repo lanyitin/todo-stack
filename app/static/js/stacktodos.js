@@ -10,18 +10,18 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         } else {
             return "Expand";
         }
-    }
+    };
 
     $scope.update_input_priority = function () {
         $scope.input_priority = ($scope.input_priority + 1) % 5;
-    }
+    };
 
     $scope.update_input_required_clock = function () {
         $scope.input_required_clock = ($scope.input_required_clock) % 3 + 1;
-    }
+    };
 
     function getTodoById(id) {
-        var target = undefined;
+        var target;
         angular.forEach($scope.stack, function(item) {
             if (item.id == id) {
                 target = item;
@@ -31,7 +31,7 @@ function CoreController($scope, $http, $filter, $sce, $log) {
     }
 
     function getIndexById(id) {
-        var target = undefined;
+        var target;
         angular.forEach($scope.stack, function(item, idx) {
             if (item.id == id) {
                 target = idx;
@@ -45,10 +45,10 @@ function CoreController($scope, $http, $filter, $sce, $log) {
         handleItem(todo, notAlarm);
     });
     function handleItem(item, notAlarm) {
-        if (getTodoById(item.id) == undefined) {
+        if (getTodoById(item.id) === undefined) {
             $scope.stack.push(item);
         } else {
-            $scope.stack[getIndexById(item.id)] = item
+            $scope.stack[getIndexById(item.id)] = item;
         }
 
         var top_todo = $filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false);
@@ -75,7 +75,7 @@ function CoreController($scope, $http, $filter, $sce, $log) {
             order_list = $scope.stack.map(function (todo) {
                 return todo.order;
             });
-            todo = {content:$scope.new_todo_content, priority:2, tags:[], id:undefined, order:(Math.max.apply(-1, order_list) + 1), in_trash: false}
+            todo = {content:$scope.new_todo_content, priority:2, tags:[], id:undefined, order:(Math.max.apply(-1, order_list) + 1), in_trash: false};
             todo.id = Date.now();
             if (todo.order === -Infinity) {
                 todo.order = 0;
@@ -83,11 +83,11 @@ function CoreController($scope, $http, $filter, $sce, $log) {
             $scope.new_todo_content = "";
         }
         $scope.$emit("update", todo);
-    }
+    };
 
     $scope.append = function (todo) {
         if (todo === undefined) {
-            todo = {content:$scope.new_todo_content, priority:2, tags:[], id:undefined, order:0, in_trash: false}
+            todo = {content:$scope.new_todo_content, priority:2, tags:[], id:undefined, order:0, in_trash: false};
             todo.id = Date.now();
             $scope.new_todo_content = "";
         }
@@ -96,7 +96,7 @@ function CoreController($scope, $http, $filter, $sce, $log) {
             $scope.$emit('update', item);
         });
         $scope.$emit("update", todo);
-    }
+    };
 
     $scope.$on("removeItem", function (event, target_todo) {
         var tmp_stack = [];
@@ -108,16 +108,16 @@ function CoreController($scope, $http, $filter, $sce, $log) {
                 delete tmp_stack[idx];
             }
         });
-        $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined})
+        $scope.stack = $.grep(tmp_stack, function (item) {return item !== undefined;});
     });
     $scope.removeTodo = function (id) {
         var todo = getTodoById(id);
         $scope.$emit("removeItem", todo);
-    }
+    };
 
     $scope.$on('pop', function (event, target) {
         tmp_stack = [];
-        if (target == undefined) {
+        if (target === undefined) {
             angular.forEach($filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false), function (todo) {
                 tmp_stack.push(todo);
             });
@@ -137,19 +137,19 @@ function CoreController($scope, $http, $filter, $sce, $log) {
 
     $scope.pop = function () {
         $scope.$emit('pop');
-    }
+    };
 
 
     $scope.moveTodo = function (todo) {
         handleItem(todo);
-    }
+    };
 
 
     $scope.raisePriority = function (id) {
         var todo = getTodoById(id);
         todo.priority  = (todo.priority + 1) % 5;
         $scope.$emit('update', todo);
-    }
+    };
 
     $scope.content_keypress = function (event) {
         if (event.keyCode == 13) {
@@ -159,7 +159,7 @@ function CoreController($scope, $http, $filter, $sce, $log) {
                 $scope.append();
             }
         }
-    }
+    };
 
     $scope.$on('cleanTrash', function (event) {
         var tmp_stack = [];
@@ -167,25 +167,25 @@ function CoreController($scope, $http, $filter, $sce, $log) {
             tmp_stack.push(existTodo);
         });
         angular.forEach(tmp_stack, function(existTodo, idx) {
-            if (existTodo.in_trash == true) {
+            if (existTodo.in_trash === true) {
                 delete tmp_stack[idx];
             }
         });
-        $scope.stack = $.grep(tmp_stack, function (item) {return item != undefined});
+        $scope.stack = $.grep(tmp_stack, function (item) {return item !== undefined;});
     });
     $scope.clean_trash = function () {
         $scope.$emit('cleanTrash');
-    }
+    };
 
 
     $scope.toggleExpandTrash = function () {
         $scope.expandTrashStack ^= true;
-    }
+    };
 
 
     $scope.marked = function (str) {
         return $sce.trustAsHtml(marked(str));
-    }
+    };
 }
 
 function DemoController($scope, $http, $filter, $sce, $log, $interval, $timeout) {
@@ -229,13 +229,13 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
             .success(function (data, status){
                 if (status == 200) {
                     angular.forEach(data, function(item) {
-                        if (item.id = id) {
+                        if (item.id == id) {
                             $scope.$emit('update', item);
                         }
                     });
                 }
             });
-    }
+    };
 
     $rootScope.$on("TomatoeConsumed", function (evt) {
         target = $filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false);
@@ -255,7 +255,7 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
 
     $scope.push = function (todo) {
         if (todo === undefined) {
-            if ($scope.new_todo_content.trim() == "") {
+            if ($scope.new_todo_content.trim() === "") {
                 return;
             }
             var tmp_content = $scope.new_todo_content;
@@ -273,12 +273,12 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
         } else {
             $scope.$emit("update", todo);
         }
-    }
+    };
 
 
     $scope.append = function (todo) {
         if (todo === undefined) {
-            if ($scope.new_todo_content.trim() == "") {
+            if ($scope.new_todo_content.trim() === "") {
                 return;
             }
             var tmp_content = $scope.new_todo_content;
@@ -297,7 +297,7 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
         } else {
             $scope.$emit("update", todo);
         }
-    }
+    };
 
 
     $scope.removeTodo = function (id) {
@@ -307,7 +307,7 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
                     $scope.$emit("removeItem", data[0]);
                 }
             });
-    }
+    };
 
 
     $scope.pop = function () {
@@ -324,7 +324,7 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
                     }
                 });
         }
-    }
+    };
 
 
     $scope.clean_trash = function () {
@@ -334,7 +334,7 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
                     $scope.$emit("cleanTrash");
                 }
             });
-    }
+    };
 
     $scope.content_keypress = function (event) {
         if (event.keyCode == 13) {
@@ -344,7 +344,7 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
                 $scope.append();
             }
         }
-    }
+    };
 
     $scope.addClock = function (event) {
         target = $filter('is_in_trash')($filter('orderBy')($scope.stack, "order", true), false);
@@ -360,7 +360,7 @@ function AppController($scope, $rootScope, $http, $filter, $sce, $log) {
                     }
                 });
         }
-    }
+    };
     $(document).on('hidden.bs.modal', '#todoManipulateModal', function (event) {
         $rootScope.$emit("resume_clock");
     });
@@ -387,7 +387,7 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         this.number = num;
         this.tick = function () {
             this.number -= 1;
-        }
+        };
     }
 
     function TomatoesClock(noSound) {
@@ -396,14 +396,14 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         }
         this.counter = new Countdown(25 * 60);
         this.tick = function () {
-            this.counter.tick()
+            this.counter.tick();
             if  (this.counter.number > 0) {
                 return this;
             } else {
                 $rootScope.$emit("TomatoeConsumed");
                 return new BreakClock();
             }
-        }
+        };
     }
 
     function BreakClock(noSound) {
@@ -412,20 +412,20 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         }
         this.counter = new Countdown(5 * 60);
         this.tick = function () {
-            this.counter.tick()
-                if  (this.counter.number > 0) {
-                    return this;
-                } else {
-                    return new TomatoesClock();
-                }
-        }
+            this.counter.tick();
+            if  (this.counter.number > 0) {
+                return this;
+            } else {
+                return new TomatoesClock();
+            }
+        };
     }
 
     function NullClock(seconds) {
         this.counter = new Countdown(seconds);
         this.tick = function () {
             return this;
-        }
+        };
     }
 
     $scope.get_remain_time = function() {
@@ -441,7 +441,7 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
             sec_str = "0" + sec_str.toString();
         }
         return min_str + ":" + sec_str;
-    }
+    };
 
     $scope.get_trigger_text = function () {
         if ($scope.clock instanceof NullClock) {
@@ -449,7 +449,7 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         } else {
             return "Stop";
         }
-    }
+    };
 
     $scope.get_trigger_style = function () {
         if ($scope.clock instanceof NullClock) {
@@ -457,7 +457,7 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         } else {
             return "btn-danger";
         }
-    }
+    };
 
     $scope.trigger = function () {
         if ($scope.clock instanceof NullClock) {
@@ -465,20 +465,20 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
         } else {
             $scope.clock = new NullClock(25 * 60);
         }
-    }
+    };
 
     $scope.pause_clock = function () {
         paused_clock = $scope.clock;
         $scope.clock = new NullClock($scope.clock.counter.number);
 
-    }
+    };
     $rootScope.$on("pause_clock", $scope.pause_clock);
 
     $scope.resume_clock = function () {
-        if (paused_clock != null) {
+        if (paused_clock !== null) {
             $scope.clock = paused_clock;
         }
-    }
+    };
     $rootScope.$on("resume_clock", $scope.resume_clock);
 
     $scope.clock = new NullClock(25 * 60);
@@ -511,7 +511,7 @@ angular.module("Stacktodos", ["ng", "ui.sortable"], function($interpolateProvide
             }
         });
         return ary;
-    }
+    };
 });
 
 $(document).on("keyup", function(ev) {

@@ -18,3 +18,5 @@ app.wsgi
 .coverage
 
 .envrc
+
+node_modules/
