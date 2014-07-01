@@ -218,7 +218,7 @@ def pushItem():
 @app.route('/append/', methods=["POST"])
 @login_required
 def appendItem():
-    response = g.facade.push_todo(
+    response = g.facade.append_todo(
         g.user,
         Todo(
             content=request.json["item"],
@@ -279,11 +279,13 @@ def increased_consumed_clock(todoid):
     todo = g.facade.increase_consumed_clock(g.facade.find_todo_by_id(todoid))
     return Response(json.dumps([todo2dict(todo[0])]), mimetype='application/json')
 
+
 @app.route('/add_extended_clock/<int:todoid>/<int:number>/', methods=["GET"])
 @login_required
 def add_extended_clock(todoid, number):
     todo = g.facade.add_extended_clock(g.facade.find_todo_by_id(todoid), number)
     return Response(json.dumps([todo2dict(todo[0])]), mimetype='application/json')
+
 
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
@@ -301,8 +303,8 @@ def handle_invalid_usage(error):
 
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
-    s = smtplib.SMTP('localhost')
-    s.sendmail(msg['From'], [msg['To']], msg.as_string())
-    s.quit()
+    smtp = smtplib.SMTP('localhost')
+    smtp.sendmail(msg['From'], [msg['To']], msg.as_string())
+    smtp.quit()
 
     return response
