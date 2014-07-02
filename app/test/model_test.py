@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from nose.tools import raises
-from ..libs.model import User, Todo, Base, InvalidateRequiredCloclException
+from ..libs.model import User, Todo, Base, InvalidateRequiredClockException
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -146,7 +146,7 @@ class tag_test(DatabaseTestCase):
 
 class todo_test(DatabaseTestCase):
 
-    @raises(InvalidateRequiredCloclException)
+    @raises(InvalidateRequiredClockException)
     def test_required_clock_can_not_less_than_zero(self):
         user = User(
             username="username1",

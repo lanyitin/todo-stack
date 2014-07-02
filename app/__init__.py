@@ -185,7 +185,7 @@ def oauth_authorized(oauth_resp):
 
 
 @facebook.tokengetter
-def get_twitter_token(token=None):
+def get_facebook_token(token=None):
     return session.get('facebook_token')
 
 
@@ -226,7 +226,7 @@ def pushItem():
         g.user,
         Todo(
             content=request.json["item"],
-            owner=g.user,
+            owner=None,
             required_clock=request.json["required_clock"],
             priority=request.json["priority"]
         )

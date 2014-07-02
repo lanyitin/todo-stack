@@ -42,12 +42,13 @@ class Facade:
         '''
         todos = self.find_todos_by_owner(user)
         with self.session.no_autoflush:
-            if len(todos) == 0:
+            if todos is None or len(todos) == 0:
                 target_todo.order = 0
             else:
                 order_list = [todo.order for todo in todos]
                 max_order = max(order_list)
                 target_todo.order = max_order + 1
+            target_todo.owner = user
             self.session.add(target_todo)
             self.session.commit()
         return [target_todo]
@@ -129,9 +130,6 @@ class Facade:
             self.session.add(target_todo)
             self.session.commit()
         except Exception as e:
-            for todo in todos:
-                print(todo.id, todo.order)
-            print(target_todo.id, target_todo.order)
             self.session.rollback()
             raise e
 

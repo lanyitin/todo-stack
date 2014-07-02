@@ -130,7 +130,7 @@ class Todo(Base):
 
     def __init__(self, content, owner, required_clock, priority=2):
         if required_clock < 0:
-            raise InvalidateRequiredCloclException()
+            raise InvalidateRequiredClockException()
         self.order = -1
         self.owner = owner
         self.push_date_time = datetime.utcnow()
@@ -155,5 +155,5 @@ class Todo(Base):
 #     def __repr__(self):
 #         return self.__str__()
 
-class InvalidateRequiredCloclException(Exception):
+class InvalidateRequiredClockException(Exception):
     pass
