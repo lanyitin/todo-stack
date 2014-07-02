@@ -2,7 +2,7 @@ Flask==0.10.1
 
 Flask-Assets==0.8
 
-Flask-Login==0.2.9
+Flask-Login==0.2.11
 
 Flask-Script==0.6.6
 
