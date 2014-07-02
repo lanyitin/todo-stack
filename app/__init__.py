@@ -2,6 +2,7 @@
 import json
 import os
 import traceback
+import base64
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -35,7 +36,7 @@ if 'STACKTODOS_DEVELOPMENT_ENVIRONMENT' in os.environ:
 else:
     app.config.from_object(ProductionConfig)
 
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=True, poolclass=QueuePool, pool_size=20, max_overflow=0)
+engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False, poolclass=QueuePool, pool_size=20, max_overflow=0)
 Session = sessionmaker()
 Session.configure(bind=engine)  # once engine is available
 
@@ -43,6 +44,7 @@ assets = Environment(app)
 
 login_manager.init_app(app)
 login_manager.login_view = "login"
+
 
 facebook = oauth.remote_app(
     'facebook',
@@ -94,6 +96,23 @@ def after_request(response):
 @login_manager.user_loader
 def load_user(id):
     return g.db_session.query(User).filter_by(id=id).first()
+
+@login_manager.request_loader
+def load_user_from_request(request):
+    # first, try to login using the api_key url arg
+    api_key = request.args.get('api_key')
+    if api_key is None and request.json is not None:
+        api_key = request.json['api_key']
+    if api_key:
+        decoded_str = base64.b64decode(api_key)
+        username, password = decoded_str.split(';')
+        if password is None:
+            password = ''
+        user = g.facade.find_user_by_credential(username, password)
+        if user:
+            return user
+    # finally, return None if both methods did not login the user
+    return None
 
 
 @app.route('/login/', methods=['GET', 'POST'])

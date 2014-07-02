@@ -43,6 +43,7 @@ class DatabaseTestCase(unittest.TestCase):
     def tearDown(self):
         self.session.close()
         Base.metadata.drop_all(self.engine)
+        Base.metadata.create_all(self.engine)
 
 
 class user_model_test(DatabaseTestCase):
