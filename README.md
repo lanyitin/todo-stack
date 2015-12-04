@@ -2,7 +2,7 @@ Master: [![Master Build Status](https://travis-ci.org/lanyitin/todo-stack.svg?br
 
 Develop:[![Develop Build Status](https://travis-ci.org/lanyitin/todo-stack.svg?branch=develop)](https://travis-ci.org/lanyitin/todo-stack)
 
-Civerage: [![Coverage Status](https://coveralls.io/repos/lanyitin/stack-todos/badge.png)](https://coveralls.io/r/lanyitin/stack-todos)
+Coverage: [![Coverage Status](https://coveralls.io/repos/lanyitin/stack-todos/badge.png)](https://coveralls.io/r/lanyitin/stack-todos)
 
 # Main Idea
 Manage the todo in stack-way.
